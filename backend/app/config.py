@@ -10,6 +10,7 @@ class Settings(BaseSettings):
 
     app_name: str = "IDX Portfolio Dashboard"
     database_url: str  # required — no default so a missing env fails loudly
+    idx_base_url: str = "https://www.idx.co.id"  # overridable for tests/failure drills
 
 
 @lru_cache

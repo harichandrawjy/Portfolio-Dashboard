@@ -1,0 +1,964 @@
+ticker,name,sector,board
+AADI,Adaro Andalan Indonesia Tbk.,Energi,Main
+AALI,Astra Agro Lestari Tbk.,Barang Konsumen Primer,Main
+ABBA,Mahaka Media Tbk.,Barang Konsumen Non-Primer,Watchlist
+ABDA,Asuransi Bina Dana Arta Tbk.,Keuangan,Development
+ABMM,ABM Investama Tbk.,Energi,Main
+ACES,Aspirasi Hidup Indonesia Tbk.,Barang Konsumen Non-Primer,Main
+ACRO,Samcro Hyosung Adilestari Tbk.,Barang Konsumen Non-Primer,Development
+ACST,Acset Indonusa Tbk.,Infrastruktur,Watchlist
+ADCP,Adhi Commuter Properti Tbk.,Properti & Real Estat,Development
+ADES,Akasha Wira International Tbk.,Barang Konsumen Primer,Main
+ADHI,Adhi Karya (Persero) Tbk.,Infrastruktur,Main
+ADMF,Adira Dinamika Multi Finance T,Keuangan,Development
+ADMG,Polychem Indonesia Tbk,Barang Baku,Development
+ADMR,Alamtri Minerals Indonesia Tbk,Energi,Main
+ADRO,Alamtri Resources Indonesia Tb,Energi,Main
+AEGS,Anugerah Spareparts Sejahtera,Barang Konsumen Non-Primer,Acceleration
+AGAR,Asia Sejahtera Mina Tbk.,Barang Konsumen Primer,Development
+AGII,Samator Indo Gas Tbk.,Barang Baku,Development
+AGRO,Bank Raya Indonesia Tbk.,Keuangan,Main
+AGRS,Bank IBK Indonesia Tbk.,Keuangan,Development
+AHAP,Asuransi Harta Aman Pratama Tb,Keuangan,Development
+AIMS,Artha Mahiya Investama Tbk.,Energi,Development
+AISA,FKS Food Sejahtera Tbk.,Barang Konsumen Primer,Main
+AKKU,Anugerah Kagum Karya Utama Tbk,Barang Konsumen Non-Primer,Watchlist
+AKPI,Argha Karya Prima Industry Tbk,Barang Baku,Development
+AKRA,AKR Corporindo Tbk.,Energi,Main
+AKSI,Mineral Sumberdaya Mandiri Tbk,Transportasi & Logistik,Development
+ALDO,Alkindo Naratama Tbk.,Barang Baku,Main
+ALII,Ancara Logistics Indonesia Tbk,Energi,Main
+ALKA,Alakasa Industrindo Tbk,Barang Baku,Development
+ALMI,Alumindo Light Metal Industry,Barang Baku,Watchlist
+ALTO,Tri Banyan Tirta Tbk.,Barang Konsumen Primer,Watchlist
+AMAG,Asuransi Multi Artha Guna Tbk.,Keuangan,Main
+AMAN,Makmur Berkah Amanda Tbk.,Properti & Real Estat,Development
+AMAR,Bank Amar Indonesia Tbk.,Keuangan,Main
+AMFG,Asahimas Flat Glass Tbk.,Perindustrian,Development
+AMIN,Ateliers Mecaniques D Indonesi,Perindustrian,Development
+AMMN,Amman Mineral Internasional Tb,Barang Baku,Main
+AMMS,Agung Menjangan Mas Tbk.,Barang Konsumen Primer,Acceleration
+AMOR,Ashmore Asset Management Indon,Keuangan,Development
+AMRT,Sumber Alfaria Trijaya Tbk.,Barang Konsumen Primer,Main
+ANDI,Andira Agro Tbk.,Barang Konsumen Primer,Watchlist
+ANJT,Austindo Nusantara Jaya Tbk.,Barang Konsumen Primer,Development
+ANTM,ANTAM (Persero) Tbk.,Barang Baku,Main
+APEX,Apexindo Pratama Duta Tbk.,Energi,Development
+APIC,Pacific Strategic Financial Tb,Keuangan,Development
+APII,Arita Prima Indonesia Tbk.,Perindustrian,Development
+APLI,Asiaplast Industries Tbk.,Barang Baku,Development
+APLN,Agung Podomoro Land Tbk.,Properti & Real Estat,Main
+ARCI,Archi Indonesia Tbk.,Barang Baku,Development
+AREA,Dunia Virtual Online Tbk.,Teknologi,Development
+ARGO,Argo Pantes Tbk,Barang Konsumen Non-Primer,Development
+ARII,Atlas Resources Tbk.,Energi,Development
+ARKA,Arkha Jayanti Persada Tbk.,Perindustrian,Watchlist
+ARKO,Arkora Hydro Tbk.,Infrastruktur,Development
+ARMY,Armidian Karyatama Tbk.,Properti & Real Estat,Watchlist
+ARNA,Arwana Citramulia Tbk.,Perindustrian,Main
+ARTA,Arthavest Tbk,Barang Konsumen Non-Primer,Development
+ARTI,Ratu Prabu Energi Tbk,Energi,Watchlist
+ARTO,Bank Jago Tbk.,Keuangan,Main
+ASBI,Asuransi Bintang Tbk.,Keuangan,Development
+ASDM,Asuransi Dayin Mitra Tbk.,Keuangan,Development
+ASGR,Astra Graphia Tbk.,Perindustrian,Main
+ASHA,Cilacap Samudera Fishing Indus,Barang Konsumen Primer,Development
+ASII,Astra International Tbk.,Perindustrian,Main
+ASJT,Asuransi Jasa Tania Tbk.,Keuangan,Development
+ASLC,Autopedia Sukses Lestari Tbk.,Barang Konsumen Non-Primer,Development
+ASLI,Asri Karya Lestari Tbk.,Infrastruktur,Development
+ASMI,Asuransi Maximus Graha Persada,Keuangan,Watchlist
+ASPI,Andalan Sakti Primaindo Tbk.,Properti & Real Estat,Development
+ASPR,Asia Pramulia Tbk.,Barang Baku,Development
+ASRI,Alam Sutera Realty Tbk.,Properti & Real Estat,Main
+ASRM,Asuransi Ramayana Tbk.,Keuangan,Development
+ASSA,Adi Sarana Armada Tbk.,Transportasi & Logistik,Main
+ATAP,Trimitra Prawara Goldland Tbk.,Properti & Real Estat,Development
+ATIC,Anabatic Technologies Tbk.,Teknologi,Development
+ATLA,Atlantis Subsea Indonesia Tbk.,Energi,Development
+AUTO,Astra Otoparts Tbk.,Barang Konsumen Non-Primer,Main
+AVIA,Avia Avian Tbk.,Barang Baku,Main
+AWAN,Era Digital Media Tbk.,Teknologi,Development
+AXIO,Tera Data Indonusa Tbk.,Teknologi,Development
+AYAM,Janu Putra Sejahtera Tbk.,Barang Konsumen Primer,Development
+AYLS,Arkayana Lestari Grup Tbk.,Barang Baku,Development
+BABP,Bank MNC Internasional Tbk.,Keuangan,Development
+BABY,Multitrend Indo Tbk.,Barang Konsumen Non-Primer,Development
+BACA,Bank Capital Indonesia Tbk.,Keuangan,Main
+BACH,Bach Multi Global Tbk.,Perindustrian,Main
+BAIK,Bersama Mencapai Puncak Tbk.,Barang Konsumen Non-Primer,Development
+BAJA,Saranacentral Bajatama Tbk.,Barang Baku,Development
+BALI,Bali Towerindo Sentra Tbk.,Infrastruktur,Main
+BANK,Bank Aladin Syariah Tbk.,Keuangan,Development
+BAPA,Bekasi Asri Pemula Tbk.,Properti & Real Estat,Development
+BAPI,Bhakti Agung Propertindo Tbk.,Properti & Real Estat,Watchlist
+BATA,Sepatu Bata Tbk.,Barang Konsumen Non-Primer,Watchlist
+BATR,Benteng Api Technic Tbk.,Barang Baku,Development
+BAUT,Mitra Angkasa Sejahtera Tbk.,Barang Konsumen Non-Primer,Watchlist
+BAYU,Bayu Buana Tbk,Barang Konsumen Non-Primer,Main
+BBCA,Bank Central Asia Tbk.,Keuangan,Main
+BBHI,Allo Bank Indonesia Tbk.,Keuangan,Main
+BBKP,Bank KB Indonesia Tbk.,Keuangan,Development
+BBLD,Buana Finance Tbk.,Keuangan,Development
+BBMD,Bank Mestika Dharma Tbk.,Keuangan,Main
+BBNI,Bank Negara Indonesia (Persero,Keuangan,Main
+BBRI,Bank Rakyat Indonesia (Persero,Keuangan,Main
+BBRM,Pelayaran Nasional Bina Buana,Energi,Development
+BBSI,Krom Bank Indonesia Tbk.,Keuangan,Main
+BBSS,Bumi Benowo Sukses Sejahtera T,Properti & Real Estat,Development
+BBTN,Bank Tabungan Negara (Persero),Keuangan,Main
+BBYB,Bank Neo Commerce Tbk.,Keuangan,Main
+BCAP,MNC Kapital Indonesia Tbk.,Keuangan,Main
+BCIC,Bank JTrust Indonesia Tbk.,Keuangan,Development
+BCIP,Bumi Citra Permai Tbk.,Properti & Real Estat,Development
+BDKR,Berdikari Pondasi Perkasa Tbk.,Infrastruktur,Main
+BDMN,Bank Danamon Indonesia Tbk.,Keuangan,Main
+BEBS,Berkah Beton Sadaya Tbk.,Barang Baku,Watchlist
+BEEF,Estika Tata Tiara Tbk.,Barang Konsumen Primer,Development
+BEER,Jobubu Jarum Minahasa Tbk.,Barang Konsumen Primer,Development
+BEKS,Bank Pembangunan Daerah Banten,Keuangan,Watchlist
+BELI,Global Digital Niaga Tbk.,Teknologi,Development
+BELL,Trisula Textile Industries Tbk,Barang Konsumen Non-Primer,Development
+BESS,Batulicin Nusantara Maritim Tb,Energi,Development
+BEST,Bekasi Fajar Industrial Estate,Properti & Real Estat,Main
+BFIN,BFI Finance  Indonesia Tbk.,Keuangan,Main
+BGTG,Bank Ganesha Tbk.,Keuangan,Main
+BHAT,Bhakti Multi Artha Tbk.,Keuangan,Development
+BHIT,MNC Asia Holding Tbk.,Perindustrian,Watchlist
+BIKA,Binakarya Jaya Abadi Tbk.,Properti & Real Estat,Watchlist
+BIKE,Sepeda Bersama Indonesia Tbk.,Barang Konsumen Non-Primer,Development
+BIMA,Primarindo Asia Infrastructure,Barang Konsumen Non-Primer,Watchlist
+BINA,Bank Ina Perdana Tbk.,Keuangan,Main
+BINO,Perma Plasindo Tbk.,Perindustrian,Development
+BIPI,Astrindo Nusantara Infrastrukt,Energi,Development
+BIPP,Bhuwanatala Indah Permai Tbk.,Properti & Real Estat,Development
+BIRD,Blue Bird Tbk.,Transportasi & Logistik,Main
+BISI,BISI International Tbk.,Barang Konsumen Primer,Main
+BJBR,Bank Pembangunan Daerah Jawa B,Keuangan,Main
+BJTM,Bank Pembangunan Daerah Jawa T,Keuangan,Main
+BKDP,Bukit Darmo Property Tbk,Properti & Real Estat,Development
+BKSL,Sentul City Tbk.,Properti & Real Estat,Main
+BKSW,Bank QNB Indonesia Tbk.,Keuangan,Development
+BLES,Superior Prima Sukses Tbk.,Barang Baku,Development
+BLOG,Trimitra Trans Persada Tbk.,Transportasi & Logistik,Main
+BLTA,Berlian Laju Tanker Tbk,Transportasi & Logistik,Watchlist
+BLTZ,Graha Layar Prima Tbk.,Barang Konsumen Non-Primer,Watchlist
+BLUE,Berkah Prima Perkasa Tbk.,Perindustrian,Development
+BMAS,Bank Kasikorn Indonesia Tbk.,Keuangan,Development
+BMBL,Lavender Bina Cendikia Tbk.,Barang Konsumen Non-Primer,Acceleration
+BMHS,Bundamedik Tbk.,Kesehatan,Main
+BMRI,Bank Mandiri (Persero) Tbk.,Keuangan,Main
+BMSR,Bintang Mitra Semestaraya Tbk,Barang Baku,Development
+BMTR,Global Mediacom Tbk.,Barang Konsumen Non-Primer,Main
+BNBA,Bank Bumi Arta Tbk.,Keuangan,Development
+BNBR,Bakrie & Brothers Tbk,Perindustrian,Development
+BNGA,Bank CIMB Niaga Tbk.,Keuangan,Main
+BNII,Bank Maybank Indonesia Tbk.,Keuangan,Main
+BNLI,Bank Permata Tbk.,Keuangan,Main
+BOAT,Newport Marine Services Tbk.,Energi,Development
+BOBA,Formosa Ingredient Factory Tbk,Barang Konsumen Primer,Development
+BOGA,Apollo Global Interactive Tbk.,Barang Konsumen Non-Primer,Development
+BOLA,Bali Bintang Sejahtera Tbk.,Barang Konsumen Non-Primer,Main
+BOLT,Garuda Metalindo Tbk.,Barang Konsumen Non-Primer,Development
+BOSS,Borneo Olah Sarana Sukses Tbk.,Energi,Watchlist
+BPFI,Woori Finance Indonesia Tbk.,Keuangan,Development
+BPII,Batavia Prosperindo Internasio,Keuangan,Development
+BPTR,Batavia Prosperindo Trans Tbk.,Transportasi & Logistik,Development
+BRAM,Indo Kordsa Tbk.,Barang Konsumen Non-Primer,Development
+BREN,Barito Renewables Energy Tbk.,Infrastruktur,Main
+BRIS,Bank Syariah Indonesia (Perser,Keuangan,Main
+BRMS,Bumi Resources Minerals Tbk.,Barang Baku,Main
+BRNA,Berlina Tbk.,Barang Baku,Development
+BRPT,Barito Pacific Tbk.,Barang Baku,Main
+BRRC,Raja Roti Cemerlang Tbk.,Barang Konsumen Primer,Development
+BSBK,Wulandari Bangun Laksana Tbk.,Properti & Real Estat,Development
+BSDE,Bumi Serpong Damai Tbk.,Properti & Real Estat,Main
+BSIM,Bank Sinarmas Tbk.,Keuangan,Main
+BSML,Bintang Samudera Mandiri Lines,Energi,Development
+BSSR,Baramulti Suksessarana Tbk.,Energi,Main
+BSWD,Bank Of India Indonesia Tbk.,Keuangan,Watchlist
+BTEK,Bumi Teknokultura Unggul Tbk,Barang Konsumen Primer,Watchlist
+BTEL,Bakrie Telecom Tbk.,Infrastruktur,Watchlist
+BTON,Betonjaya Manunggal Tbk.,Barang Baku,Development
+BTPN,Bank SMBC Indonesia Tbk.,Keuangan,Main
+BTPS,Bank BTPN Syariah Tbk.,Keuangan,Main
+BUAH,Segar Kumala Indonesia Tbk.,Barang Konsumen Primer,Development
+BUDI,Budi Starch & Sweetener Tbk.,Barang Konsumen Primer,Main
+BUKA,Bukalapak.com Tbk.,Teknologi,Ekonomi Baru
+BUKK,Bukaka Teknik Utama Tbk.,Infrastruktur,Development
+BULL,Buana Lintas Lautan Tbk.,Energi,Development
+BUMI,Bumi Resources Tbk.,Energi,Main
+BUVA,Bukit Uluwatu Villa Tbk.,Barang Konsumen Non-Primer,Development
+BVIC,Bank Victoria International Tb,Keuangan,Main
+BWPT,Eagle High Plantations Tbk.,Barang Konsumen Primer,Main
+BYAN,Bayan Resources Tbk.,Energi,Main
+CAKK,Cahayaputra Asa Keramik Tbk.,Perindustrian,Development
+CAMP,Campina Ice Cream Industry Tbk,Barang Konsumen Primer,Development
+CANI,Capitol Nusantara Indonesia Tb,Energi,Watchlist
+CARE,Metro Healthcare Indonesia Tbk,Kesehatan,Development
+CARS,Industri dan Perdagangan Bintr,Barang Konsumen Non-Primer,Main
+CASA,Capital Financial Indonesia Tb,Keuangan,Development
+CASH,Cashlez Worldwide Indonesia Tb,Teknologi,Acceleration
+CASS,Cahaya Aero Services Tbk.,Infrastruktur,Main
+CBDK,Bangun Kosambi Sukses Tbk.,Properti & Real Estat,Main
+CBMF,Cahaya Bintang Medan Tbk.,Barang Konsumen Non-Primer,Watchlist
+CBPE,Citra Buana Prasida Tbk.,Properti & Real Estat,Development
+CBRE,Cakra Buana Resources Energi T,Energi,Development
+CBUT,Citra Borneo Utama Tbk.,Barang Konsumen Primer,Main
+CCSI,Communication Cable Systems In,Perindustrian,Development
+CDIA,Chandra Daya Investasi Tbk.,Infrastruktur,Development
+CEKA,Wilmar Cahaya Indonesia Tbk.,Barang Konsumen Primer,Development
+CENT,Centratama Telekomunikasi Indo,Infrastruktur,Development
+CFIN,Clipan Finance Indonesia Tbk.,Keuangan,Main
+CGAS,Citra Nusantara Gemilang Tbk.,Energi,Development
+CHEK,Diastika Biotekindo Tbk.,Kesehatan,Development
+CHEM,Chemstar Indonesia Tbk.,Barang Baku,Development
+CHIP,Pelita Teknologi Global Tbk.,Teknologi,Acceleration
+CINT,Chitose Internasional Tbk.,Barang Konsumen Non-Primer,Development
+CITA,Cita Mineral Investindo Tbk.,Barang Baku,Main
+CITY,Natura City Developments Tbk.,Properti & Real Estat,Development
+CLAY,Citra Putra Realty Tbk.,Barang Konsumen Non-Primer,Development
+CLEO,Sariguna Primatirta Tbk.,Barang Konsumen Primer,Main
+CLPI,Colorpak Indonesia Tbk.,Barang Baku,Development
+CMNP,Citra Marga Nusaphala Persada,Infrastruktur,Main
+CMNT,Cemindo Gemilang Tbk.,Barang Baku,Development
+CMPP,AirAsia Indonesia Tbk.,Transportasi & Logistik,Watchlist
+CMRY,Cisarua Mountain Dairy Tbk.,Barang Konsumen Primer,Main
+CNKO,Exploitasi Energi Indonesia Tb,Energi,Watchlist
+CNMA,Nusantara Sejahtera Raya Tbk.,Barang Konsumen Non-Primer,Development
+CNTX,Century Textile Industry Tbk.,Barang Konsumen Non-Primer,Watchlist
+COAL,Black Diamond Resources Tbk.,Energi,Development
+COCO,Wahana Interfood Nusantara Tbk,Barang Konsumen Primer,Development
+COIN,Indokripto Koin Semesta Tbk.,Keuangan,Development
+COWL,Cowell Development Tbk.,Properti & Real Estat,Watchlist
+CPIN,Charoen Pokphand Indonesia Tbk,Barang Konsumen Primer,Main
+CPRI,Capri Nusa Satu Properti Tbk.,Properti & Real Estat,Watchlist
+CPRO,Central Proteina Prima Tbk.,Barang Konsumen Primer,Development
+CRAB,Toba Surimi Industries Tbk.,Barang Konsumen Primer,Development
+CRSN,Carsurin Tbk.,Perindustrian,Development
+CSAP,Catur Sentosa Adiprana Tbk.,Barang Konsumen Non-Primer,Development
+CSIS,Cahayasakti Investindo Sukses,Properti & Real Estat,Development
+CSMI,Cipta Selera Murni Tbk.,Barang Konsumen Non-Primer,Development
+CSRA,Cisadane Sawit Raya Tbk.,Barang Konsumen Primer,Development
+CTBN,Citra Tubindo Tbk.,Barang Baku,Development
+CTRA,Ciputra Development Tbk.,Properti & Real Estat,Main
+CTTH,Citatah Tbk.,Perindustrian,Development
+CUAN,Petrindo Jaya Kreasi Tbk.,Energi,Main
+CYBR,ITSEC Asia Tbk.,Teknologi,Development
+DAAZ,Daaz Bara Lestari Tbk.,Barang Baku,Main
+DADA,Diamond Citra Propertindo Tbk.,Properti & Real Estat,Development
+DART,Duta Anggada Realty Tbk.,Properti & Real Estat,Development
+DATA,Remala Abadi Tbk.,Infrastruktur,Development
+DAYA,Duta Intidaya Tbk.,Barang Konsumen Primer,Development
+DCII,DCI Indonesia Tbk.,Teknologi,Development
+DEAL,Dewata Freightinternational Tb,Transportasi & Logistik,Watchlist
+DEFI,Danasupra Erapacific Tbk.,Keuangan,Development
+DEPO,Caturkarda Depo Bangunan Tbk.,Barang Konsumen Non-Primer,Development
+DEWA,Darma Henwa Tbk,Energi,Main
+DEWI,Dewi Shri Farmindo Tbk.,Barang Konsumen Primer,Development
+DFAM,Dafam Property Indonesia Tbk.,Barang Konsumen Non-Primer,Development
+DGIK,Nusa Konstruksi Enjiniring Tbk,Infrastruktur,Development
+DGNS,Diagnos Laboratorium Utama Tbk,Kesehatan,Development
+DGWG,Delta Giri Wacana Tbk.,Barang Baku,Main
+DIGI,Arkadia Digital Media Tbk.,Barang Konsumen Non-Primer,Watchlist
+DILD,Intiland Development Tbk.,Properti & Real Estat,Main
+DIVA,Distribusi Voucher Nusantara T,Teknologi,Development
+DKFT,Central Omega Resources Tbk.,Barang Baku,Main
+DKHH,Cipta Sarana Medika Tbk.,Kesehatan,Development
+DLTA,Delta Djakarta Tbk.,Barang Konsumen Primer,Main
+DMAS,Puradelta Lestari Tbk.,Properti & Real Estat,Main
+DMMX,Digital Mediatama Maxima Tbk.,Teknologi,Development
+DMND,Diamond Food Indonesia Tbk.,Barang Konsumen Primer,Main
+DNAR,Bank Oke Indonesia Tbk.,Keuangan,Development
+DNET,Indoritel Makmur Internasional,Keuangan,Main
+DOID,BUMA Internasional Grup Tbk.,Energi,Development
+DOOH,Era Media Sejahtera Tbk.,Barang Konsumen Non-Primer,Development
+DOSS,Global Sukses Digital Tbk.,Barang Konsumen Non-Primer,Development
+DPNS,Duta Pertiwi Nusantara Tbk.,Barang Baku,Development
+DPUM,Dua Putra Utama Makmur Tbk.,Barang Konsumen Primer,Development
+DRMA,Dharma Polimetal Tbk.,Barang Konsumen Non-Primer,Main
+DSFI,Dharma Samudera Fishing Indust,Barang Konsumen Primer,Development
+DSNG,Dharma Satya Nusantara Tbk.,Barang Konsumen Primer,Main
+DSSA,Dian Swastatika Sentosa Tbk,Energi,Main
+DUCK,Jaya Bersama Indo Tbk.,Barang Konsumen Non-Primer,Watchlist
+DUTI,Duta Pertiwi Tbk,Properti & Real Estat,Watchlist
+DVLA,Darya-Varia Laboratoria Tbk.,Kesehatan,Development
+DWGL,Dwi Guna Laksana Tbk.,Energi,Development
+DYAN,Dyandra Media International Tb,Perindustrian,Development
+EAST,Eastparc Hotel Tbk.,Barang Konsumen Non-Primer,Development
+ECII,Electronic City Indonesia Tbk.,Barang Konsumen Non-Primer,Development
+EDGE,Indointernet Tbk.,Teknologi,Development
+EKAD,Ekadharma International Tbk.,Barang Baku,Development
+ELIT,Data Sinergitama Jaya Tbk.,Teknologi,Development
+ELPI,Pelayaran Nasional Ekalya Purn,Transportasi & Logistik,Main
+ELSA,Elnusa Tbk.,Energi,Main
+ELTY,Bakrieland Development Tbk.,Properti & Real Estat,Watchlist
+EMAS,Merdeka Gold Resources Tbk.,Barang Baku,Development
+EMDE,Megapolitan Developments Tbk.,Properti & Real Estat,Development
+EMMI,Esa Medika Mandiri Tbk.,Kesehatan,Development
+EMTK,Elang Mahkota Teknologi Tbk.,Teknologi,Main
+ENAK,Champ Resto Indonesia Tbk.,Barang Konsumen Non-Primer,Development
+ENRG,Energi Mega Persada Tbk.,Energi,Main
+ENVY,Envy Technologies Indonesia Tb,Teknologi,Watchlist
+ENZO,Morenzo Abadi Perkasa Tbk.,Barang Konsumen Primer,Development
+EPAC,Megalestari Epack Sentosaraya,Barang Baku,Development
+EPMT,Enseval Putera Megatrading Tbk,Barang Konsumen Primer,Main
+ERAA,Erajaya Swasembada Tbk.,Barang Konsumen Non-Primer,Main
+ERAL,Sinar Eka Selaras Tbk.,Barang Konsumen Non-Primer,Main
+ERTX,Eratex Djaja Tbk.,Barang Konsumen Non-Primer,Development
+ESIP,Sinergi Inti Plastindo Tbk.,Barang Baku,Development
+ESSA,ESSA Industries Indonesia Tbk.,Barang Baku,Main
+ESTA,Esta Multi Usaha Tbk.,Barang Konsumen Non-Primer,Development
+ESTI,Ever Shine Tex Tbk.,Barang Konsumen Non-Primer,Main
+ETWA,Eterindo Wahanatama Tbk,Barang Baku,Watchlist
+EURO,Estee Gold Feet Tbk.,Barang Konsumen Primer,Acceleration
+EXCL,XLSMART Telecom Sejahtera Tbk.,Infrastruktur,Main
+FAPA,FAP Agri Tbk.,Barang Konsumen Primer,Development
+FAST,Fast Food Indonesia Tbk.,Barang Konsumen Non-Primer,Development
+FASW,Fajar Surya Wisesa Tbk.,Barang Baku,Watchlist
+FILM,MD Entertainment Tbk.,Barang Konsumen Non-Primer,Main
+FIMP,Fimperkasa Utama Tbk.,Infrastruktur,Watchlist
+FIRE,Alfa Energi Investama Tbk.,Energi,Development
+FISH,FKS Multi Agro Tbk.,Barang Konsumen Primer,Main
+FITT,Hotel Fitra International Tbk.,Barang Konsumen Non-Primer,Development
+FLMC,Falmaco Nonwoven Industri Tbk.,Barang Konsumen Primer,Watchlist
+FMII,Fortune Mate Indonesia Tbk,Properti & Real Estat,Development
+FOLK,Multi Garam Utama Tbk.,Perindustrian,Development
+FOOD,Sentra Food Indonesia Tbk.,Barang Konsumen Primer,Watchlist
+FORE,Fore Kopi Indonesia Tbk.,Barang Konsumen Primer,Development
+FORU,Fortune Indonesia Tbk,Barang Konsumen Non-Primer,Development
+FPNI,Lotte Chemical Titan Tbk.,Barang Baku,Development
+FUJI,Fuji Finance Indonesia Tbk.,Keuangan,Development
+FUTR,Futura Energi Global Tbk.,Barang Konsumen Non-Primer,Development
+FWCT,Wijaya Cahaya Timber Tbk.,Barang Baku,Development
+GAMA,Aksara Global Development Tbk.,Properti & Real Estat,Watchlist
+GDST,Gunawan Dianjaya Steel Tbk.,Barang Baku,Development
+GDYR,Goodyear Indonesia Tbk.,Barang Konsumen Non-Primer,Development
+GEMA,Gema Grahasarana Tbk.,Barang Konsumen Non-Primer,Development
+GEMS,Golden Energy Mines Tbk.,Energi,Main
+GGRM,Gudang Garam Tbk.,Barang Konsumen Primer,Main
+GGRP,Gunung Raja Paksi Tbk.,Barang Baku,Development
+GHON,Gihon Telekomunikasi Indonesia,Infrastruktur,Development
+GIAA,Garuda Indonesia (Persero) Tbk,Transportasi & Logistik,Development
+GJTL,Gajah Tunggal Tbk.,Barang Konsumen Non-Primer,Main
+GLOB,Globe Kita Terang Tbk.,Barang Konsumen Non-Primer,Watchlist
+GLVA,Galva Technologies Tbk.,Teknologi,Main
+GMFI,Garuda Maintenance Facility Ae,Infrastruktur,Development
+GMTD,Gowa Makassar Tourism Developm,Properti & Real Estat,Development
+GOLD,Visi Telekomunikasi Infrastruk,Infrastruktur,Development
+GOLF,Intra Golflink Resorts Tbk.,Barang Konsumen Non-Primer,Main
+GOLL,Golden Plantation Tbk.,Barang Konsumen Primer,Watchlist
+GOOD,Garudafood Putra Putri Jaya Tb,Barang Konsumen Primer,Main
+GOTO,GoTo Gojek Tokopedia Tbk.,Teknologi,Development
+GPRA,Perdana Gapuraprima Tbk.,Properti & Real Estat,Development
+GPSO,Geoprima Solusi Tbk.,Perindustrian,Development
+GRIA,Ingria Pratama Capitalindo Tbk,Properti & Real Estat,Development
+GRPH,Griptha Putra Persada Tbk.,Barang Konsumen Non-Primer,Development
+GRPM,Graha Prima Mentari Tbk.,Barang Konsumen Primer,Acceleration
+GSMF,Equity Development Investment,Keuangan,Development
+GTBO,Garda Tujuh Buana Tbk,Energi,Development
+GTRA,Grahaprima Suksesmandiri Tbk.,Transportasi & Logistik,Development
+GTSI,GTS Internasional Tbk.,Energi,Development
+GULA,Aman Agrindo Tbk.,Barang Konsumen Primer,Development
+GUNA,Gunanusa Eramandiri Tbk.,Barang Konsumen Primer,Development
+GWSA,Greenwood Sejahtera Tbk.,Barang Konsumen Non-Primer,Development
+GZCO,Gozco Plantations Tbk.,Barang Konsumen Primer,Main
+HADE,Himalaya Energi Perkasa Tbk.,Infrastruktur,Watchlist
+HAIS,Hasnur Internasional Shipping,Transportasi & Logistik,Development
+HAJJ,Arsy Buana Travelindo Tbk.,Barang Konsumen Non-Primer,Acceleration
+HALO,Haloni Jane Tbk.,Kesehatan,Development
+HATM,Habco Trans Maritima Tbk.,Transportasi & Logistik,Main
+HBAT,Minahasa Membangun Hebat Tbk.,Properti & Real Estat,Acceleration
+HDFA,Radana Bhaskara Finance Tbk.,Keuangan,Development
+HDIT,Hensel Davest Indonesia Tbk.,Teknologi,Main
+HEAL,Medikaloka Hermina Tbk.,Kesehatan,Main
+HELI,Jaya Trishindo Tbk.,Transportasi & Logistik,Development
+HERO,DFI Retail Nusantara Tbk.,Barang Konsumen Primer,Main
+HEXA,Hexindo Adiperkasa Tbk.,Perindustrian,Main
+HGII,Hero Global Investment Tbk.,Infrastruktur,Development
+HILL,Hillcon Tbk.,Energi,Watchlist
+HITS,Humpuss Intermoda Transportasi,Energi,Watchlist
+HKMU,HK Metals Utama Tbk.,Barang Baku,Watchlist
+HMSP,H.M. Sampoerna Tbk.,Barang Konsumen Primer,Main
+HOKI,Buyung Poetra Sembada Tbk.,Barang Konsumen Primer,Development
+HOME,Hotel Mandarine Regency Tbk.,Barang Konsumen Non-Primer,Watchlist
+HOMI,Grand House Mulia Tbk.,Properti & Real Estat,Development
+HOPE,Harapan Duta Pertiwi Tbk.,Perindustrian,Development
+HOTL,Saraswati Griya Lestari Tbk.,Barang Konsumen Non-Primer,Watchlist
+HRME,Menteng Heritage Realty Tbk.,Barang Konsumen Non-Primer,Watchlist
+HRTA,Hartadinata Abadi Tbk.,Barang Konsumen Non-Primer,Main
+HRUM,Harum Energy Tbk.,Energi,Main
+HUMI,Humpuss Maritim Internasional,Energi,Development
+HYGN,Ecocare Indo Pasifik Tbk.,Perindustrian,Development
+IATA,Karya Pacific Energy Tbk.,Energi,Development
+IBFN,Intan Baru Prana Tbk.,Perindustrian,Watchlist
+IBOS,Indo Boga Sukses Tbk.,Barang Konsumen Primer,Acceleration
+IBST,Inti Bangun Sejahtera Tbk.,Infrastruktur,Watchlist
+ICBP,Indofood CBP Sukses Makmur Tbk,Barang Konsumen Primer,Main
+ICON,Island Concepts Indonesia Tbk.,Perindustrian,Development
+IDEA,Idea Indonesia Akademi Tbk.,Barang Konsumen Non-Primer,Acceleration
+IDPR,Indonesia Pondasi Raya Tbk.,Infrastruktur,Development
+IFII,Indonesia Fibreboard Industry,Barang Baku,Development
+IFSH,Ifishdeco Tbk.,Barang Baku,Watchlist
+IGAR,Champion Pacific Indonesia Tbk,Barang Baku,Development
+IIKP,Inti Agri Resources Tbk,Barang Konsumen Non-Primer,Watchlist
+IKAI,Intikeramik Alamasri Industri,Perindustrian,Watchlist
+IKAN,Era Mandiri Cemerlang Tbk.,Barang Konsumen Primer,Development
+IKBI,Sumi Indo Kabel Tbk.,Perindustrian,Development
+IKPM,Ikapharmindo Putramas Tbk.,Kesehatan,Development
+IMAS,Indomobil Sukses Internasional,Barang Konsumen Non-Primer,Main
+IMJS,Indomobil Multi Jasa Tbk.,Transportasi & Logistik,Development
+IMPC,Impack Pratama Industri Tbk.,Perindustrian,Main
+INAF,Indofarma Tbk.,Kesehatan,Watchlist
+INAI,Indal Aluminium Industry Tbk.,Barang Baku,Development
+INCF,Indo Komoditi Korpora Tbk.,Barang Baku,Development
+INCI,Intanwijaya Internasional Tbk,Barang Baku,Development
+INCO,Vale Indonesia Tbk.,Barang Baku,Main
+INDF,Indofood Sukses Makmur Tbk.,Barang Konsumen Primer,Main
+INDO,Royalindo Investa Wijaya Tbk.,Properti & Real Estat,Development
+INDR,Indo-Rama Synthetics Tbk.,Barang Konsumen Non-Primer,Development
+INDS,Indospring Tbk.,Barang Konsumen Non-Primer,Development
+INDX,Tanah Laut Tbk,Perindustrian,Development
+INDY,Indika Energy Tbk.,Energi,Main
+INET,Sinergi Inti Andalan Prima Tbk,Infrastruktur,Development
+INKP,Indah Kiat Pulp & Paper Tbk.,Barang Baku,Main
+INOV,Inocycle Technology Group Tbk.,Barang Konsumen Non-Primer,Development
+INPC,Bank Artha Graha Internasional,Keuangan,Main
+INPP,Indonesian Paradise Property T,Properti & Real Estat,Development
+INPS,Indah Prakasa Sentosa Tbk.,Energi,Watchlist
+INRU,Toba Pulp Lestari Tbk.,Barang Baku,Watchlist
+INTA,Intraco Penta Tbk.,Perindustrian,Watchlist
+INTD,Inter Delta Tbk,Barang Baku,Development
+INTP,Indocement Tunggal Prakarsa Tb,Barang Baku,Main
+IOTF,Sumber Sinergi Makmur Tbk.,Teknologi,Development
+IPAC,Era Graharealty Tbk.,Properti & Real Estat,Acceleration
+IPCC,Indonesia Kendaraan Terminal T,Infrastruktur,Main
+IPCM,Jasa Armada Indonesia Tbk.,Infrastruktur,Main
+IPOL,Indopoly Swakarsa Industry Tbk,Barang Baku,Development
+IPPE,Indo Pureco Pratama Tbk.,Barang Konsumen Primer,Watchlist
+IPTV,MNC Vision Networks Tbk.,Barang Konsumen Non-Primer,Watchlist
+IRRA,Itama Ranoraya Tbk.,Kesehatan,Development
+IRSX,Folago Global Nusantara Tbk.,Teknologi,Development
+ISAP,Isra Presisi Indonesia Tbk.,Barang Konsumen Non-Primer,Acceleration
+ISAT,Indosat Tbk.,Infrastruktur,Main
+ISEA,Indo American Seafoods Tbk.,Barang Konsumen Primer,Development
+ISSP,Steel Pipe Industry of Indones,Barang Baku,Main
+ITIC,Indonesian Tobacco Tbk.,Barang Konsumen Primer,Development
+ITMA,Sumber Energi Andalan Tbk.,Energi,Development
+ITMG,Indo Tambangraya Megah Tbk.,Energi,Main
+JARR,Jhonlin Agro Raya Tbk.,Barang Konsumen Primer,Main
+JAST,Jasnita Telekomindo Tbk.,Infrastruktur,Development
+JATI,Informasi Teknologi Indonesia,Teknologi,Development
+JAWA,Jaya Agra Wattie Tbk.,Barang Konsumen Primer,Development
+JAYA,Armada Berjaya Trans Tbk.,Transportasi & Logistik,Development
+JECC,Jembo Cable Company Tbk.,Perindustrian,Development
+JECX,Nitrasanata Dharma Tbk.,Kesehatan,Main
+JELI,Niramas Utama Tbk.,Barang Konsumen Primer,Development
+JGLE,Graha Andrasentra Propertindo,Barang Konsumen Non-Primer,Development
+JIHD,Jakarta International Hotels &,Barang Konsumen Non-Primer,Main
+JKON,Jaya Konstruksi Manggala Prata,Infrastruktur,Main
+JMAS,Asuransi Jiwa Syariah Jasa Mit,Keuangan,Development
+JPFA,Japfa Comfeed Indonesia Tbk.,Barang Konsumen Primer,Main
+JRPT,Jaya Real Property Tbk.,Properti & Real Estat,Main
+JSKY,Sky Energy Indonesia Tbk.,Energi,Watchlist
+JSMR,Jasa Marga (Persero) Tbk.,Infrastruktur,Main
+JSPT,Jakarta Setiabudi Internasiona,Barang Konsumen Non-Primer,Main
+JTPE,Jasuindo Tiga Perkasa Tbk.,Perindustrian,Main
+KAEF,Kimia Farma Tbk.,Kesehatan,Development
+KAQI,Jantra Grupo Indonesia Tbk.,Barang Konsumen Non-Primer,Development
+KARW,Meratus Jasa Prima Tbk.,Infrastruktur,Watchlist
+KAYU,Darmi Bersaudara Tbk.,Barang Baku,Watchlist
+KBAG,Karya Bersama Anugerah Tbk.,Properti & Real Estat,Watchlist
+KBLI,KMI Wire & Cable Tbk.,Perindustrian,Main
+KBLM,Kabelindo Murni Tbk.,Perindustrian,Development
+KBLV,First Media Tbk.,Infrastruktur,Development
+KBRI,Kertas Basuki Rachmat Indonesi,Barang Baku,Watchlist
+KDSI,Kedawung Setia Industrial Tbk.,Barang Baku,Development
+KDTN,Puri Sentul Permai Tbk.,Barang Konsumen Non-Primer,Development
+KEEN,Kencana Energi Lestari Tbk.,Infrastruktur,Main
+KEJU,Mulia Boga Raya Tbk.,Barang Konsumen Primer,Main
+KETR,Ketrosden Triasmitra Tbk.,Infrastruktur,Development
+KIAS,Keramika Indonesia Assosiasi T,Perindustrian,Watchlist
+KICI,Kedaung Indah Can Tbk,Barang Konsumen Non-Primer,Development
+KIJA,Kawasan Industri Jababeka Tbk.,Properti & Real Estat,Main
+KING,Hoffmen Cleanindo Tbk.,Perindustrian,Acceleration
+KINO,Kino Indonesia Tbk.,Barang Konsumen Primer,Development
+KIOS,Kioson Komersial Indonesia Tbk,Teknologi,Development
+KJEN,Krida Jaringan Nusantara Tbk.,Transportasi & Logistik,Development
+KKES,Kusuma Kemindo Sentosa Tbk.,Barang Baku,Watchlist
+KKGI,Resource Alam Indonesia Tbk.,Energi,Main
+KLAS,Pelayaran Kurnia Lautan Semest,Transportasi & Logistik,Development
+KLBF,Kalbe Farma Tbk.,Kesehatan,Main
+KLIN,Klinko Karya Imaji Tbk.,Barang Konsumen Non-Primer,Acceleration
+KMDS,Kurniamitra Duta Sentosa Tbk.,Barang Konsumen Primer,Development
+KMTR,Kirana Megatara Tbk.,Barang Baku,Development
+KOBX,Kobexindo Tractors Tbk.,Perindustrian,Development
+KOCI,Kokoh Exa Nusantara Tbk.,Properti & Real Estat,Development
+KOIN,Kokoh Inti Arebama Tbk,Perindustrian,Watchlist
+KOKA,Koka Indonesia Tbk.,Infrastruktur,Development
+KONI,Perdana Bangun Pusaka Tbk,Perindustrian,Development
+KOPI,Mitra Energi Persada Tbk.,Energi,Development
+KOTA,DMS Propertindo Tbk.,Barang Konsumen Non-Primer,Main
+KPIG,MNC Tourism Indonesia Tbk.,Barang Konsumen Non-Primer,Main
+KRAS,Krakatau Steel (Persero) Tbk.,Barang Baku,Development
+KREN,Quantum Clovera Investama Tbk.,Teknologi,Watchlist
+KRYA,Bangun Karya Perkasa Jaya Tbk.,Infrastruktur,Development
+KSIX,Kentanix Supra International T,Properti & Real Estat,Development
+KUAS,Ace Oldfields Tbk.,Perindustrian,Development
+LABA,Green Power Group Tbk.,Perindustrian,Development
+LABS,UBC Medical Indonesia Tbk.,Kesehatan,Development
+LAJU,Jasa Berdikari Logistics Tbk.,Transportasi & Logistik,Development
+LAND,Trimitra Propertindo Tbk.,Properti & Real Estat,Development
+LAPD,Leyand International Tbk.,Barang Konsumen Primer,Development
+LCGP,Eureka Prima Jakarta Tbk.,Properti & Real Estat,Watchlist
+LCKM,LCK Global Kedaton Tbk.,Infrastruktur,Development
+LEAD,Logindo Samudramakmur Tbk.,Energi,Development
+LFLO,Imago Mulia Persada Tbk.,Barang Konsumen Non-Primer,Acceleration
+LIFE,MSIG Life Insurance Indonesia,Keuangan,Development
+LINK,Link Net Tbk.,Infrastruktur,Development
+LION,Lion Metal Works Tbk.,Perindustrian,Development
+LIVE,Homeco Victoria Makmur Tbk.,Barang Konsumen Non-Primer,Development
+LMAS,Limas Indonesia Makmur Tbk,Teknologi,Watchlist
+LMAX,Lupromax Pelumas Indonesia Tbk,Barang Konsumen Non-Primer,Acceleration
+LMPI,Langgeng Makmur Industri Tbk.,Barang Konsumen Non-Primer,Development
+LMSH,Lionmesh Prima Tbk.,Barang Baku,Watchlist
+LOPI,Logisticsplus International Tb,Transportasi & Logistik,Acceleration
+LPCK,Lippo Cikarang Tbk,Properti & Real Estat,Main
+LPGI,Lippo General Insurance Tbk.,Keuangan,Development
+LPIN,Multi Prima Sejahtera Tbk,Barang Konsumen Non-Primer,Development
+LPKR,Lippo Karawaci Tbk.,Properti & Real Estat,Main
+LPLI,Star Pacific Tbk,Properti & Real Estat,Development
+LPPF,MDS Retailing Tbk.,Barang Konsumen Non-Primer,Main
+LPPS,Lenox Pasifik Investama Tbk.,Keuangan,Development
+LRNA,Eka Sari Lorena Transport Tbk.,Transportasi & Logistik,Development
+LSIP,PP London Sumatra Indonesia Tb,Barang Konsumen Primer,Main
+LTLS,Lautan Luas Tbk.,Barang Baku,Main
+LUCK,Sentral Mitra Informatika Tbk.,Teknologi,Development
+LUCY,Lima Dua Lima Tiga Tbk.,Barang Konsumen Non-Primer,Acceleration
+MABA,Marga Abhinaya Abadi Tbk.,Barang Konsumen Non-Primer,Watchlist
+MAGP,Multi Agro Gemilang Plantation,Barang Konsumen Primer,Watchlist
+MAHA,Mandiri Herindo Adiperkasa Tbk,Energi,Main
+MAIN,Malindo Feedmill Tbk.,Barang Konsumen Primer,Main
+MANG,Manggung Polahraya Tbk.,Infrastruktur,Acceleration
+MAPA,Map Aktif Adiperkasa Tbk.,Barang Konsumen Non-Primer,Main
+MAPB,MAP Boga Adiperkasa Tbk.,Barang Konsumen Non-Primer,Watchlist
+MAPI,Mitra Adiperkasa Tbk.,Barang Konsumen Non-Primer,Main
+MARI,Mahaka Radio Integra Tbk.,Barang Konsumen Non-Primer,Watchlist
+MARK,Mark Dynamics Indonesia Tbk.,Perindustrian,Main
+MASB,Bank Multiarta Sentosa Tbk.,Keuangan,Main
+MAXI,Maxindo Karya Anugerah Tbk.,Barang Konsumen Primer,Development
+MAYA,Bank Mayapada Internasional Tb,Keuangan,Main
+MBAP,Mitrabara Adiperdana Tbk.,Energi,Development
+MBMA,Merdeka Battery Materials Tbk.,Barang Baku,Main
+MBSS,Mitrabahtera Segara Sejati Tbk,Energi,Main
+MBTO,Martina Berto Tbk.,Barang Konsumen Primer,Development
+MCAS,M Cash Integrasi Tbk.,Teknologi,Development
+MCOL,Prima Andalan Mandiri Tbk.,Energi,Main
+MCOR,Bank China Construction Bank I,Keuangan,Main
+MDIA,Intermedia Capital Tbk.,Barang Konsumen Non-Primer,Development
+MDIY,Daya Intiguna Yasa Tbk.,Barang Konsumen Non-Primer,Main
+MDKA,Merdeka Copper Gold Tbk.,Barang Baku,Main
+MDKI,Emdeki Utama Tbk.,Barang Baku,Development
+MDLA,Medela Potentia Tbk.,Kesehatan,Main
+MDLN,Modernland Realty Tbk.,Properti & Real Estat,Development
+MDRN,Modern Internasional Tbk.,Perindustrian,Watchlist
+MEDC,Medco Energi Internasional Tbk,Energi,Main
+MEDS,Hetzer Medical Indonesia Tbk.,Kesehatan,Development
+MEGA,Bank Mega Tbk.,Keuangan,Main
+MEJA,Harta Djaya Karya Tbk.,Barang Konsumen Non-Primer,Acceleration
+MENN,Menn Teknologi Indonesia Tbk.,Teknologi,Watchlist
+MERI,Merry Riana Edukasi Tbk.,Barang Konsumen Non-Primer,Development
+MERK,Merck Tbk.,Kesehatan,Main
+META,Nusantara Infrastructure Tbk.,Infrastruktur,Development
+MFMI,Multifiling Mitra Indonesia Tb,Perindustrian,Watchlist
+MGLV,Panca Anugrah Wisesa Tbk.,Barang Konsumen Non-Primer,Acceleration
+MGNA,Magna Investama Mandiri Tbk.,Barang Konsumen Non-Primer,Development
+MGRO,Mahkota Group Tbk.,Barang Konsumen Primer,Development
+MHKI,Multi Hanna Kreasindo Tbk.,Perindustrian,Development
+MICE,Multi Indocitra Tbk.,Barang Konsumen Non-Primer,Development
+MIDI,Midi Utama Indonesia Tbk.,Barang Konsumen Primer,Main
+MIKA,Mitra Keluarga Karyasehat Tbk.,Kesehatan,Main
+MINA,Sanurhasta Mitra Tbk.,Barang Konsumen Non-Primer,Development
+MINE,Sinar Terang Mandiri Tbk.,Barang Baku,Development
+MIRA,Mitra International Resources,Transportasi & Logistik,Watchlist
+MITI,Mitra Investindo Tbk.,Transportasi & Logistik,Development
+MKAP,Multikarya Asia Pasifik Raya T,Energi,Development
+MKNT,Mitra Komunikasi Nusantara Tbk,Barang Konsumen Non-Primer,Watchlist
+MKPI,Metropolitan Kentjana Tbk.,Properti & Real Estat,Development
+MKTR,Menthobi Karyatama Raya Tbk.,Barang Konsumen Primer,Main
+MLBI,Multi Bintang Indonesia Tbk.,Barang Konsumen Primer,Main
+MLIA,Mulia Industrindo Tbk,Perindustrian,Watchlist
+MLPL,Multipolar Tbk.,Barang Konsumen Primer,Main
+MLPT,Multipolar Technology Tbk.,Teknologi,Development
+MMIX,Multi Medika Internasional Tbk,Kesehatan,Development
+MMLP,Mega Manunggal Property Tbk.,Properti & Real Estat,Development
+MNCN,Media Nusantara Citra Tbk.,Barang Konsumen Non-Primer,Main
+MOLI,Madusari Murni Indah Tbk.,Barang Baku,Development
+MORA,Ekamas Mora Republik Tbk.,Infrastruktur,Main
+MPIX,Mitra Pedagang Indonesia Tbk.,Teknologi,Development
+MPMX,Mitra Pinasthika Mustika Tbk.,Barang Konsumen Non-Primer,Main
+MPOW,Megapower Makmur Tbk.,Infrastruktur,Development
+MPPA,Matahari Putra Prima Tbk.,Barang Konsumen Primer,Watchlist
+MPRO,Maha Properti Indonesia Tbk.,Properti & Real Estat,Development
+MPXL,MPX Logistics International Tb,Transportasi & Logistik,Development
+MRAT,Mustika Ratu Tbk.,Barang Konsumen Primer,Development
+MREI,Maskapai Reasuransi Indonesia,Keuangan,Main
+MSIE,Multisarana Intan Eduka Tbk.,Properti & Real Estat,Acceleration
+MSIN,MNC Digital Entertainment Tbk.,Barang Konsumen Non-Primer,Main
+MSJA,Multi Spunindo Jaya Tbk.,Barang Konsumen Primer,Development
+MSKY,MNC Sky Vision Tbk.,Barang Konsumen Non-Primer,Development
+MSTI,Mastersystem Infotama Tbk.,Teknologi,Main
+MTDL,Metrodata Electronics Tbk.,Teknologi,Main
+MTEL,Dayamitra Telekomunikasi Tbk.,Infrastruktur,Main
+MTFN,Capitalinc Investment Tbk.,Energi,Watchlist
+MTLA,Metropolitan Land Tbk.,Properti & Real Estat,Main
+MTMH,Murni Sadar Tbk.,Kesehatan,Main
+MTPS,Meta Epsi Tbk.,Infrastruktur,Watchlist
+MTRA,Mitra Pemuda Tbk.,Infrastruktur,Watchlist
+MTSM,Metro Realty Tbk.,Properti & Real Estat,Watchlist
+MTWI,Malacca Trust Wuwungan Insuran,Keuangan,Development
+MUTU,Mutuagung Lestari Tbk.,Perindustrian,Development
+MYOH,Samindo Resources Tbk.,Energi,Development
+MYOR,Mayora Indah Tbk.,Barang Konsumen Primer,Main
+MYTX,Asia Pacific Investama Tbk.,Barang Konsumen Non-Primer,Watchlist
+NAIK,Adiwarna Anugerah Abadi Tbk.,Perindustrian,Development
+NANO,Nanotech Indonesia Global Tbk.,Barang Konsumen Primer,Acceleration
+NASA,Andalan Perkasa Abadi Tbk.,Properti & Real Estat,Watchlist
+NASI,Wahana Inti Makmur Tbk.,Barang Konsumen Primer,Development
+NATO,Olympus Strategic Indonesia Tb,Barang Konsumen Non-Primer,Development
+NAYZ,Hassana Boga Sejahtera Tbk.,Barang Konsumen Primer,Acceleration
+NCKL,Trimegah Bangun Persada Tbk.,Barang Baku,Development
+NELY,Pelayaran Nelly Dwi Putri Tbk.,Transportasi & Logistik,Development
+NEST,Esta Indonesia Tbk.,Barang Konsumen Primer,Development
+NETV,MDTV Media Technologies Tbk.,Barang Konsumen Non-Primer,Development
+NFCX,NFC Indonesia Tbk.,Teknologi,Development
+NICE,Adhi Kartiko Pratama Tbk.,Barang Baku,Development
+NICK,Charnic Capital Tbk.,Keuangan,Development
+NICL,PAM Mineral Tbk.,Barang Baku,Development
+NIKL,Pelat Timah Nusantara Tbk.,Barang Baku,Development
+NINE,Techno9 Indonesia Tbk.,Teknologi,Acceleration
+NIRO,City Retail Developments Tbk.,Properti & Real Estat,Development
+NISP,Bank OCBC NISP Tbk.,Keuangan,Main
+NOBU,Bank Nationalnobu Tbk.,Keuangan,Main
+NPGF,Nusa Palapa Gemilang Tbk.,Barang Baku,Development
+NRCA,Nusa Raya Cipta Tbk.,Infrastruktur,Development
+NSSS,Nusantara Sawit Sejahtera Tbk.,Barang Konsumen Primer,Development
+NTBK,Nusatama Berkah Tbk.,Perindustrian,Development
+NUSA,Sinergi Megah Internusa Tbk.,Barang Konsumen Non-Primer,Watchlist
+NZIA,Nusantara Almazia Tbk.,Properti & Real Estat,Development
+OASA,Maharaksa Biru Energi Tbk.,Infrastruktur,Development
+OBAT,Brigit Biofarmaka Teknologi Tb,Kesehatan,Development
+OBMD,OBM Drilchem Tbk.,Barang Baku,Development
+OCAP,Onix Capital Tbk.,Keuangan,Watchlist
+OILS,Indo Oil Perkasa Tbk.,Barang Konsumen Primer,Development
+OKAS,Ancora Indonesia Resources Tbk,Barang Baku,Development
+OLIV,Atlas Nexus Group Tbk.,Barang Konsumen Non-Primer,Acceleration
+OMED,Jayamas Medica Industri Tbk.,Kesehatan,Main
+OMRE,Indonesia Prima Property Tbk,Properti & Real Estat,Development
+OPMS,Optima Prima Metal Sinergi Tbk,Barang Baku,Development
+PACK,Abadi Nusantara Hijau Investam,Barang Baku,Acceleration
+PADA,Personel Alih Daya Tbk.,Perindustrian,Development
+PADI,Minna Padi Investama Sekuritas,Keuangan,Main
+PALM,Provident Investasi Bersama Tb,Keuangan,Main
+PAMG,Bima Sakti Pertiwi Tbk.,Properti & Real Estat,Development
+PANI,Pantai Indah Kapuk Dua Tbk.,Properti & Real Estat,Main
+PANR,Panorama Sentrawisata Tbk.,Barang Konsumen Non-Primer,Development
+PANS,Panin Sekuritas Tbk.,Keuangan,Main
+PART,Cipta Perdana Lancar Tbk.,Barang Konsumen Non-Primer,Development
+PBID,Panca Budi Idaman Tbk.,Barang Baku,Main
+PBRX,Pan Brothers Tbk.,Barang Konsumen Non-Primer,Watchlist
+PBSA,Paramita Bangun Sarana Tbk.,Infrastruktur,Development
+PCAR,Prima Cakrawala Abadi Tbk.,Barang Konsumen Primer,Watchlist
+PDES,Destinasi Tirta Nusantara Tbk,Barang Konsumen Non-Primer,Development
+PDPP,Primadaya Plastisindo Tbk.,Barang Baku,Development
+PEGE,Panca Global Kapital Tbk.,Keuangan,Development
+PEHA,Phapros Tbk.,Kesehatan,Development
+PEVE,Penta Valent Tbk.,Kesehatan,Development
+PGAS,Perusahaan Gas Negara (Persero,Energi,Main
+PGEO,Pertamina Geothermal Energy Tb,Infrastruktur,Main
+PGJO,Bahtera Bumi Raya Tbk.,Teknologi,Watchlist
+PGLI,Pembangunan Graha Lestari Inda,Barang Konsumen Non-Primer,Development
+PGUN,Pradiksi Gunatama Tbk.,Barang Konsumen Primer,Development
+PICO,Pelangi Indah Canindo Tbk,Barang Baku,Development
+PIPA,Multi Makmur Lemindo Tbk.,Perindustrian,Development
+PJAA,Pembangunan Jaya Ancol Tbk.,Barang Konsumen Non-Primer,Development
+PJHB,Pelayaran Jaya Hidup Baru Tbk.,Transportasi & Logistik,Development
+PKPK,Paragon Karya Perkasa Tbk.,Energi,Development
+PLAN,Planet Properindo Jaya Tbk.,Barang Konsumen Non-Primer,Acceleration
+PLAS,Polaris Investama Tbk,Keuangan,Watchlist
+PLIN,Plaza Indonesia Realty Tbk.,Properti & Real Estat,Watchlist
+PMJS,Putra Mandiri Jembar Tbk.,Barang Konsumen Non-Primer,Development
+PMMP,Panca Mitra Multiperdana Tbk.,Barang Konsumen Primer,Watchlist
+PMUI,Prima Multi Usaha Indonesia Tb,Barang Konsumen Non-Primer,Development
+PNBN,Bank Pan Indonesia Tbk,Keuangan,Main
+PNBS,Bank Panin Dubai Syariah Tbk.,Keuangan,Development
+PNGO,Pinago Utama Tbk.,Barang Konsumen Primer,Main
+PNIN,Paninvest Tbk.,Keuangan,Main
+PNLF,Panin Financial Tbk.,Keuangan,Main
+PNSE,Pudjiadi & Sons Tbk.,Barang Konsumen Non-Primer,Development
+POLA,Pool Advista Finance Tbk.,Keuangan,Development
+POLI,Pollux Hotels Group Tbk.,Properti & Real Estat,Development
+POLL,Pollux Properties Indonesia Tb,Properti & Real Estat,Watchlist
+POLU,Golden Flower Tbk.,Barang Konsumen Non-Primer,Development
+POLY,Asia Pacific Fibers Tbk,Barang Konsumen Non-Primer,Watchlist
+POOL,Pool Advista Indonesia Tbk.,Keuangan,Watchlist
+PORT,Nusantara Pelabuhan Handal Tbk,Infrastruktur,Main
+POSA,Bliss Properti Indonesia Tbk.,Properti & Real Estat,Watchlist
+POWR,Cikarang Listrindo Tbk.,Infrastruktur,Main
+PPGL,Prima Globalindo Logistik Tbk.,Transportasi & Logistik,Acceleration
+PPRE,PP Presisi Tbk.,Infrastruktur,Development
+PPRI,Paperocks Indonesia Tbk.,Barang Baku,Development
+PPRO,PP Properti Tbk.,Properti & Real Estat,Watchlist
+PRAY,Famon Awal Bros Sedaya Tbk.,Kesehatan,Main
+PRDA,Prodia Widyahusada Tbk.,Kesehatan,Main
+PRDL,Prodia Diagnostic Line Tbk.,Kesehatan,Development
+PRIM,Royal Prima Tbk.,Kesehatan,Development
+PSAB,J Resources Asia Pasifik Tbk.,Barang Baku,Development
+PSAT,Pancaran Samudera Transport Tb,Energi,Development
+PSDN,Prasidha Aneka Niaga Tbk,Barang Konsumen Primer,Development
+PSGO,Palma Serasih Tbk.,Barang Konsumen Primer,Main
+PSKT,Red Planet Indonesia Tbk.,Barang Konsumen Non-Primer,Development
+PSSI,IMC Pelita Logistik Tbk.,Energi,Main
+PTBA,Bukit Asam (Persero) Tbk.,Energi,Main
+PTDU,Djasa Ubersakti Tbk.,Infrastruktur,Watchlist
+PTIS,Indo Straits Tbk.,Energi,Development
+PTMP,Mitra Pack Tbk.,Perindustrian,Development
+PTMR,Master Print Tbk.,Barang Baku,Watchlist
+PTPP,PP (Persero) Tbk.,Infrastruktur,Main
+PTPS,Pulau Subur Tbk.,Barang Konsumen Primer,Development
+PTPW,Pratama Widya Tbk.,Infrastruktur,Development
+PTRO,Petrosea Tbk.,Energi,Main
+PTSN,Sat Nusapersada Tbk,Teknologi,Development
+PTSP,Pioneerindo Gourmet Internatio,Barang Konsumen Non-Primer,Development
+PUDP,Pudjiadi Prestige Tbk.,Properti & Real Estat,Development
+PURA,Putra Rajawali Kencana Tbk.,Transportasi & Logistik,Watchlist
+PURE,Trinitan Metals and Minerals T,Barang Baku,Watchlist
+PURI,Puri Global Sukses Tbk.,Properti & Real Estat,Development
+PWON,Pakuwon Jati Tbk.,Properti & Real Estat,Main
+PYFA,Pyridam Farma Tbk,Kesehatan,Development
+PZZA,Sarimelati Kencana Tbk.,Barang Konsumen Non-Primer,Development
+RAAM,Tripar Multivision Plus Tbk.,Barang Konsumen Non-Primer,Main
+RAFI,Sari Kreasi Boga Tbk.,Barang Konsumen Non-Primer,Watchlist
+RAJA,Rukun Raharja Tbk.,Energi,Main
+RALS,Ramayana Lestari Sentosa Tbk.,Barang Konsumen Non-Primer,Main
+RANC,Supra Boga Lestari Tbk.,Barang Konsumen Primer,Development
+RANS,Rans Entertainmen Indonesia Tb,Barang Konsumen Non-Primer,Development
+RATU,Raharja Energi Cepu Tbk.,Energi,Development
+RBMS,Ristia Bintang Mahkotasejati T,Properti & Real Estat,Development
+RCCC,Utama Radar Cahaya Tbk.,Transportasi & Logistik,Acceleration
+RDTX,Roda Vivatex Tbk,Properti & Real Estat,Development
+REAL,Repower Asia Indonesia Tbk.,Properti & Real Estat,Development
+RELF,Graha Mitra Asia Tbk.,Properti & Real Estat,Acceleration
+RELI,Reliance Sekuritas Indonesia T,Keuangan,Development
+RGAS,Kian Santang Muliatama Tbk.,Energi,Development
+RICY,Ricky Putra Globalindo Tbk,Barang Konsumen Non-Primer,Development
+RIGS,Rig Tenders Indonesia Tbk.,Energi,Development
+RIMO,Rimo International Lestari Tbk,Properti & Real Estat,Watchlist
+RISE,Jaya Sukses Makmur Sentosa Tbk,Properti & Real Estat,Development
+RLCO,Abadi Lestari Indonesia Tbk.,Barang Konsumen Primer,Development
+RMKE,RMK Energy Tbk.,Energi,Main
+RMKO,Royaltama Mulia Kontraktorindo,Energi,Development
+ROCK,Rockfields Properti Indonesia,Properti & Real Estat,Development
+RODA,Pikko Land Development Tbk.,Properti & Real Estat,Development
+RONY,Aracord Nusantara Group Tbk.,Infrastruktur,Development
+ROTI,Nippon Indosari Corpindo Tbk.,Barang Konsumen Primer,Development
+RSCH,Charlie Hospital Semarang Tbk.,Kesehatan,Development
+RSGK,Kedoya Adyaraya Tbk.,Kesehatan,Development
+RUIS,Radiant Utama Interinsco Tbk.,Energi,Development
+RUNS,Global Sukses Solusi Tbk.,Teknologi,Acceleration
+SAFE,Steady Safe Tbk,Transportasi & Logistik,Development
+SAGE,Saptausaha Gemilangindah Tbk.,Properti & Real Estat,Watchlist
+SAME,Sarana Meditama Metropolitan T,Kesehatan,Main
+SAMF,Saraswanti Anugerah Makmur Tbk,Barang Baku,Main
+SAPX,Satria Antaran Prima Tbk.,Transportasi & Logistik,Development
+SATU,Kota Satu Properti Tbk.,Properti & Real Estat,Development
+SBAT,Sejahtera Bintang Abadi Textil,Barang Konsumen Non-Primer,Watchlist
+SBMA,Surya Biru Murni Acetylene Tbk,Barang Baku,Development
+SCCO,Supreme Cable Manufacturing &,Perindustrian,Development
+SCMA,Surya Citra Media Tbk.,Barang Konsumen Non-Primer,Main
+SCNP,Selaras Citra Nusantara Perkas,Barang Konsumen Non-Primer,Development
+SCPI,Organon Pharma Indonesia Tbk.,Kesehatan,Watchlist
+SDMU,Sidomulyo Selaras Tbk.,Transportasi & Logistik,Development
+SDPC,Millennium Pharmacon Internati,Barang Konsumen Primer,Development
+SDRA,Bank Woori Saudara Indonesia 1,Keuangan,Development
+SEMA,Semacom Integrated Tbk.,Energi,Development
+SFAN,Surya Fajar Capital Tbk.,Keuangan,Development
+SGER,Sumber Global Energy Tbk.,Energi,Main
+SGRO,Prime Agri Resources Tbk.,Barang Konsumen Primer,Main
+SHID,Hotel Sahid Jaya International,Barang Konsumen Non-Primer,Development
+SHIP,Sillo Maritime Perdana Tbk.,Energi,Main
+SICO,Sigma Energy Compressindo Tbk.,Energi,Development
+SIDO,Industri Jamu dan Farmasi Sido,Kesehatan,Main
+SILO,Siloam International Hospitals,Kesehatan,Main
+SIMA,Siwani Makmur Tbk,Barang Baku,Watchlist
+SIMP,Salim Ivomas Pratama Tbk.,Barang Konsumen Primer,Main
+SINI,Singaraja Putra Tbk.,Perindustrian,Watchlist
+SIPD,Sreeya Sewu Indonesia Tbk.,Barang Konsumen Primer,Development
+SKBM,Sekar Bumi Tbk.,Barang Konsumen Primer,Development
+SKLT,Sekar Laut Tbk.,Barang Konsumen Primer,Development
+SKRN,Superkrane Mitra Utama Tbk.,Perindustrian,Main
+SKYB,Northcliff Citranusa Indonesia,Teknologi,Watchlist
+SLIS,Gaya Abadi Sempurna Tbk.,Barang Konsumen Non-Primer,Development
+SMAR,Sinar Mas Agro Resources and T,Barang Konsumen Primer,Main
+SMBR,Semen Baturaja (Persero) Tbk.,Barang Baku,Main
+SMCB,Solusi Bangun Indonesia Tbk.,Barang Baku,Watchlist
+SMDM,Suryamas Dutamakmur Tbk.,Properti & Real Estat,Development
+SMDR,Samudera Indonesia  Tbk.,Transportasi & Logistik,Main
+SMGA,Sumber Mineral Global Abadi Tb,Barang Baku,Development
+SMGR,Semen Indonesia (Persero) Tbk.,Barang Baku,Main
+SMIL,Sarana Mitra Luas Tbk.,Perindustrian,Main
+SMKL,Satyamitra Kemas Lestari Tbk.,Barang Baku,Development
+SMKM,Sumber Mas Konstruksi Tbk.,Infrastruktur,Acceleration
+SMLE,Sinergi Multi Lestarindo Tbk.,Barang Baku,Development
+SMMA,Sinarmas Multiartha Tbk.,Keuangan,Development
+SMMT,Golden Eagle Energy Tbk.,Energi,Development
+SMRA,Summarecon Agung Tbk.,Properti & Real Estat,Main
+SMRU,SMR Utama Tbk.,Energi,Watchlist
+SMSM,Selamat Sempurna Tbk.,Barang Konsumen Non-Primer,Main
+SNLK,Sunter Lakeside Hotel Tbk.,Barang Konsumen Non-Primer,Development
+SOCI,Soechi Lines Tbk.,Energi,Development
+SOFA,Solusi Environment Asia Tbk.,Barang Konsumen Non-Primer,Acceleration
+SOHO,Soho Global Health Tbk.,Kesehatan,Development
+SOLA,Xolare RCR Energy Tbk.,Barang Baku,Development
+SONA,Sona Topas Tourism Industry Tb,Barang Konsumen Non-Primer,Development
+SOSS,ALSOK Indonesia Services Tbk.,Perindustrian,Watchlist
+SOTS,Satria Mega Kencana Tbk.,Barang Konsumen Non-Primer,Development
+SOUL,Mitra Tirta Buwana Tbk.,Barang Konsumen Primer,Acceleration
+SPMA,Suparma Tbk.,Barang Baku,Development
+SPRE,Soraya Berjaya Indonesia Tbk.,Barang Konsumen Non-Primer,Acceleration
+SPTO,Surya Pertiwi Tbk.,Perindustrian,Main
+SQMI,Wilton Makmur Indonesia Tbk.,Barang Baku,Development
+SRAJ,Sejahteraraya Anugrahjaya Tbk.,Kesehatan,Development
+SRIL,Sri Rejeki Isman Tbk.,Barang Konsumen Non-Primer,Watchlist
+SRSN,Indo Acidatama Tbk,Barang Baku,Development
+SRTG,Saratoga Investama Sedaya Tbk.,Keuangan,Main
+SSIA,Surya Semesta Internusa Tbk.,Infrastruktur,Main
+SSMS,Sawit Sumbermas Sarana Tbk.,Barang Konsumen Primer,Main
+SSTM,Sunson Textile Manufacture Tbk,Barang Konsumen Non-Primer,Development
+STAA,Sumber Tani Agung Resources Tb,Barang Konsumen Primer,Main
+STAR,Calculus Global Ventures Tbk.,Keuangan,Development
+STRK,Lovina Beach Brewery Tbk.,Barang Konsumen Primer,Development
+STTP,Siantar Top Tbk.,Barang Konsumen Primer,Development
+SUGI,Sugih Energy Tbk.,Energi,Watchlist
+SULI,SLJ Global Tbk.,Barang Baku,Development
+SUNI,Sunindo Pratama Tbk.,Energi,Main
+SUPA,Super Bank Indonesia Tbk.,Keuangan,Development
+SUPR,Solusi Tunas Pratama Tbk.,Infrastruktur,Watchlist
+SURE,Super Energy Tbk.,Energi,Development
+SURI,Maja Agung Latexindo Tbk.,Kesehatan,Development
+SWAT,Sriwahana Adityakarta Tbk.,Barang Baku,Watchlist
+SWID,Saraswanti Indoland Developmen,Barang Konsumen Non-Primer,Development
+TALF,Tunas Alfin Tbk.,Barang Baku,Development
+TAMA,Lancartama Sejati Tbk.,Infrastruktur,Development
+TAMU,Pelayaran Tamarin Samudra Tbk.,Energi,Watchlist
+TAPG,Triputra Agro Persada Tbk.,Barang Konsumen Primer,Main
+TARA,Agung Semesta Sejahtera Tbk.,Properti & Real Estat,Watchlist
+TAXI,Express Transindo Utama Tbk.,Transportasi & Logistik,Watchlist
+TAYS,Jaya Swarasa Agung Tbk.,Barang Konsumen Primer,Development
+TBIG,Tower Bersama Infrastructure T,Infrastruktur,Main
+TBLA,Tunas Baru Lampung Tbk.,Barang Konsumen Primer,Main
+TBMS,Tembaga Mulia Semanan Tbk.,Barang Baku,Development
+TCID,Mandom Indonesia Tbk.,Barang Konsumen Primer,Development
+TCPI,Transcoal Pacific Tbk.,Energi,Development
+TDPM,Tianrong Chemicals Industry Tb,Barang Baku,Watchlist
+TEBE,Dana Brata Luhur Tbk.,Energi,Main
+TECH,Indosterling Technomedia Tbk.,Teknologi,Watchlist
+TELE,Omni Inovasi Indonesia Tbk.,Barang Konsumen Non-Primer,Watchlist
+TFAS,Telefast Indonesia Tbk.,Teknologi,Development
+TFCO,Tifico Fiber Indonesia Tbk.,Barang Konsumen Non-Primer,Watchlist
+TGKA,Tigaraksa Satria Tbk.,Barang Konsumen Primer,Development
+TGRA,Terregra Asia Energy Tbk.,Infrastruktur,Watchlist
+TGUK,Platinum Wahab Nusantara Tbk.,Barang Konsumen Primer,Watchlist
+TIFA,KDB Tifa Finance Tbk.,Keuangan,Development
+TINS,TIMAH (Persero) Tbk.,Barang Baku,Main
+TIRA,Tira Austenite Tbk,Perindustrian,Development
+TIRT,Tirta Mahakam Resources Tbk,Barang Baku,Watchlist
+TKIM,Pabrik Kertas Tjiwi Kimia Tbk.,Barang Baku,Main
+TLDN,Teladan Prima Agro Tbk.,Barang Konsumen Primer,Main
+TLKM,Telkom Indonesia (Persero) Tbk,Infrastruktur,Main
+TMAS,Temas Tbk.,Transportasi & Logistik,Main
+TMPO,Tempo Intimedia Tbk.,Barang Konsumen Non-Primer,Development
+TNCA,Trimuda Nuansa Citra Tbk.,Transportasi & Logistik,Development
+TOBA,TBS Energi Utama Tbk.,Energi,Main
+TOOL,Rohartindo Nusantara Luas Tbk.,Barang Konsumen Non-Primer,Development
+TOPS,Totalindo Eka Persada Tbk.,Infrastruktur,Watchlist
+TOSK,Topindo Solusi Komunika Tbk.,Teknologi,Development
+TOTL,Total Bangun Persada Tbk.,Infrastruktur,Main
+TOTO,Surya Toto Indonesia Tbk.,Perindustrian,Main
+TOWR,Sarana Menara Nusantara Tbk.,Infrastruktur,Main
+TOYS,Sunindo Adipersada Tbk.,Barang Konsumen Non-Primer,Watchlist
+TPIA,Chandra Asri Pacific Tbk.,Barang Baku,Main
+TPMA,Trans Power Marine Tbk.,Energi,Main
+TRAM,Trada Alam Minera Tbk.,Energi,Watchlist
+TRGU,Cerestar Indonesia Tbk.,Barang Konsumen Primer,Main
+TRIL,Triwira Insanlestari Tbk.,Perindustrian,Watchlist
+TRIM,Trimegah Sekuritas Indonesia T,Keuangan,Main
+TRIN,Perintis Triniti Properti Tbk.,Properti & Real Estat,Development
+TRIO,Trikomsel Oke Tbk.,Barang Konsumen Non-Primer,Watchlist
+TRIS,Trisula International Tbk.,Barang Konsumen Non-Primer,Development
+TRJA,Transkon Jaya Tbk.,Transportasi & Logistik,Development
+TRON,Teknologi Karya Digital Nusa T,Teknologi,Development
+TRST,Trias Sentosa Tbk.,Barang Baku,Development
+TRUE,Triniti Dinamik Tbk.,Properti & Real Estat,Development
+TRUK,Guna Timur Raya Tbk.,Transportasi & Logistik,Development
+TRUS,Trust Finance Indonesia Tbk,Keuangan,Development
+TSPC,Tempo Scan Pacific Tbk.,Kesehatan,Main
+TUGU,Asuransi Tugu Pratama Indonesi,Keuangan,Main
+TYRE,King Tire Indonesia Tbk.,Barang Konsumen Non-Primer,Development
+UANG,Pakuan Tbk.,Properti & Real Estat,Development
+UCID,Uni-Charm Indonesia Tbk.,Barang Konsumen Primer,Main
+UDNG,Agro Bahari Nusantara Tbk.,Barang Konsumen Primer,Acceleration
+UFOE,Damai Sejahtera Abadi Tbk.,Barang Konsumen Non-Primer,Development
+ULTJ,Ultrajaya Milk Industry & Trad,Barang Konsumen Primer,Main
+UNIC,Unggul Indah Cahaya Tbk.,Barang Baku,Main
+UNIQ,Ulima Nitra Tbk.,Energi,Development
+UNIT,Nusantara Inti Corpora Tbk,Barang Konsumen Non-Primer,Development
+UNSP,Bakrie Sumatera Plantations Tb,Barang Konsumen Primer,Watchlist
+UNTD,Terang Dunia Internusa Tbk.,Barang Konsumen Non-Primer,Development
+UNTR,United Tractors Tbk.,Perindustrian,Main
+UNVR,Unilever Indonesia Tbk.,Barang Konsumen Primer,Main
+URBN,Urban Jakarta Propertindo Tbk.,Properti & Real Estat,Watchlist
+UVCR,Trimegah Karya Pratama Tbk.,Teknologi,Development
+VAST,Vastland Indonesia Tbk.,Properti & Real Estat,Development
+VERN,Verona Indah Pictures Tbk.,Barang Konsumen Non-Primer,Development
+VICI,Victoria Care Indonesia Tbk.,Barang Konsumen Primer,Main
+VICO,Victoria Investama Tbk.,Keuangan,Main
+VINS,Victoria Insurance Tbk.,Keuangan,Development
+VISI,Satu Visi Putra Tbk.,Perindustrian,Development
+VIVA,Visi Media Asia Tbk.,Barang Konsumen Non-Primer,Watchlist
+VKTR,VKTR Teknologi Mobilitas Tbk.,Barang Konsumen Non-Primer,Development
+VOKS,Voksel Electric Tbk.,Perindustrian,Development
+VRNA,Mizuho Leasing Indonesia Tbk.,Keuangan,Development
+VTNY,Venteny Fortuna International,Keuangan,Development
+WAPO,Wahana Pronatural Tbk.,Barang Konsumen Primer,Development
+WBSA,BSA Logistics Indonesia Tbk.,Transportasi & Logistik,Development
+WEGE,Wijaya Karya Bangunan Gedung T,Infrastruktur,Development
+WEHA,WEHA Transportasi Indonesia Tb,Transportasi & Logistik,Development
+WGSH,Wira Global Solusi Tbk.,Teknologi,Acceleration
+WICO,Wicaksana Overseas Internation,Barang Konsumen Primer,Watchlist
+WIDI,Widiant Jaya Krenindo Tbk.,Perindustrian,Acceleration
+WIFI,Solusi Sinergi Digital Tbk.,Teknologi,Development
+WIIM,Wismilak Inti Makmur Tbk.,Barang Konsumen Primer,Main
+WIKA,Wijaya Karya (Persero) Tbk.,Infrastruktur,Watchlist
+WINE,Hatten Bali Tbk.,Barang Konsumen Primer,Development
+WINR,Winner Nusantara Jaya Tbk.,Properti & Real Estat,Watchlist
+WINS,Wintermar Offshore Marine Tbk.,Energi,Main
+WIRG,WIR ASIA Tbk.,Teknologi,Development
+WMPP,Widodo Makmur Perkasa Tbk.,Barang Konsumen Primer,Watchlist
+WMUU,Widodo Makmur Unggas Tbk.,Barang Konsumen Primer,Development
+WOMF,Wahana Ottomitra Multiartha Tb,Keuangan,Development
+WOOD,Integra Indocabinet Tbk.,Barang Konsumen Non-Primer,Main
+WOWS,Ginting Jaya Energi Tbk.,Energi,Development
+WSBP,Waskita Beton Precast Tbk.,Barang Baku,Watchlist
+WSKT,Waskita Karya (Persero) Tbk.,Infrastruktur,Watchlist
+WTON,Wijaya Karya Beton Tbk.,Barang Baku,Main
+YELO,Yelooo Integra Datanet Tbk.,Barang Konsumen Non-Primer,Development
+YOII,Asuransi Digital Bersama Tbk.,Keuangan,Development
+YPAS,Yanaprima Hastapersada Tbk,Barang Baku,Development
+YULE,Yulie Sekuritas Indonesia Tbk.,Keuangan,Development
+YUPI,Yupi Indo Jelly Gum Tbk.,Barang Konsumen Primer,Main
+ZATA,Bersama Zatta Jaya Tbk.,Barang Konsumen Non-Primer,Development
+ZBRA,Dosni Roha Indonesia Tbk.,Perindustrian,Watchlist
+ZINC,Kapuas Prima Coal Tbk.,Barang Baku,Watchlist
+ZONE,Mega Perintis Tbk.,Barang Konsumen Non-Primer,Development
+ZYRX,Zyrexindo Mandiri Buana Tbk.,Teknologi,Development

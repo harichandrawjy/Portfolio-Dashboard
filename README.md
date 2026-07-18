@@ -29,6 +29,17 @@ frontend/    React app (later step)
 schema.sql   Canonical database schema — source of the initial migration
 ```
 
+## Data sync
+
+```sh
+docker compose exec backend python -m app.sync universe   # refresh IDX ticker universe
+```
+
+The universe job also runs nightly at 21:00 WIB via APScheduler. If IDX is
+unreachable it falls back to the bundled snapshot `backend/app/data/idx_universe.csv`
+(insert-only — it can seed a fresh database but never overwrites or deactivates
+existing rows).
+
 ## Design notes
 
 - Transactions are the source of truth; holdings are a derived SQL view.
