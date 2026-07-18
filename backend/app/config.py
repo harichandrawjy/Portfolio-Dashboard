@@ -11,6 +11,8 @@ class Settings(BaseSettings):
     app_name: str = "IDX Portfolio Dashboard"
     database_url: str  # required — no default so a missing env fails loudly
     idx_base_url: str = "https://www.idx.co.id"  # overridable for tests/failure drills
+    secret_key: str  # JWT signing key — required, no default
+    access_token_expire_minutes: int = 1440
 
 
 @lru_cache

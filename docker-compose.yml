@@ -22,6 +22,7 @@ services:
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     environment:
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-app}@db:5432/${POSTGRES_DB:-portfolio}
+      SECRET_KEY: ${SECRET_KEY:-dev-secret-change-me}
       # File events don't cross the Windows bind mount; watchfiles must poll
       WATCHFILES_FORCE_POLLING: "true"
     volumes:
