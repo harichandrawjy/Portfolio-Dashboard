@@ -2,7 +2,12 @@ import { ArrowLeft, CloudArrowDown } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
-import { api, type RangeKey, type SecurityStats } from "../api/client";
+import {
+  api,
+  type Fundamentals,
+  type RangeKey,
+  type SecurityStats,
+} from "../api/client";
 import { StockChart } from "../components/StockChart";
 import { EmptyState, Panel, PanelHeader, Skeleton } from "../components/ui";
 import { useAsync } from "../lib/hooks";
@@ -13,6 +18,7 @@ import {
   fmtNumCompact,
   fmtPct,
   fmtRp,
+  fmtRpCompact,
   fmtSignedRp,
   signClass,
 } from "../lib/format";
@@ -162,9 +168,12 @@ export function StockPage() {
 
               <div className="grid grid-cols-1 gap-4 lg:grid-cols-[2fr_1fr]">
                 <StatsPanel stats={d.stats} />
-                {position.data?.held && (
-                  <PositionPanel position={position.data} />
-                )}
+                <div className="flex flex-col gap-4">
+                  {position.data?.held && (
+                    <PositionPanel position={position.data} />
+                  )}
+                  <FundamentalsPanel fundamentals={d.fundamentals} />
+                </div>
               </div>
             </>
           )}
@@ -343,5 +352,64 @@ function PosRow({ label, value }: { label: string; value: string }) {
       <dt className="text-ink-3">{label}</dt>
       <dd className="tnum font-mono text-ink">{value}</dd>
     </div>
+  );
+}
+
+/** Per-share figures like EPS can be legitimately sub-rupiah on IDX
+ *  (GOTO's EPS is -0,61); rounding those to whole Rp would lie. */
+function fmtRpFine(n: number | null): string {
+  if (n == null) return DASH;
+  if (Math.abs(n) < 100) {
+    return (
+      (n < 0 ? "-" : "") +
+      "Rp " +
+      Math.abs(n).toLocaleString("id-ID", { maximumFractionDigits: 2 })
+    );
+  }
+  return fmtRp(Math.round(n));
+}
+
+function FundamentalsPanel({
+  fundamentals: f,
+}: {
+  fundamentals: Fundamentals | null;
+}) {
+  return (
+    <Panel>
+      <PanelHeader title="Fundamentals" />
+      {f === null ? (
+        <div className="px-5 pb-5">
+          <p className="text-[13px] leading-relaxed text-ink-3">
+            Not fetched yet. Fundamentals refresh weekly; Yahoo's coverage of
+            IDX names is patchy, so some fields may stay empty.
+          </p>
+        </div>
+      ) : (
+        <div className="px-5 pb-5">
+          <dl className="flex flex-col gap-1.5 text-[13px]">
+            <PosRow
+              label="Market cap"
+              value={f.market_cap != null ? fmtRpCompact(f.market_cap) : DASH}
+            />
+            <PosRow
+              label="P/E (trailing)"
+              value={f.pe_ratio != null ? f.pe_ratio.toFixed(1) + "×" : DASH}
+            />
+            <PosRow label="EPS (trailing)" value={fmtRpFine(f.eps)} />
+            <PosRow
+              label="Dividend yield"
+              value={fmtPct(f.dividend_yield_pct)}
+            />
+            <PosRow
+              label="Book value / share"
+              value={fmtRpFine(f.book_value)}
+            />
+          </dl>
+          <p className="mt-3 text-xs text-ink-3">
+            From Yahoo, refreshed weekly · updated {fmtDate(f.last_updated)}
+          </p>
+        </div>
+      )}
+    </Panel>
   );
 }

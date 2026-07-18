@@ -9,11 +9,18 @@ from sqlalchemy import text as sa_text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.deps import CurrentUser, Session
-from app.models import LatestQuote, PriceHistory, Security, SecurityStats
+from app.models import (
+    Fundamentals,
+    LatestQuote,
+    PriceHistory,
+    Security,
+    SecurityStats,
+)
 from app.performance import RANGE_DAYS, RangeKey
 from app.scheduler import enqueue_backfill
 from app.schemas import (
     EnsurePricesOut,
+    FundamentalsOut,
     PositionRow,
     PositionTxn,
     SecurityDetailOut,
@@ -135,6 +142,7 @@ async def security_detail(
         )
     ).first()
     stats = await session.get(SecurityStats, sec.id)
+    fundamentals = await session.get(Fundamentals, sec.id)
 
     return SecurityDetailOut(
         ticker=sec.ticker,
@@ -151,6 +159,9 @@ async def security_detail(
         last_close=last_bar.close if last_bar else None,
         last_close_date=last_bar.trade_date if last_bar else None,
         stats=SecurityStatsOut.model_validate(stats) if stats else None,
+        fundamentals=(
+            FundamentalsOut.model_validate(fundamentals) if fundamentals else None
+        ),
     )
 
 

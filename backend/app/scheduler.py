@@ -4,6 +4,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.combining import OrTrigger
 from apscheduler.triggers.cron import CronTrigger
 
+from app.sync.fundamentals import sync_fundamentals
 from app.sync.prices import backfill_ticker, sync_daily, sync_quotes
 from app.sync.universe import sync_universe
 
@@ -47,6 +48,15 @@ def create_scheduler() -> AsyncIOScheduler:
         id="quote-refresh",
         coalesce=True,
         misfire_grace_time=300,
+    )
+
+    # Fundamentals barely change; Saturday morning after the week closes.
+    scheduler.add_job(
+        sync_fundamentals,
+        CronTrigger(day_of_week="sat", hour=6, minute=0, timezone=JAKARTA),
+        id="fundamentals-sync",
+        coalesce=True,
+        misfire_grace_time=6 * 3600,
     )
 
     _scheduler = scheduler

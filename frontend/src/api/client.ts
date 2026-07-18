@@ -214,6 +214,15 @@ export interface SecurityStats {
   beta_1y: number | null;
 }
 
+export interface Fundamentals {
+  market_cap: number | null;
+  pe_ratio: number | null;
+  eps: number | null;
+  dividend_yield_pct: number | null;
+  book_value: number | null;
+  last_updated: string;
+}
+
 export interface SecurityDetail {
   ticker: string;
   name: string;
@@ -227,6 +236,7 @@ export interface SecurityDetail {
   last_close: number | null;
   last_close_date: string | null;
   stats: SecurityStats | null;
+  fundamentals: Fundamentals | null;
 }
 
 export interface StockPricePoint {

@@ -34,6 +34,11 @@ def main() -> None:
 
     sub.add_parser("stats", help="rebuild the security_stats cache")
 
+    p_fund = sub.add_parser("fundamentals", help="refresh Yahoo fundamentals")
+    p_fund.add_argument(
+        "--tickers", help="comma-separated subset; default = all tracked tickers"
+    )
+
     p_quotes = sub.add_parser("quotes", help="refresh latest_quotes")
     p_quotes.add_argument(
         "--tickers",
@@ -62,6 +67,15 @@ def main() -> None:
 
         count = asyncio.run(refresh_stats())
         print(f"stats refreshed for {count} ticker(s)")
+    elif args.command == "fundamentals":
+        from app.sync.fundamentals import sync_fundamentals
+
+        subset = args.tickers.split(",") if args.tickers else None
+        result = asyncio.run(sync_fundamentals(subset))
+        print(
+            f"fundamentals: {result.synced} synced, "
+            f"{len(result.failed)} failed {result.failed or ''}"
+        )
     elif args.command == "quotes":
         override = args.tickers.split(",") if args.tickers else None
         result = asyncio.run(sync_quotes(override))

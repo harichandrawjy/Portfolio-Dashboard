@@ -166,6 +166,27 @@ class SecurityStats(Base):
     beta_1y: Mapped[Decimal | None] = mapped_column(Numeric(10, 4))
 
 
+class Fundamentals(Base):
+    """Weekly-refreshed Yahoo fundamentals; every value nullable because
+    IDX coverage is patchy, especially for small caps (migration 0003)."""
+
+    __tablename__ = "fundamentals"
+
+    security_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("securities.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    market_cap: Mapped[int | None] = mapped_column(BigInteger)
+    pe_ratio: Mapped[Decimal | None] = mapped_column(Numeric(12, 4))
+    eps: Mapped[Decimal | None] = mapped_column(Numeric(14, 4))
+    dividend_yield_pct: Mapped[Decimal | None] = mapped_column(Numeric(8, 4))
+    book_value: Mapped[Decimal | None] = mapped_column(Numeric(14, 4))
+    last_updated: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True), server_default=text("now()")
+    )
+
+
 class LatestQuote(Base):
     __tablename__ = "latest_quotes"
 

@@ -217,6 +217,17 @@ class SecurityStatsOut(BaseModel):
     beta_1y: float | None
 
 
+class FundamentalsOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    market_cap: int | None
+    pe_ratio: float | None
+    eps: float | None
+    dividend_yield_pct: float | None
+    book_value: float | None
+    last_updated: datetime
+
+
 class SecurityDetailOut(BaseModel):
     ticker: str
     name: str
@@ -230,6 +241,7 @@ class SecurityDetailOut(BaseModel):
     last_close: int | None
     last_close_date: date | None
     stats: SecurityStatsOut | None  # null until the cache is computed
+    fundamentals: FundamentalsOut | None  # null until the weekly sync ran
 
 
 class StockPricePoint(BaseModel):
