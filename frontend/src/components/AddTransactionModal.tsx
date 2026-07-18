@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { api, type NewTransaction, type SearchResult, type TxnType } from "../api/client";
 import { useDebounced } from "../lib/hooks";
-import { fmtNum } from "../lib/format";
+import { fmtNum, fmtRp } from "../lib/format";
 import { Button, ErrorNote, Field, Modal } from "./ui";
 
 const SHARES_PER_LOT = 100;
@@ -22,6 +22,9 @@ export function AddTransactionModal({
   const [tickerPicked, setTickerPicked] = useState(false);
   const [lots, setLots] = useState("1");
   const [price, setPrice] = useState("");
+  // true while the price came from autocomplete; a manual edit clears it so
+  // we never overwrite something the user typed
+  const [priceAutofilled, setPriceAutofilled] = useState(false);
   const [fee, setFee] = useState("0");
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [note, setNote] = useState("");
@@ -156,6 +159,13 @@ export function AddTransactionModal({
                       setTicker(r.ticker);
                       setTickerPicked(true);
                       setOpen(false);
+                      if (
+                        r.last_price != null &&
+                        (price === "" || priceAutofilled)
+                      ) {
+                        setPrice(String(r.last_price));
+                        setPriceAutofilled(true);
+                      }
                     }}
                     className="flex w-full items-baseline gap-3 px-3 py-2 text-left transition-colors hover:bg-white/5"
                   >
@@ -163,11 +173,17 @@ export function AddTransactionModal({
                       {r.ticker}
                     </span>
                     <span className="truncate text-xs text-ink-3">{r.name}</span>
-                    {r.sector && (
-                      <span className="ml-auto shrink-0 text-[11px] text-ink-3">
-                        {r.sector}
-                      </span>
-                    )}
+                    <span className="ml-auto shrink-0">
+                      {r.last_price != null ? (
+                        <span className="tnum font-mono text-xs text-ink-2">
+                          {fmtRp(r.last_price)}
+                        </span>
+                      ) : (
+                        <span className="text-[11px] text-ink-3">
+                          {r.sector ?? ""}
+                        </span>
+                      )}
+                    </span>
                   </button>
                 </li>
               ))}
@@ -191,8 +207,12 @@ export function AddTransactionModal({
             min={1}
             step={1}
             value={price}
-            onChange={(e) => setPrice(e.target.value)}
+            onChange={(e) => {
+              setPrice(e.target.value);
+              setPriceAutofilled(false);
+            }}
             placeholder="6500"
+            hint={priceAutofilled ? "Last known price · edit freely" : undefined}
           />
           <Field
             label="Fee (Rp)"

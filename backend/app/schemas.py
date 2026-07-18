@@ -180,9 +180,8 @@ class AllocationOut(BaseModel):
 
 
 class SecuritySearchOut(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
     ticker: str
     name: str
     sector: str | None
     board: str | None
+    last_price: int | None  # latest quote, else most recent close; entry aid

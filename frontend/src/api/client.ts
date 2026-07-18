@@ -193,6 +193,7 @@ export interface SearchResult {
   name: string;
   sector: string | null;
   board: string | null;
+  last_price: number | null;
 }
 
 export interface NewTransaction {

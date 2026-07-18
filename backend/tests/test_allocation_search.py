@@ -149,9 +149,20 @@ async def test_search_ticker_prefix_and_name_substring(client):
 
 async def test_search_covers_tickers_without_price_history(client):
     auth = await _login(client, "lala@example.com")
-    # TLKM is seeded with no price_history rows at all — must still appear
+    # TLKM is seeded with no price_history rows at all — must still appear,
+    # with no last_price to pre-fill
     r = await client.get("/securities/search?q=telkom", headers=auth)
-    assert "TLKM" in [s["ticker"] for s in r.json()]
+    tlkm = next(s for s in r.json() if s["ticker"] == "TLKM")
+    assert tlkm["last_price"] is None
+
+
+async def test_search_returns_last_price_for_entry_autofill(client):
+    auth = await _login(client, "nana@example.com")
+    # BBCA has a seeded quote of 7000 — search carries it for the
+    # transaction form's price pre-fill
+    r = await client.get("/securities/search?q=bbca", headers=auth)
+    bbca = next(s for s in r.json() if s["ticker"] == "BBCA")
+    assert bbca["last_price"] == 7000
 
 
 async def test_search_excludes_inactive_and_requires_auth(client):
