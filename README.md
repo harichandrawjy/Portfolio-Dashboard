@@ -32,13 +32,18 @@ schema.sql   Canonical database schema — source of the initial migration
 ## Data sync
 
 ```sh
-docker compose exec backend python -m app.sync universe   # refresh IDX ticker universe
+docker compose exec backend python -m app.sync universe                # refresh IDX ticker universe
+docker compose exec backend python -m app.sync backfill --ticker BBCA  # 5y OHLCV history (repeatable flag)
+docker compose exec backend python -m app.sync daily                   # append recent bars for tracked tickers
+docker compose exec backend python -m app.sync quotes                  # refresh latest_quotes (held + ^JKSE)
 ```
 
-The universe job also runs nightly at 21:00 WIB via APScheduler. If IDX is
-unreachable it falls back to the bundled snapshot `backend/app/data/idx_universe.csv`
-(insert-only — it can seed a fresh database but never overwrites or deactivates
-existing rows).
+Scheduled jobs (APScheduler, Asia/Jakarta): universe nightly 21:00; daily
+prices Mon–Fri 18:30; quotes every 15 min Mon–Fri 09:00–16:00. Price history
+is backfilled lazily — a ticker gets 5 years of daily bars the first time a
+portfolio needs it, not before. If IDX is unreachable the universe sync falls
+back to the bundled snapshot `backend/app/data/idx_universe.csv` (insert-only —
+it can seed a fresh database but never overwrites or deactivates existing rows).
 
 ## Design notes
 
