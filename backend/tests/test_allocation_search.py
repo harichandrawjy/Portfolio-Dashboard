@@ -165,6 +165,30 @@ async def test_search_returns_last_price_for_entry_autofill(client):
     assert bbca["last_price"] == 7000
 
 
+async def test_ensure_prices_endpoint(client, monkeypatch):
+    import app.routers.securities as securities_router
+
+    calls: list[str] = []
+    monkeypatch.setattr(securities_router, "enqueue_backfill", calls.append)
+
+    auth = await _login(client, "opik@example.com")
+
+    # BBCA already has price history -> ready, nothing enqueued
+    r = await client.post("/securities/BBCA/ensure-prices", headers=auth)
+    assert r.status_code == 200
+    assert r.json()["status"] == "ready"
+    assert calls == []
+
+    # TLKM has none -> backfill queued
+    r = await client.post("/securities/TLKM/ensure-prices", headers=auth)
+    assert r.json()["status"] == "queued"
+    assert calls == ["TLKM"]
+
+    # unknown ticker -> 404
+    r = await client.post("/securities/XXXX/ensure-prices", headers=auth)
+    assert r.status_code == 404
+
+
 async def test_search_excludes_inactive_and_requires_auth(client):
     auth = await _login(client, "mimi@example.com")
 

@@ -185,3 +185,9 @@ class SecuritySearchOut(BaseModel):
     sector: str | None
     board: str | None
     last_price: int | None  # latest quote, else most recent close; entry aid
+
+
+class EnsurePricesOut(BaseModel):
+    # ready = prices already local; queued = backfill enqueued, poll search;
+    # unavailable = background scheduler not running
+    status: Literal["ready", "queued", "unavailable"]

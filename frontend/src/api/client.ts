@@ -266,4 +266,10 @@ export const api = {
 
   searchSecurities: (q: string) =>
     request<SearchResult[]>(`/securities/search?q=${encodeURIComponent(q)}`),
+
+  ensurePrices: (ticker: string) =>
+    request<{ status: "ready" | "queued" | "unavailable" }>(
+      `/securities/${encodeURIComponent(ticker)}/ensure-prices`,
+      { method: "POST" },
+    ),
 };

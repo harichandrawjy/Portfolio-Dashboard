@@ -25,6 +25,11 @@ export function AddTransactionModal({
   // true while the price came from autocomplete; a manual edit clears it so
   // we never overwrite something the user typed
   const [priceAutofilled, setPriceAutofilled] = useState(false);
+  const [priceHint, setPriceHint] = useState<string | null>(null);
+  // set the moment the user types a price by hand; async fills check it
+  const userTypedPrice = useRef(false);
+  // bumping this cancels any in-flight price poll (new pick, or unmount)
+  const pollToken = useRef(0);
   const [fee, setFee] = useState("0");
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [note, setNote] = useState("");
@@ -67,6 +72,49 @@ export function AddTransactionModal({
     window.addEventListener("mousedown", onDown);
     return () => window.removeEventListener("mousedown", onDown);
   }, []);
+
+  useEffect(() => {
+    return () => {
+      pollToken.current += 1; // cancel polls when the modal unmounts
+    };
+  }, []);
+
+  /** A picked ticker with no local price: enqueue the lazy backfill, then
+   *  poll the local search until its price lands (a few seconds). */
+  const fetchPriceInBackground = async (ticker: string) => {
+    const token = ++pollToken.current;
+    setPriceHint("No local price yet · fetching…");
+    try {
+      const res = await api.ensurePrices(ticker);
+      if (res.status === "unavailable") {
+        if (pollToken.current === token)
+          setPriceHint("Price service unavailable · enter the price manually");
+        return;
+      }
+      for (let attempt = 0; attempt < 8; attempt++) {
+        await new Promise((r) => setTimeout(r, 1500));
+        if (pollToken.current !== token) return;
+        const hits = await api.searchSecurities(ticker);
+        const hit = hits.find((h) => h.ticker === ticker);
+        if (hit?.last_price != null) {
+          if (pollToken.current !== token) return;
+          // fill only if the user still hasn't typed a price themselves
+          if (!userTypedPrice.current) {
+            setPrice(String(hit.last_price));
+            setPriceAutofilled(true);
+            setPriceHint("Last known price · edit freely");
+          } else {
+            setPriceHint(null);
+          }
+          return;
+        }
+      }
+      if (pollToken.current === token)
+        setPriceHint("No price available for this ticker yet");
+    } catch {
+      if (pollToken.current === token) setPriceHint(null);
+    }
+  };
 
   const lotsNum = parseInt(lots, 10);
   const shares = Number.isFinite(lotsNum) && lotsNum > 0 ? lotsNum * SHARES_PER_LOT : null;
@@ -159,12 +207,17 @@ export function AddTransactionModal({
                       setTicker(r.ticker);
                       setTickerPicked(true);
                       setOpen(false);
-                      if (
-                        r.last_price != null &&
-                        (price === "" || priceAutofilled)
-                      ) {
-                        setPrice(String(r.last_price));
-                        setPriceAutofilled(true);
+                      pollToken.current += 1; // stop any previous poll
+                      if (price === "" || priceAutofilled)
+                        userTypedPrice.current = false;
+                      if (r.last_price != null) {
+                        if (price === "" || priceAutofilled) {
+                          setPrice(String(r.last_price));
+                          setPriceAutofilled(true);
+                          setPriceHint("Last known price · edit freely");
+                        }
+                      } else {
+                        void fetchPriceInBackground(r.ticker);
                       }
                     }}
                     className="flex w-full items-baseline gap-3 px-3 py-2 text-left transition-colors hover:bg-white/5"
@@ -210,9 +263,11 @@ export function AddTransactionModal({
             onChange={(e) => {
               setPrice(e.target.value);
               setPriceAutofilled(false);
+              setPriceHint(null);
+              userTypedPrice.current = true;
             }}
             placeholder="6500"
-            hint={priceAutofilled ? "Last known price · edit freely" : undefined}
+            hint={priceHint ?? undefined}
           />
           <Field
             label="Fee (Rp)"
