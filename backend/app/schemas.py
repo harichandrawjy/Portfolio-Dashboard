@@ -111,3 +111,34 @@ class HoldingsOut(BaseModel):
     portfolio_id: uuid.UUID
     holdings: list[HoldingOut]
     totals: HoldingsTotals
+
+
+# ---------------------------------------------------------------------------
+# Performance & metrics
+# ---------------------------------------------------------------------------
+
+class PerformancePoint(BaseModel):
+    date: date
+    portfolio_value: int  # whole rupiah
+    ihsg_normalized: int | None  # IHSG rebased to the portfolio's start value
+
+
+class PerformanceOut(BaseModel):
+    portfolio_id: uuid.UUID
+    range: str
+    points: list[PerformancePoint]
+
+
+class MetricsOut(BaseModel):
+    portfolio_id: uuid.UUID
+    range: str
+    start_date: date | None
+    end_date: date | None
+    trading_days: int
+    total_return_pct: float | None  # time-weighted (see app/performance.py)
+    benchmark_return_pct: float | None
+    annualized_volatility_pct: float | None
+    sharpe_ratio: float | None
+    max_drawdown_pct: float | None
+    beta: float | None
+    risk_free_rate_pct: float

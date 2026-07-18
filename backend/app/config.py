@@ -13,6 +13,9 @@ class Settings(BaseSettings):
     idx_base_url: str = "https://www.idx.co.id"  # overridable for tests/failure drills
     secret_key: str  # JWT signing key — required, no default
     access_token_expire_minutes: int = 1440
+    # Annual risk-free rate for Sharpe: Bank Indonesia policy rate (BI Rate).
+    # A constant is fine for this project; update via env when BI moves it.
+    risk_free_rate_annual: float = 0.055
 
 
 @lru_cache
