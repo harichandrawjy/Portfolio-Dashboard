@@ -218,6 +218,11 @@ async def backfill_ticker(ticker: str, years: int = 5) -> BackfillResult:
     logger.info(
         "backfilled %s (%s): %d daily bars upserted", sec.ticker, sec.yahoo_symbol, len(rows)
     )
+    # Fresh history means the stat cache for this ticker is computable now —
+    # do it here so the stock page has stats seconds after first visit.
+    from app.sync.stats import refresh_stats
+
+    await refresh_stats([sec.id])
     return BackfillResult(sec.ticker, sec.yahoo_symbol, len(rows), resolved=True)
 
 
@@ -292,6 +297,11 @@ async def sync_daily() -> SyncRunResult:
         result.synced, len(result.failed),
         f" ({', '.join(result.failed)})" if result.failed else "",
     )
+
+    # New bars invalidate the nightly stat cache — rebuild it now.
+    from app.sync.stats import refresh_stats
+
+    await refresh_stats()
     return result
 
 

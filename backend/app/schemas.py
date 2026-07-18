@@ -191,3 +191,82 @@ class EnsurePricesOut(BaseModel):
     # ready = prices already local; queued = backfill enqueued, poll search;
     # unavailable = background scheduler not running
     status: Literal["ready", "queued", "unavailable"]
+
+
+# ---------------------------------------------------------------------------
+# Stock detail
+# ---------------------------------------------------------------------------
+
+class SecurityStatsOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    computed_at: datetime
+    return_1d_pct: float | None
+    return_1w_pct: float | None
+    return_1mo_pct: float | None
+    return_ytd_pct: float | None
+    return_1y_pct: float | None
+    return_5y_pct: float | None  # over stored history; backfill caps at ~5y
+    high_52w: int | None
+    low_52w: int | None
+    high_all: int | None
+    low_all: int | None
+    avg_volume_3mo: int | None
+    volatility_1y_pct: float | None
+    max_drawdown_1y_pct: float | None
+    beta_1y: float | None
+
+
+class SecurityDetailOut(BaseModel):
+    ticker: str
+    name: str
+    sector: str | None
+    board: str | None
+    is_active: bool
+    has_history: bool  # false -> frontend triggers ensure-prices and polls
+    quote_price: int | None
+    quote_change_pct: float | None
+    quote_as_of: datetime | None
+    last_close: int | None
+    last_close_date: date | None
+    stats: SecurityStatsOut | None  # null until the cache is computed
+
+
+class StockPricePoint(BaseModel):
+    date: date
+    close: int
+    volume: int | None
+    ihsg: int | None  # IHSG rebased to the stock's first close in range
+
+
+class StockPricesOut(BaseModel):
+    ticker: str
+    range: str
+    points: list[StockPricePoint]
+
+
+class PositionRow(BaseModel):
+    portfolio_id: uuid.UUID
+    portfolio_name: str
+    lots: int
+    shares: int
+    avg_cost_per_share: float
+    cost_basis: int
+    market_value: int | None
+    unrealized_pnl: int | None
+    unrealized_pnl_pct: float | None
+    pct_of_portfolio: float | None
+
+
+class PositionTxn(BaseModel):
+    executed_at: date
+    type: Literal["BUY", "SELL"]
+    lots: int
+    price_per_share: int
+    portfolio_name: str
+
+
+class StockPositionOut(BaseModel):
+    held: bool
+    positions: list[PositionRow]
+    transactions: list[PositionTxn]  # chart markers

@@ -136,6 +136,36 @@ class PriceHistory(Base):
     volume: Mapped[int | None] = mapped_column(BigInteger)
 
 
+class SecurityStats(Base):
+    """Nightly-computed stat cache; every value is derived from
+    price_history and can be rebuilt at any time (migration 0002)."""
+
+    __tablename__ = "security_stats"
+
+    security_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("securities.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    computed_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True), server_default=text("now()")
+    )
+    return_1d_pct: Mapped[Decimal | None] = mapped_column(Numeric(10, 4))
+    return_1w_pct: Mapped[Decimal | None] = mapped_column(Numeric(10, 4))
+    return_1mo_pct: Mapped[Decimal | None] = mapped_column(Numeric(10, 4))
+    return_ytd_pct: Mapped[Decimal | None] = mapped_column(Numeric(10, 4))
+    return_1y_pct: Mapped[Decimal | None] = mapped_column(Numeric(10, 4))
+    return_5y_pct: Mapped[Decimal | None] = mapped_column(Numeric(10, 4))
+    high_52w: Mapped[int | None] = mapped_column(BigInteger)
+    low_52w: Mapped[int | None] = mapped_column(BigInteger)
+    high_all: Mapped[int | None] = mapped_column(BigInteger)
+    low_all: Mapped[int | None] = mapped_column(BigInteger)
+    avg_volume_3mo: Mapped[int | None] = mapped_column(BigInteger)
+    volatility_1y_pct: Mapped[Decimal | None] = mapped_column(Numeric(10, 4))
+    max_drawdown_1y_pct: Mapped[Decimal | None] = mapped_column(Numeric(10, 4))
+    beta_1y: Mapped[Decimal | None] = mapped_column(Numeric(10, 4))
+
+
 class LatestQuote(Base):
     __tablename__ = "latest_quotes"
 

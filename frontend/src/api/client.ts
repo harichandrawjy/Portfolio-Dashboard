@@ -196,6 +196,79 @@ export interface SearchResult {
   last_price: number | null;
 }
 
+export interface SecurityStats {
+  computed_at: string;
+  return_1d_pct: number | null;
+  return_1w_pct: number | null;
+  return_1mo_pct: number | null;
+  return_ytd_pct: number | null;
+  return_1y_pct: number | null;
+  return_5y_pct: number | null;
+  high_52w: number | null;
+  low_52w: number | null;
+  high_all: number | null;
+  low_all: number | null;
+  avg_volume_3mo: number | null;
+  volatility_1y_pct: number | null;
+  max_drawdown_1y_pct: number | null;
+  beta_1y: number | null;
+}
+
+export interface SecurityDetail {
+  ticker: string;
+  name: string;
+  sector: string | null;
+  board: string | null;
+  is_active: boolean;
+  has_history: boolean;
+  quote_price: number | null;
+  quote_change_pct: number | null;
+  quote_as_of: string | null;
+  last_close: number | null;
+  last_close_date: string | null;
+  stats: SecurityStats | null;
+}
+
+export interface StockPricePoint {
+  date: string;
+  close: number;
+  volume: number | null;
+  ihsg: number | null;
+}
+
+export interface StockPrices {
+  ticker: string;
+  range: string;
+  points: StockPricePoint[];
+}
+
+export interface PositionRow {
+  portfolio_id: string;
+  portfolio_name: string;
+  lots: number;
+  shares: number;
+  avg_cost_per_share: number;
+  cost_basis: number;
+  market_value: number | null;
+  unrealized_pnl: number | null;
+  unrealized_pnl_pct: number | null;
+  pct_of_portfolio: number | null;
+}
+
+export interface PositionTxn {
+  executed_at: string;
+  type: TxnType;
+  lots: number;
+  price_per_share: number;
+  portfolio_name: string;
+}
+
+export interface StockPosition {
+  held: boolean;
+  positions: PositionRow[];
+  transactions: PositionTxn[];
+}
+
 export interface NewTransaction {
   ticker: string;
   type: TxnType;
@@ -272,4 +345,15 @@ export const api = {
       `/securities/${encodeURIComponent(ticker)}/ensure-prices`,
       { method: "POST" },
     ),
+
+  securityDetail: (ticker: string) =>
+    request<SecurityDetail>(`/securities/${encodeURIComponent(ticker)}`),
+
+  securityPrices: (ticker: string, range: RangeKey) =>
+    request<StockPrices>(
+      `/securities/${encodeURIComponent(ticker)}/prices?range=${range}`,
+    ),
+
+  securityPosition: (ticker: string) =>
+    request<StockPosition>(`/securities/${encodeURIComponent(ticker)}/position`),
 };

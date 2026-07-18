@@ -32,6 +32,8 @@ def main() -> None:
 
     sub.add_parser("daily", help="append recent bars for all tracked tickers")
 
+    sub.add_parser("stats", help="rebuild the security_stats cache")
+
     p_quotes = sub.add_parser("quotes", help="refresh latest_quotes")
     p_quotes.add_argument(
         "--tickers",
@@ -55,6 +57,11 @@ def main() -> None:
     elif args.command == "daily":
         result = asyncio.run(sync_daily())
         print(f"daily sync: {result.synced} synced, {len(result.failed)} failed {result.failed or ''}")
+    elif args.command == "stats":
+        from app.sync.stats import refresh_stats
+
+        count = asyncio.run(refresh_stats())
+        print(f"stats refreshed for {count} ticker(s)")
     elif args.command == "quotes":
         override = args.tickers.split(",") if args.tickers else None
         result = asyncio.run(sync_quotes(override))

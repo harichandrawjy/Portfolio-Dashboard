@@ -45,6 +45,18 @@ portfolio needs it, not before. If IDX is unreachable the universe sync falls
 back to the bundled snapshot `backend/app/data/idx_universe.csv` (insert-only —
 it can seed a fresh database but never overwrites or deactivates existing rows).
 
+## Why security_stats exists
+
+The stock detail page shows ~12 statistics (window returns, 52-week range,
+average volume, volatility, drawdown, beta) derived from up to ~1,250 daily
+bars per ticker. Computing those on every page load would rescan
+price_history per request for numbers that change once a day. Instead they
+are cached in the `security_stats` table (migration 0002) and recomputed by
+the nightly price job, plus once immediately after a ticker's first-use
+backfill, so a first visit shows stats within seconds. Page reads are a
+single primary-key lookup. The table is purely derived state: dropping it
+loses nothing that `python -m app.sync stats` cannot rebuild.
+
 ## Design notes
 
 - Transactions are the source of truth; holdings are a derived SQL view.

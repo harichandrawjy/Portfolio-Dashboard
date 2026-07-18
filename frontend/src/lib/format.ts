@@ -49,6 +49,16 @@ export function fmtNum(n: number | null | undefined): string {
   return n == null ? DASH : num.format(n);
 }
 
+const numCompact = new Intl.NumberFormat("id-ID", {
+  notation: "compact",
+  maximumFractionDigits: 1,
+});
+
+/** Plain compact count, e.g. share volume: 256,7 jt */
+export function fmtNumCompact(n: number | null | undefined): string {
+  return n == null ? DASH : numCompact.format(n);
+}
+
 export function fmtPct(n: number | null | undefined, signed = false): string {
   if (n == null) return DASH;
   const s = n.toLocaleString("id-ID", {
