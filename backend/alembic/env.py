@@ -1,7 +1,14 @@
 import asyncio
+import sys
 from logging.config import fileConfig
+from pathlib import Path
 
 from alembic import context
+
+# Make backend/ importable no matter where alembic is invoked from.
+# (alembic.ini's prepend_sys_path can't do this: it splits on spaces,
+# which breaks on paths like "Portfolio Dashboard".)
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
