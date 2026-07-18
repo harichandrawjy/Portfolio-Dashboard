@@ -142,3 +142,47 @@ class MetricsOut(BaseModel):
     max_drawdown_pct: float | None
     beta: float | None
     risk_free_rate_pct: float
+
+
+# ---------------------------------------------------------------------------
+# Allocation & search
+# ---------------------------------------------------------------------------
+
+class StockSlice(BaseModel):
+    ticker: str
+    name: str
+    sector: str | None
+    market_value: int
+    weight_pct: float
+
+
+class SectorSlice(BaseModel):
+    sector: str | None
+    market_value: int
+    weight_pct: float
+
+
+class ConcentrationFlag(BaseModel):
+    type: Literal["stock_concentration", "sector_concentration"]
+    ticker: str | None = None
+    sector: str | None = None
+    weight_pct: float
+    threshold_pct: float
+
+
+class AllocationOut(BaseModel):
+    portfolio_id: uuid.UUID
+    total_market_value: int  # priced holdings only
+    by_stock: list[StockSlice]
+    by_sector: list[SectorSlice]
+    flags: list[ConcentrationFlag]
+    unpriced: list[str]  # held tickers with no price at all — excluded above
+
+
+class SecuritySearchOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    ticker: str
+    name: str
+    sector: str | None
+    board: str | None

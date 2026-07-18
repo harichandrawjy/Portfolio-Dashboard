@@ -5,7 +5,7 @@ from fastapi import FastAPI
 
 from app.config import get_settings
 from app.db import engine
-from app.routers import auth, health, performance, portfolios
+from app.routers import auth, health, performance, portfolios, securities
 from app.scheduler import create_scheduler
 
 logging.basicConfig(level=logging.INFO)
@@ -27,6 +27,7 @@ def create_app() -> FastAPI:
     app.include_router(auth.router)
     app.include_router(portfolios.router)
     app.include_router(performance.router)
+    app.include_router(securities.router)
     return app
 
 

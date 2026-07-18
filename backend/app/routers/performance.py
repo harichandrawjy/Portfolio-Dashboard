@@ -1,6 +1,8 @@
 import uuid
+from collections import defaultdict
 
 from fastapi import APIRouter, Query
+from sqlalchemy import text as sa_text
 
 from app import analytics
 from app.config import get_settings
@@ -12,9 +14,20 @@ from app.performance import (
     time_weighted_returns,
 )
 from app.routers.portfolios import _get_owned_portfolio
-from app.schemas import MetricsOut, PerformanceOut, PerformancePoint
+from app.schemas import (
+    AllocationOut,
+    ConcentrationFlag,
+    MetricsOut,
+    PerformanceOut,
+    PerformancePoint,
+    SectorSlice,
+    StockSlice,
+)
 
 router = APIRouter(tags=["performance"])
+
+STOCK_CONCENTRATION_THRESHOLD_PCT = 30.0
+SECTOR_CONCENTRATION_THRESHOLD_PCT = 50.0
 
 
 @router.get("/portfolios/{portfolio_id}/performance", response_model=PerformanceOut)
@@ -107,4 +120,103 @@ async def portfolio_metrics(
             "max_drawdown_pct": pct(drawdown),
             "beta": None if beta is None else round(beta, 3),
         }
+    )
+
+
+@router.get("/portfolios/{portfolio_id}/allocation", response_model=AllocationOut)
+async def portfolio_allocation(
+    portfolio_id: uuid.UUID, user: CurrentUser, session: Session
+) -> AllocationOut:
+    """Sector/stock breakdown by market value, with concentration flags.
+
+    Price per holding: the latest quote, falling back to the most recent
+    stored close. Holdings with neither are listed in `unpriced` and
+    excluded from the weights (a weight against an unknown value would
+    be a lie).
+    """
+    portfolio = await _get_owned_portfolio(portfolio_id, user, session)
+
+    rows = await session.execute(
+        sa_text(
+            """
+            SELECT s.ticker, s.name, s.sector, h.shares,
+                   COALESCE(q.price, ph.close) AS price
+            FROM holdings h
+            JOIN securities s ON s.id = h.security_id
+            LEFT JOIN latest_quotes q ON q.security_id = h.security_id
+            LEFT JOIN LATERAL (
+                SELECT close FROM price_history p
+                WHERE p.security_id = h.security_id
+                ORDER BY p.trade_date DESC LIMIT 1
+            ) ph ON TRUE
+            WHERE h.portfolio_id = :pid
+            """
+        ),
+        {"pid": portfolio.id},
+    )
+
+    priced: list[tuple[str, str, str | None, int]] = []  # ticker, name, sector, mv
+    unpriced: list[str] = []
+    for r in rows.mappings():
+        if r["price"] is None:
+            unpriced.append(r["ticker"])
+        else:
+            priced.append(
+                (r["ticker"], r["name"], r["sector"], int(r["shares"]) * int(r["price"]))
+            )
+
+    total = sum(mv for *_, mv in priced)
+
+    by_stock: list[StockSlice] = []
+    sector_totals: dict[str | None, int] = defaultdict(int)
+    for ticker, name, sector, mv in sorted(priced, key=lambda x: (-x[3], x[0])):
+        by_stock.append(
+            StockSlice(
+                ticker=ticker,
+                name=name,
+                sector=sector,
+                market_value=mv,
+                weight_pct=round(mv / total * 100, 2) if total else 0.0,
+            )
+        )
+        sector_totals[sector] += mv
+
+    by_sector = [
+        SectorSlice(
+            sector=sector,
+            market_value=mv,
+            weight_pct=round(mv / total * 100, 2) if total else 0.0,
+        )
+        for sector, mv in sorted(
+            sector_totals.items(), key=lambda x: (-x[1], x[0] or "")
+        )
+    ]
+
+    flags: list[ConcentrationFlag] = [
+        ConcentrationFlag(
+            type="stock_concentration",
+            ticker=s.ticker,
+            weight_pct=s.weight_pct,
+            threshold_pct=STOCK_CONCENTRATION_THRESHOLD_PCT,
+        )
+        for s in by_stock
+        if s.weight_pct > STOCK_CONCENTRATION_THRESHOLD_PCT
+    ] + [
+        ConcentrationFlag(
+            type="sector_concentration",
+            sector=s.sector,
+            weight_pct=s.weight_pct,
+            threshold_pct=SECTOR_CONCENTRATION_THRESHOLD_PCT,
+        )
+        for s in by_sector
+        if s.weight_pct > SECTOR_CONCENTRATION_THRESHOLD_PCT
+    ]
+
+    return AllocationOut(
+        portfolio_id=portfolio.id,
+        total_market_value=total,
+        by_stock=by_stock,
+        by_sector=by_sector,
+        flags=flags,
+        unpriced=sorted(unpriced),
     )
