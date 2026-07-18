@@ -1,0 +1,84 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #0b0e14;
+  --color-panel: #11151d;
+  --color-panel-2: #161b25;
+  --color-line: rgb(255 255 255 / 0.07);
+  --color-line-2: rgb(255 255 255 / 0.12);
+  --color-ink: #e6eaf2;
+  --color-ink-2: #96a0b3;
+  --color-ink-3: #5f6878;
+  --color-accent: #3987e5;
+  --color-pos: #45c486;
+  --color-neg: #e5636e;
+  --color-warn: #d9a13c;
+
+  --font-sans: "Geist Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", monospace;
+
+  --radius-panel: 14px;
+  --radius-control: 10px;
+  --radius-field: 8px;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  @apply bg-bg text-ink font-sans antialiased;
+}
+
+/* Numeric alignment for tables and stats */
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Skeleton shimmer, disabled under reduced motion */
+.skeleton {
+  @apply rounded-[8px] bg-white/5 relative overflow-hidden;
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgb(255 255 255 / 0.045),
+    transparent
+  );
+  animation: shimmer 1.6s cubic-bezier(0.32, 0.72, 0, 1) infinite;
+}
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton::after {
+    animation: none;
+  }
+}
+
+/* Modal entry */
+.modal-enter {
+  animation: modal-in 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+}
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .modal-enter {
+    animation: none;
+  }
+}

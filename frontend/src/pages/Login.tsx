@@ -1,0 +1,109 @@
+import { useState, type FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
+
+import { useAuth } from "../auth";
+import { Button, ErrorNote, Field, Panel } from "../components/ui";
+
+type Mode = "login" | "register";
+
+export function LoginPage() {
+  const { login, register } = useAuth();
+  const navigate = useNavigate();
+  const [mode, setMode] = useState<Mode>("login");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [displayName, setDisplayName] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setBusy(true);
+    try {
+      if (mode === "login") await login(email, password);
+      else await register(email, password, displayName || undefined);
+      navigate("/", { replace: true });
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="flex min-h-[100dvh] items-center justify-center px-4">
+      <div className="w-full max-w-sm">
+        <div className="mb-6 text-center">
+          <p className="text-2xl font-semibold tracking-tight text-ink">
+            Arus<span className="text-accent">.</span>
+          </p>
+          <p className="mt-1 text-[13px] text-ink-3">
+            Track IDX portfolios against the IHSG
+          </p>
+        </div>
+
+        <Panel className="p-6">
+          <div className="mb-5 grid grid-cols-2 gap-1 rounded-[10px] bg-panel-2 p-1 ring-1 ring-line">
+            {(["login", "register"] as const).map((m) => (
+              <button
+                key={m}
+                onClick={() => {
+                  setMode(m);
+                  setError(null);
+                }}
+                className={
+                  "rounded-[7px] py-1.5 text-[13px] font-medium transition-colors " +
+                  (mode === m
+                    ? "bg-panel text-ink ring-1 ring-line-2"
+                    : "text-ink-3 hover:text-ink-2")
+                }
+              >
+                {m === "login" ? "Sign in" : "Create account"}
+              </button>
+            ))}
+          </div>
+
+          <form onSubmit={submit} className="flex flex-col gap-4">
+            {mode === "register" && (
+              <Field
+                label="Display name (optional)"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                placeholder="Andi"
+                autoComplete="name"
+              />
+            )}
+            <Field
+              label="Email"
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              autoComplete="email"
+            />
+            <Field
+              label="Password"
+              type="password"
+              required
+              minLength={8}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              hint={mode === "register" ? "At least 8 characters" : undefined}
+              autoComplete={mode === "login" ? "current-password" : "new-password"}
+            />
+            {error && <ErrorNote message={error} />}
+            <Button type="submit" busy={busy} className="mt-1 w-full">
+              {mode === "login" ? "Sign in" : "Create account"}
+            </Button>
+          </form>
+        </Panel>
+
+        <p className="mt-4 text-center text-xs text-ink-3">
+          Mock portfolios only. No real money moves here.
+        </p>
+      </div>
+    </div>
+  );
+}
