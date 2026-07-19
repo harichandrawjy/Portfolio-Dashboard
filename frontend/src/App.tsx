@@ -2,6 +2,7 @@ import { SignOut } from "@phosphor-icons/react";
 import { Link, Navigate, Route, Routes } from "react-router-dom";
 
 import { RequireAuth, useAuth } from "./auth";
+import { TickerSearch } from "./components/TickerSearch";
 import { LoginPage } from "./pages/Login";
 import { PortfolioDetailPage } from "./pages/PortfolioDetail";
 import { PortfoliosPage } from "./pages/Portfolios";
@@ -13,14 +14,17 @@ function Shell({ children }: { children: React.ReactNode }) {
     <div className="min-h-[100dvh]">
       {/* masthead: serif wordmark over a thick ink rule, like a paper */}
       <header className="mx-auto max-w-[1200px] px-4">
-        <div className="flex h-16 items-center justify-between border-b-2 border-ink">
+        <div className="flex h-16 items-center gap-4 border-b-2 border-ink">
           <Link
             to="/"
-            className="font-serif text-[22px] font-semibold text-ink outline-none focus-visible:text-accent"
+            className="shrink-0 font-serif text-[22px] font-semibold text-ink outline-none focus-visible:text-accent"
           >
             Arus<span className="text-accent">.</span>
           </Link>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-1 justify-center px-2">
+            <TickerSearch />
+          </div>
+          <div className="flex shrink-0 items-center gap-3">
             <span className="tnum hidden font-mono text-xs text-ink-3 sm:inline">
               {user?.display_name || user?.email}
             </span>
