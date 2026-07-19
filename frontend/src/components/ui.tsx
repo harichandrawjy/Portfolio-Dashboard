@@ -7,7 +7,8 @@ import {
 } from "react";
 
 /* ------------------------------------------------------------------ */
-/* Surfaces — two tiers, one light source (top)                        */
+/* Surfaces — a white sheet for primary content, a thick ink rule      */
+/* opening each secondary section, like a printed report               */
 /* ------------------------------------------------------------------ */
 
 export function Panel({
@@ -17,14 +18,14 @@ export function Panel({
 }: {
   children: ReactNode;
   className?: string;
-  /** raised = primary surface with depth; flat = quiet secondary surface */
+  /** raised = white sheet card; flat = ruled editorial section on paper */
   tone?: "raised" | "flat";
 }) {
   const surface =
     tone === "raised"
-      ? "rounded-2xl bg-gradient-to-b from-panel-2 to-panel ring-1 ring-line " +
-        "shadow-[0_24px_48px_-28px_rgb(2_4_10/0.9),inset_0_1px_0_rgb(255_255_255/0.05)]"
-      : "rounded-xl bg-panel/60 ring-1 ring-line";
+      ? "rounded-xl bg-panel ring-1 ring-line " +
+        "shadow-[0_1px_2px_rgb(22_24_29/0.04),0_16px_40px_-28px_rgb(22_24_29/0.25)]"
+      : "rounded-none border-t-2 border-ink bg-transparent";
   return <section className={`${surface} ${className}`}>{children}</section>;
 }
 
@@ -39,7 +40,7 @@ export function PanelHeader({
 }) {
   return (
     <div className="flex items-baseline justify-between gap-3 px-5 pt-4 pb-3">
-      <h2 className="text-sm font-medium text-ink">
+      <h2 className="text-[15px] font-semibold tracking-tight text-ink">
         {title}
         {meta && (
           <span className="tnum ml-2 font-mono text-xs font-normal text-ink-3">
@@ -53,7 +54,7 @@ export function PanelHeader({
 }
 
 /* ------------------------------------------------------------------ */
-/* Buttons                                                             */
+/* Buttons — ink-filled primary, like a stamp                          */
 /* ------------------------------------------------------------------ */
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
@@ -70,17 +71,16 @@ export function Button({
   ...rest
 }: ButtonProps) {
   const base =
-    "inline-flex items-center justify-center gap-2 rounded-[10px] px-4 py-2 text-sm font-medium " +
+    "inline-flex items-center justify-center gap-2 rounded-[6px] px-4 py-2 text-sm font-medium " +
     "transition-all duration-200 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98] " +
     "outline-none focus-visible:ring-2 focus-visible:ring-accent/70 focus-visible:ring-offset-2 focus-visible:ring-offset-bg " +
     "disabled:opacity-50 disabled:pointer-events-none whitespace-nowrap";
   const variants = {
     primary:
-      "bg-accent text-white hover:bg-[#4a94ea] " +
-      "shadow-[0_12px_28px_-14px_rgb(57_135_229/0.65),inset_0_1px_0_rgb(255_255_255/0.2)]",
-    ghost: "bg-transparent text-ink ring-1 ring-line-2 hover:bg-white/5",
-    danger: "bg-transparent text-neg ring-1 ring-neg/30 hover:bg-neg/10",
-    text: "px-2 text-ink-2 hover:text-ink hover:bg-white/5",
+      "bg-ink text-bg hover:bg-[#2b303a] shadow-[0_2px_6px_-2px_rgb(22_24_29/0.4)]",
+    ghost: "bg-transparent text-ink ring-1 ring-line-2 hover:bg-ink/5",
+    danger: "bg-transparent text-neg ring-1 ring-neg/40 hover:bg-neg/10",
+    text: "px-2 text-ink-2 hover:text-ink hover:bg-ink/5",
   };
   return (
     <button
@@ -109,7 +109,7 @@ export function Field({ label, hint, error, className = "", ...rest }: FieldProp
       <span className="text-[13px] font-medium text-ink-2">{label}</span>
       <input
         className={
-          "rounded-[8px] bg-panel-2 px-3 py-2 text-sm text-ink ring-1 ring-line " +
+          "rounded-[6px] bg-panel px-3 py-2 text-sm text-ink ring-1 ring-line " +
           "placeholder:text-ink-3 outline-none transition-shadow " +
           "focus:ring-2 focus:ring-accent/60 " +
           className
@@ -136,16 +136,16 @@ export function Segmented<T extends string>({
   onChange: (v: T) => void;
 }) {
   return (
-    <div className="inline-flex rounded-[10px] bg-black/25 p-1 ring-1 ring-line">
+    <div className="inline-flex rounded-[8px] bg-ink/[0.06] p-1 ring-1 ring-line">
       {options.map((o) => (
         <button
           key={o.value}
           onClick={() => onChange(o.value)}
           className={
-            "rounded-[7px] px-3 py-1 text-xs font-medium outline-none transition-colors duration-200 " +
+            "rounded-[5px] px-3 py-1 text-xs font-medium outline-none transition-colors duration-200 " +
             "focus-visible:ring-2 focus-visible:ring-accent/70 " +
             (o.value === value
-              ? "bg-panel-2 text-ink shadow-[inset_0_1px_0_rgb(255_255_255/0.07)] ring-1 ring-line-2"
+              ? "bg-panel text-ink shadow-[0_1px_2px_rgb(22_24_29/0.12)] ring-1 ring-line"
               : "text-ink-3 hover:text-ink-2")
           }
         >
@@ -178,7 +178,7 @@ export function EmptyState({
   return (
     <div className="flex flex-col items-center justify-center gap-3 px-6 py-14 text-center">
       {icon && <div className="text-ink-3">{icon}</div>}
-      <p className="text-sm font-medium text-ink">{title}</p>
+      <p className="text-sm font-semibold text-ink">{title}</p>
       <p className="max-w-[38ch] text-[13px] leading-relaxed text-ink-3">{body}</p>
       {action && <div className="mt-2">{action}</div>}
     </div>
@@ -187,7 +187,7 @@ export function EmptyState({
 
 export function ErrorNote({ message }: { message: string }) {
   return (
-    <div className="rounded-[8px] bg-neg/10 px-3 py-2 text-[13px] text-neg ring-1 ring-neg/25">
+    <div className="rounded-[6px] bg-neg/10 px-3 py-2 text-[13px] text-neg ring-1 ring-neg/25">
       {message}
     </div>
   );
@@ -218,13 +218,13 @@ export function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-40 flex items-start justify-center overflow-y-auto bg-black/65 p-4 pt-[10vh]"
+      className="fixed inset-0 z-40 flex items-start justify-center overflow-y-auto bg-ink/25 p-4 pt-[10vh]"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <div
-        className={`modal-enter w-full ${wide ? "max-w-lg" : "max-w-md"} rounded-2xl bg-gradient-to-b from-panel-2 to-panel ring-1 ring-line-2 shadow-[0_40px_80px_-32px_rgb(0_0_0/0.85),inset_0_1px_0_rgb(255_255_255/0.06)]`}
+        className={`modal-enter w-full ${wide ? "max-w-lg" : "max-w-md"} rounded-xl bg-panel ring-1 ring-line shadow-[0_32px_80px_-24px_rgb(22_24_29/0.4)]`}
         role="dialog"
         aria-modal="true"
         aria-label={title}
@@ -233,7 +233,7 @@ export function Modal({
           <h2 className="text-sm font-semibold text-ink">{title}</h2>
           <button
             onClick={onClose}
-            className="rounded-[7px] p-1 text-ink-3 outline-none transition-colors hover:bg-white/5 hover:text-ink focus-visible:ring-2 focus-visible:ring-accent/70"
+            className="rounded-[5px] p-1 text-ink-3 outline-none transition-colors hover:bg-ink/5 hover:text-ink focus-visible:ring-2 focus-visible:ring-accent/70"
             aria-label="Close"
           >
             <X size={16} weight="light" />

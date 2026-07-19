@@ -3,6 +3,7 @@ import "@fontsource/geist-sans/500.css";
 import "@fontsource/geist-sans/600.css";
 import "@fontsource/jetbrains-mono/400.css";
 import "@fontsource/jetbrains-mono/600.css";
+import "@fontsource/playfair-display/600.css";
 import "./styles.css";
 
 import { StrictMode } from "react";

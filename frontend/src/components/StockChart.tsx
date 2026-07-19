@@ -16,8 +16,8 @@ import { fmtDateShort, fmtNumCompact, fmtRp, fmtRpCompact } from "../lib/format"
 import { EmptyState, Panel, PanelHeader, Segmented, Skeleton } from "./ui";
 
 const PRICE_COLOR = SERIES[0];
-const POS = "#45c486";
-const NEG = "#e5636e";
+const POS = "#177245";
+const NEG = "#b42332";
 
 const RANGES: { value: RangeKey; label: string }[] = [
   { value: "1mo", label: "1M" },
@@ -41,7 +41,7 @@ function ChartTooltip({
   const rows: Record<string, number> = {};
   for (const p of payload) rows[p.dataKey] = p.value;
   return (
-    <div className="rounded-[8px] bg-panel-2 px-3 py-2 text-xs ring-1 ring-line-2 shadow-lg shadow-black/40">
+    <div className="rounded-[6px] bg-panel px-3 py-2 text-xs ring-1 ring-line-2 shadow-[0_12px_32px_-12px_rgb(22_24_29/0.35)]">
       <p className="mb-1 font-medium text-ink-2">{fmtDateShort(label)}</p>
       <p className="tnum font-mono text-ink">{fmtRp(rows.close)}</p>
       {showIhsg && rows.ihsg != null && (
@@ -92,7 +92,7 @@ export function StockChart({
               className={
                 "rounded-full px-3 py-1 text-xs font-medium ring-1 transition-colors duration-200 " +
                 (showIhsg
-                  ? "bg-white/10 text-ink ring-line-2"
+                  ? "bg-ink/[0.07] text-ink ring-line-2"
                   : "text-ink-3 ring-line hover:text-ink-2")
               }
             >
@@ -116,12 +116,12 @@ export function StockChart({
               data={points}
               margin={{ top: 8, right: 12, left: 4, bottom: 0 }}
             >
-              <CartesianGrid vertical={false} stroke="rgb(255 255 255 / 0.05)" />
+              <CartesianGrid vertical={false} stroke="rgb(22 24 29 / 0.07)" />
               <XAxis
                 dataKey="date"
                 tickFormatter={fmtDateShort}
                 stroke="transparent"
-                tick={{ fill: "#5f6878", fontSize: 11 }}
+                tick={{ fill: "#6e7581", fontSize: 11 }}
                 tickLine={false}
                 minTickGap={48}
               />
@@ -129,7 +129,7 @@ export function StockChart({
                 yAxisId="price"
                 tickFormatter={(v: number) => fmtRpCompact(v)}
                 stroke="transparent"
-                tick={{ fill: "#5f6878", fontSize: 11 }}
+                tick={{ fill: "#6e7581", fontSize: 11 }}
                 tickLine={false}
                 width={72}
                 domain={["auto", "auto"]}
@@ -142,12 +142,12 @@ export function StockChart({
               />
               <Tooltip
                 content={<ChartTooltip showIhsg={showIhsg} />}
-                cursor={{ stroke: "rgb(255 255 255 / 0.15)", strokeWidth: 1 }}
+                cursor={{ stroke: "rgb(22 24 29 / 0.3)", strokeWidth: 1 }}
               />
               <Bar
                 yAxisId="vol"
                 dataKey="volume"
-                fill="rgb(255 255 255 / 0.07)"
+                fill="rgb(22 24 29 / 0.08)"
                 isAnimationActive={false}
               />
               {showIhsg && (
@@ -179,7 +179,7 @@ export function StockChart({
                   y={m.y}
                   r={4.5}
                   fill={m.type === "BUY" ? POS : NEG}
-                  stroke="#11151d"
+                  stroke="#ffffff"
                   strokeWidth={2}
                   ifOverflow="extendDomain"
                 />

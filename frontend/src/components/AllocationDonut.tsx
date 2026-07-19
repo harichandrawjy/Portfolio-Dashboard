@@ -18,7 +18,7 @@ function DonutTooltip({
   if (!active || !payload?.length) return null;
   const p = payload[0].payload;
   return (
-    <div className="rounded-[8px] bg-panel-2 px-3 py-2 text-xs ring-1 ring-line-2 shadow-lg shadow-black/40">
+    <div className="rounded-[6px] bg-panel px-3 py-2 text-xs ring-1 ring-line-2 shadow-[0_12px_32px_-12px_rgb(22_24_29/0.35)]">
       <p className="font-medium text-ink">{p.label}</p>
       <p className="tnum mt-0.5 font-mono text-ink-2">
         {fmtRp(p.value)} · {fmtPct(p.pct)}
@@ -94,7 +94,7 @@ export function AllocationDonut({
                 innerRadius="68%"
                 outerRadius="100%"
                 paddingAngle={2}
-                stroke="#11151d"
+                stroke="#f7f7f4"
                 strokeWidth={2}
                 isAnimationActive={false}
               >

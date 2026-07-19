@@ -226,7 +226,7 @@ function StatsPanel({ stats }: { stats: SecurityStats | null }) {
       ) : (
         <div className="px-5 pb-5">
           {/* one strip with internal dividers, not six identical boxes */}
-          <div className="grid grid-cols-3 divide-x divide-line/60 overflow-hidden rounded-xl bg-black/20 ring-1 ring-line sm:grid-cols-6">
+          <div className="grid grid-cols-3 divide-x divide-line/60 overflow-hidden rounded-[8px] bg-ink/[0.03] ring-1 ring-line sm:grid-cols-6">
             {RETURN_TILES.map(({ key, label }) => {
               const v = stats[key] as number | null;
               return (

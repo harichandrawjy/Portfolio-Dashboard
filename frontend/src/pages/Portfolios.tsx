@@ -26,7 +26,7 @@ export function PortfoliosPage() {
         style={{ "--rise": 0 } as React.CSSProperties}
       >
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-ink">
+          <h1 className="font-serif text-3xl font-semibold text-ink">
             Portfolios
           </h1>
           {(data?.length ?? 0) > 0 && (
@@ -76,7 +76,7 @@ export function PortfoliosPage() {
               className="rise group"
               style={{ "--rise": i + 1 } as React.CSSProperties}
             >
-              <Panel className="h-full p-5 transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:-translate-y-0.5 group-hover:ring-line-2 group-hover:shadow-[0_32px_56px_-28px_rgb(2_4_10/0.95)]">
+              <Panel className="h-full p-5 transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:-translate-y-0.5 group-hover:ring-line-2 group-hover:shadow-[0_24px_48px_-24px_rgb(22_24_29/0.35)]">
                 <p className="text-[15px] font-semibold tracking-tight text-ink">
                   {p.name}
                 </p>

@@ -1,61 +1,44 @@
 @import "tailwindcss";
 
+/* Light editorial ledger: paper, ink, ruled lines, one deep accent.
+   Semantic token names are stable so components retheme wholesale. */
 @theme {
-  --color-bg: #0b0e14;
-  --color-panel: #11151d;
-  --color-panel-2: #161b25;
-  --color-line: rgb(255 255 255 / 0.07);
-  --color-line-2: rgb(255 255 255 / 0.12);
-  --color-ink: #e6eaf2;
-  --color-ink-2: #96a0b3;
-  --color-ink-3: #5f6878;
-  --color-accent: #3987e5;
-  --color-pos: #45c486;
-  --color-neg: #e5636e;
-  --color-warn: #d9a13c;
+  --color-bg: #f7f7f4; /* paper */
+  --color-panel: #ffffff; /* sheet */
+  --color-panel-2: #ffffff;
+  --color-line: rgb(22 24 29 / 0.14); /* hairline rule */
+  --color-line-2: rgb(22 24 29 / 0.3); /* strong rule */
+  --color-ink: #16181d;
+  --color-ink-2: #454d59;
+  --color-ink-3: #6e7581;
+  --color-accent: #1d5bbf; /* deep cobalt — links, actions, portfolio line */
+  --color-pos: #177245; /* print-grade green */
+  --color-neg: #b42332; /* print-grade red */
+  --color-warn: #8a6116;
 
   --font-sans: "Geist Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Playfair Display", Georgia, "Times New Roman", serif;
   --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", monospace;
 }
 
 html {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 body {
   @apply bg-bg text-ink font-sans antialiased;
 }
 
-/* One light source: a faint accent glow from the top-left, fixed on its own
-   layer (no backdrop-filter — cheap to composite, no scroll jank). */
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background:
-    radial-gradient(
-      1100px 520px at 16% -12%,
-      rgb(57 135 229 / 0.075),
-      transparent 62%
-    ),
-    radial-gradient(
-      900px 500px at 110% 110%,
-      rgb(0 0 0 / 0.5),
-      transparent 55%
-    );
-}
-
-/* Film grain to break digital flatness. Fixed, pointer-events-none, above
-   everything as a uniform physical texture. */
+/* Paper grain: fixed, pointer-events-none, multiplied into the paper.
+   One cheap compositor layer — no backdrop-filter anywhere. */
 body::after {
   content: "";
   position: fixed;
   inset: 0;
   z-index: 60;
   pointer-events: none;
-  opacity: 0.03;
+  opacity: 0.05;
+  mix-blend-mode: multiply;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
@@ -83,7 +66,7 @@ body::after {
 
 /* Skeleton shimmer, disabled under reduced motion */
 .skeleton {
-  @apply rounded-[8px] bg-white/5 relative overflow-hidden;
+  @apply rounded-[6px] bg-ink/[0.06] relative overflow-hidden;
 }
 .skeleton::after {
   content: "";
@@ -93,7 +76,7 @@ body::after {
   background: linear-gradient(
     90deg,
     transparent,
-    rgb(255 255 255 / 0.045),
+    rgb(255 255 255 / 0.6),
     transparent
   );
   animation: shimmer 1.6s cubic-bezier(0.32, 0.72, 0, 1) infinite;

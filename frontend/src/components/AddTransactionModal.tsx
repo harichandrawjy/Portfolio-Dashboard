@@ -199,7 +199,7 @@ export function AddTransactionModal({
             </div>
           </label>
           {open && results.length > 0 && (
-            <ul className="absolute z-10 mt-1 max-h-56 w-full overflow-y-auto rounded-[10px] bg-panel-2 py-1 ring-1 ring-line-2 shadow-xl shadow-black/50">
+            <ul className="absolute z-10 mt-1 max-h-56 w-full overflow-y-auto rounded-[8px] bg-panel py-1 ring-1 ring-line-2 shadow-[0_24px_48px_-16px_rgb(22_24_29/0.35)]">
               {results.map((r) => (
                 <li key={r.ticker}>
                   <button
@@ -220,7 +220,7 @@ export function AddTransactionModal({
                         void fetchPriceInBackground(r.ticker);
                       }
                     }}
-                    className="flex w-full items-baseline gap-3 px-3 py-2 text-left transition-colors hover:bg-white/5"
+                    className="flex w-full items-baseline gap-3 px-3 py-2 text-left transition-colors hover:bg-ink/5"
                   >
                     <span className="font-mono text-sm font-semibold text-ink">
                       {r.ticker}

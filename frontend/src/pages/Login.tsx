@@ -35,12 +35,13 @@ export function LoginPage() {
     <div className="grid min-h-[100dvh] lg:grid-cols-[1.1fr_1fr]">
       {/* ------------------------------------------- brand half */}
       <aside className="relative hidden flex-col justify-between overflow-hidden border-r border-line p-12 lg:flex">
-        <p className="text-[15px] font-semibold tracking-tight text-ink">
+        <p className="font-serif text-[22px] font-semibold text-ink">
           Arus<span className="text-accent">.</span>
         </p>
 
         <div className="rise" style={{ "--rise": 1 } as React.CSSProperties}>
-          <h1 className="text-6xl font-semibold leading-[1.04] tracking-tight text-ink xl:text-7xl">
+          <div className="mb-8 h-0.5 w-16 bg-ink" />
+          <h1 className="font-serif text-6xl font-semibold leading-[1.06] text-ink xl:text-7xl">
             Every lot,
             <br />
             accounted for.
@@ -59,11 +60,11 @@ export function LoginPage() {
       {/* -------------------------------------------- form half */}
       <main className="flex items-center justify-center px-6 py-12">
         <div className="w-full max-w-sm">
-          <p className="mb-10 text-[15px] font-semibold tracking-tight text-ink lg:hidden">
+          <p className="mb-10 font-serif text-[22px] font-semibold text-ink lg:hidden">
             Arus<span className="text-accent">.</span>
           </p>
 
-          <h2 className="text-2xl font-semibold tracking-tight text-ink">
+          <h2 className="font-serif text-3xl font-semibold text-ink">
             {mode === "login" ? "Sign in" : "Create an account"}
           </h2>
 

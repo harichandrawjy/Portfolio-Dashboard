@@ -131,7 +131,7 @@ export function HoldingsTable({
 
 function Row({ holding: h }: { holding: Holding }) {
   return (
-    <tr className="border-b border-line/50 transition-colors last:border-0 hover:bg-white/[0.025]">
+    <tr className="border-b border-line/50 transition-colors last:border-0 hover:bg-ink/[0.03]">
       <td className="px-5 py-2.5">
         <Link to={`/stocks/${h.ticker}`} className="group flex flex-col">
           <span className="font-mono text-sm font-semibold text-ink group-hover:text-accent">

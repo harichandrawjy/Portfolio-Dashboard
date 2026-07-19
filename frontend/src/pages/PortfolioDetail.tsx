@@ -53,7 +53,7 @@ export function PortfolioDetailPage() {
           <ArrowLeft size={14} weight="light" /> Portfolios
         </Link>
         <span className="text-ink-3/60">/</span>
-        <h1 className="text-xl font-semibold tracking-tight text-ink">
+        <h1 className="font-serif text-2xl font-semibold text-ink">
           {portfolio.data?.name ?? "…"}
         </h1>
         {portfolio.data?.description && (

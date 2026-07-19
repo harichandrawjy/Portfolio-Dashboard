@@ -11,23 +11,26 @@ function Shell({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
   return (
     <div className="min-h-[100dvh]">
-      <header className="mx-auto flex h-16 max-w-[1200px] items-center justify-between px-4">
-        <Link
-          to="/"
-          className="text-[16px] font-semibold tracking-tight text-ink outline-none focus-visible:text-accent"
-        >
-          Arus<span className="text-accent">.</span>
-        </Link>
-        <div className="flex items-center gap-3">
-          <span className="tnum hidden font-mono text-xs text-ink-3 sm:inline">
-            {user?.display_name || user?.email}
-          </span>
-          <button
-            onClick={logout}
-            className="flex items-center gap-1.5 rounded-[8px] px-2 py-1 text-[13px] text-ink-3 outline-none transition-colors hover:bg-white/5 hover:text-ink-2 focus-visible:ring-2 focus-visible:ring-accent/70"
+      {/* masthead: serif wordmark over a thick ink rule, like a paper */}
+      <header className="mx-auto max-w-[1200px] px-4">
+        <div className="flex h-16 items-center justify-between border-b-2 border-ink">
+          <Link
+            to="/"
+            className="font-serif text-[22px] font-semibold text-ink outline-none focus-visible:text-accent"
           >
-            <SignOut size={14} weight="light" /> Sign out
-          </button>
+            Arus<span className="text-accent">.</span>
+          </Link>
+          <div className="flex items-center gap-3">
+            <span className="tnum hidden font-mono text-xs text-ink-3 sm:inline">
+              {user?.display_name || user?.email}
+            </span>
+            <button
+              onClick={logout}
+              className="flex items-center gap-1.5 rounded-[6px] px-2 py-1 text-[13px] text-ink-3 outline-none transition-colors hover:bg-ink/5 hover:text-ink focus-visible:ring-2 focus-visible:ring-accent/70"
+            >
+              <SignOut size={14} weight="light" /> Sign out
+            </button>
+          </div>
         </div>
       </header>
       {children}

@@ -1,23 +1,23 @@
 /**
  * Chart colors. The 8 categorical slots are dataviz-validated against the
- * panel surface #11151d (lightness band, chroma floor, adjacent-pair CVD
- * separation >= 13.8 dE, contrast >= 3:1). Assign slots in fixed order,
+ * paper surface #f7f7f4 (lightness band, chroma floor, adjacent-pair CVD
+ * separation >= 18.7 dE, contrast >= 3:1). Assign slots in fixed order,
  * never cycled; overflow folds into "Other" drawn in CHART_NEUTRAL.
  */
 
 export const SERIES = [
-  "#3987e5", // 1 blue (app accent — portfolio series)
-  "#b98729", // 2 amber
-  "#2aa396", // 3 teal
-  "#cc7052", // 4 terracotta
-  "#9a6fd6", // 5 lavender
-  "#86932c", // 6 olive
-  "#cf6699", // 7 pink
-  "#4494c2", // 8 sky
+  "#1d5bbf", // 1 cobalt (app accent — portfolio series)
+  "#a16207", // 2 amber
+  "#079e89", // 3 teal
+  "#bd5b2e", // 4 terracotta
+  "#7048b6", // 5 violet
+  "#56750f", // 6 olive
+  "#b23a7e", // 7 magenta
+  "#2b7fb8", // 8 steel
 ] as const;
 
 /** Benchmark line + "Other" fold slice. Deliberately reads as neutral. */
-export const CHART_NEUTRAL = "#7f8ea3";
+export const CHART_NEUTRAL = "#6b7280";
 
 /** Canonical IDX-IC sector order so a sector keeps its color everywhere. */
 const SECTOR_ORDER = [
