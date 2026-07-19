@@ -10,7 +10,7 @@ import {
   type TxnType,
 } from "../api/client";
 import { useDebounced } from "../lib/hooks";
-import { fmtNum, fmtRp } from "../lib/format";
+import { digitsOnly, fmtNum, fmtRp, groupDigits } from "../lib/format";
 import { Button, ErrorNote, Field, Modal } from "./ui";
 
 const SHARES_PER_LOT = 100;
@@ -47,6 +47,7 @@ function Stepper({
   step,
   min = 1,
   hint,
+  grouped = false,
 }: {
   label: string;
   value: string;
@@ -54,6 +55,8 @@ function Stepper({
   step: (current: number, dir: 1 | -1) => number;
   min?: number;
   hint?: string | null;
+  /** render with id-ID thousands dots; onChange still emits raw digits */
+  grouped?: boolean;
 }) {
   const num = parseInt(value, 10);
   const current = Number.isFinite(num) ? num : 0;
@@ -73,8 +76,10 @@ function Stepper({
         </button>
         <input
           inputMode="numeric"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
+          value={grouped ? groupDigits(value) : value}
+          onChange={(e) =>
+            onChange(grouped ? digitsOnly(e.target.value) : e.target.value)
+          }
           className="w-full border-x border-line bg-panel py-2 text-center font-mono text-sm text-ink outline-none focus:ring-2 focus:ring-accent/60"
         />
         <button
@@ -478,6 +483,7 @@ export function AddTransactionModal({
             }
             min={1}
             hint={priceHint}
+            grouped
           />
           <Stepper
             label="Lots"

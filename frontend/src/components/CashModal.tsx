@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { api, type CashSummary } from "../api/client";
-import { fmtDate, fmtRp } from "../lib/format";
+import { digitsOnly, fmtDate, fmtRp, groupDigits } from "../lib/format";
 import { Button, ErrorNote, Field, Modal, Skeleton } from "./ui";
 
 export function CashModal({
@@ -86,12 +86,12 @@ export function CashModal({
           <div className="flex flex-col gap-2">
             <Field
               label="Amount (Rp)"
-              type="number"
-              min={1}
-              step={1}
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder="10000000"
+              type="text"
+              inputMode="numeric"
+              className="font-mono"
+              value={groupDigits(amount)}
+              onChange={(e) => setAmount(digitsOnly(e.target.value))}
+              placeholder="10.000.000"
               hint={
                 type === "WITHDRAW" && summary
                   ? `up to ${fmtRp(summary.balance)}`

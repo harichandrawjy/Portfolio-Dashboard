@@ -86,6 +86,16 @@ export function fmtAsOf(iso: string | null | undefined): string {
   return iso == null ? DASH : timeWib.format(new Date(iso)) + " WIB";
 }
 
+/** Strip everything but digits (for controlled numeric text inputs). */
+export function digitsOnly(s: string): string {
+  return s.replace(/\D/g, "");
+}
+
+/** Group digits with id-ID thousands dots while typing: 10000000 -> 10.000.000 */
+export function groupDigits(s: string): string {
+  return digitsOnly(s).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+}
+
 /** Tailwind text class for a positive/negative amount. */
 export function signClass(n: number | null | undefined): string {
   if (n == null || n === 0) return "text-ink-2";
