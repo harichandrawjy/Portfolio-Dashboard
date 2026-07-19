@@ -141,17 +141,24 @@ async def test_delete_cash_flow_with_balance_guard(client):
         await client.post("/portfolios", json={"name": "CashDel"}, headers=auth)
     ).json()["id"]
 
+    # two deposits: the big one funds a buy, the small one keeps the
+    # ledger alive when we try to delete the big one
     dep = await client.post(
         f"/portfolios/{pid}/cash",
-        json={"type": "DEPOSIT", "amount": 700_000, "occurred_at": "2026-06-01"},
+        json={"type": "DEPOSIT", "amount": 600_000, "occurred_at": "2026-06-01"},
         headers=auth,
     )
     dep_id = dep.json()["flows"][0]["id"]
+    await client.post(
+        f"/portfolios/{pid}/cash",
+        json={"type": "DEPOSIT", "amount": 100_000, "occurred_at": "2026-06-02"},
+        headers=auth,
+    )
 
     # spend most of it on a buy (1 lot @6000 + 500 fee = 600_500)
     assert (await _buy(client, auth, pid, 1, 6000, fee=500)).status_code == 201
 
-    # deleting the deposit would leave the balance negative -> refused
+    # deleting the big deposit would leave 100_000 - 600_500 < 0 -> refused
     r = await client.delete(f"/portfolios/{pid}/cash/{dep_id}", headers=auth)
     assert r.status_code == 422
     assert "balance" in r.json()["detail"]
@@ -177,6 +184,26 @@ async def test_delete_cash_flow_with_balance_guard(client):
         headers=auth,
     )
     assert r.status_code == 404
+
+
+async def test_deleting_the_only_flow_opts_out_of_tracking(client):
+    auth = await _login(client, "cindy@example.com")
+    pid = (
+        await client.post("/portfolios", json={"name": "OptOut"}, headers=auth)
+    ).json()["id"]
+    dep = await client.post(
+        f"/portfolios/{pid}/cash",
+        json={"type": "DEPOSIT", "amount": 100_000},
+        headers=auth,
+    )
+    dep_id = dep.json()["flows"][0]["id"]
+    assert dep.json()["tracked"] is True
+
+    # removing the last flow is the supported way to turn the ledger off
+    r = await client.delete(f"/portfolios/{pid}/cash/{dep_id}", headers=auth)
+    assert r.status_code == 204
+    r = await client.get(f"/portfolios/{pid}/cash", headers=auth)
+    assert r.json() == {"balance": 0, "tracked": False, "flows": []}
 
 
 async def test_cash_validation(client):

@@ -452,6 +452,8 @@ async def delete_cash_flow(
 
     # Recompute the balance as if the flow were gone (this also handles the
     # earliest-deposit case, where the ledger start date itself moves).
+    # Deleting the last remaining flow turns tracking off entirely — that
+    # is the supported way to opt back out of the cash ledger.
     await session.delete(flow)
     await session.flush()
     balance, tracked = await _cash_state(session, portfolio.id)
