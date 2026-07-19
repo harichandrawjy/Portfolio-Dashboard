@@ -45,7 +45,9 @@ SCRIPT: list[tuple[str, int, str, int]] = [
     ("GOTO", 1, "SELL", 100),
 ]
 TICKERS = sorted({t for t, *_ in SCRIPT})
-FEE_RATE = 0.0015  # ~0.15% broker fee, rounded to whole rupiah
+# Stockbit-style retail fees: 0.15% on buys, 0.25% on sells
+BUY_FEE_RATE = 0.0015
+SELL_FEE_RATE = 0.0025
 
 
 async def _has_bars(ident: str) -> bool:
@@ -152,6 +154,7 @@ async def main() -> None:
                     logger.warning("no bar for %s near %s — skipping", ticker, target)
                     continue
                 shares = lots * 100
+                rate = BUY_FEE_RATE if txn_type == "BUY" else SELL_FEE_RATE
                 session.add(
                     Transaction(
                         portfolio_id=portfolio.id,
@@ -159,7 +162,7 @@ async def main() -> None:
                         type=txn_type,
                         shares=shares,
                         price_per_share=bar.close,
-                        fee=round(shares * bar.close * FEE_RATE),
+                        fee=round(shares * bar.close * rate),
                         executed_at=bar.trade_date,
                         note="demo seed",
                     )

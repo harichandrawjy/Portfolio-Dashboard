@@ -15,6 +15,12 @@ import { Button, ErrorNote, Field, Modal } from "./ui";
 
 const SHARES_PER_LOT = 100;
 
+// Typical Indonesian retail broker fees (e.g. Stockbit): buys 0.15%,
+// sells 0.25% (the extra 0.1% is sales tax). The ledger still stores the
+// computed whole-rupiah fee — the percent is an entry convenience.
+const DEFAULT_BUY_FEE_PCT = "0.15";
+const DEFAULT_SELL_FEE_PCT = "0.25";
+
 /** IDX price tick sizes by price band. */
 function tickFor(price: number): number {
   if (price < 200) return 1;
@@ -103,7 +109,8 @@ export function AddTransactionModal({
   const [priceHint, setPriceHint] = useState<string | null>(null);
   const userTypedPrice = useRef(false);
   const pollToken = useRef(0);
-  const [fee, setFee] = useState("0");
+  const [feePct, setFeePct] = useState(DEFAULT_BUY_FEE_PCT);
+  const feePctTouched = useRef(false);
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [note, setNote] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -176,6 +183,9 @@ export function AddTransactionModal({
   useEffect(() => {
     setOpen(false);
     setSearchResults([]);
+    // follow the broker default until the user sets their own rate
+    if (!feePctTouched.current)
+      setFeePct(type === "BUY" ? DEFAULT_BUY_FEE_PCT : DEFAULT_SELL_FEE_PCT);
   }, [type]);
 
   useEffect(() => {
@@ -263,9 +273,14 @@ export function AddTransactionModal({
   const lotsOk = Number.isFinite(lotsNum) && lotsNum >= 1;
   const priceNum = parseInt(price, 10);
   const priceOk = Number.isFinite(priceNum) && priceNum >= 1;
-  const feeNum = parseInt(fee || "0", 10);
-  const feeOk = Number.isFinite(feeNum) && feeNum >= 0;
+  // accept both "0.15" and "0,15"
+  const feeRate = parseFloat(feePct.replace(",", ".")) / 100;
+  const feeOk = Number.isFinite(feeRate) && feeRate >= 0 && feeRate <= 0.1;
   const shares = lotsOk ? lotsNum * SHARES_PER_LOT : null;
+  const baseValue =
+    priceOk && lotsOk ? lotsNum * SHARES_PER_LOT * priceNum : null;
+  const feeRp =
+    baseValue != null && feeOk ? Math.round(baseValue * feeRate) : null;
 
   const heldPosition = held?.find(
     (h) => h.ticker === ticker.trim().toUpperCase(),
@@ -281,15 +296,18 @@ export function AddTransactionModal({
     type === "BUY" && cashTracked && priceOk
       ? Math.max(
           0,
-          Math.floor((cashBalance - (feeOk ? feeNum : 0)) / (priceNum * SHARES_PER_LOT)),
+          Math.floor(
+            cashBalance /
+              (priceNum * SHARES_PER_LOT * (1 + (feeOk ? feeRate : 0))),
+          ),
         )
       : null;
   const sellMaxLots = type === "SELL" && heldPosition ? heldPosition.lots : null;
   const sliderMax = type === "BUY" ? buyMaxLots : sellMaxLots;
 
   const total =
-    priceOk && lotsOk
-      ? lotsNum * SHARES_PER_LOT * priceNum + (type === "BUY" ? (feeOk ? feeNum : 0) : -(feeOk ? feeNum : 0))
+    baseValue != null
+      ? baseValue + (type === "BUY" ? (feeRp ?? 0) : -(feeRp ?? 0))
       : null;
   const insufficient =
     type === "BUY" && cashTracked && total != null && total > cashBalance;
@@ -307,14 +325,15 @@ export function AddTransactionModal({
     if (!lotsOk) return setError("Lots must be a whole number of at least 1.");
     if (!priceOk)
       return setError("Price per share must be a positive whole-rupiah amount.");
-    if (!feeOk) return setError("Fee cannot be negative.");
+    if (!feeOk)
+      return setError("Fee percent must be between 0 and 10.");
 
     const txn: NewTransaction = {
       ticker: ticker.trim().toUpperCase(),
       type,
       lots: lotsNum,
       price_per_share: priceNum,
-      fee: feeNum,
+      fee: feeRp ?? 0,
       executed_at: date,
       note: note.trim() || null,
     };
@@ -500,12 +519,21 @@ export function AddTransactionModal({
 
         <div className="grid grid-cols-2 gap-4">
           <Field
-            label="Fee (Rp)"
+            label="Fee (%)"
             type="number"
             min={0}
-            step={1}
-            value={fee}
-            onChange={(e) => setFee(e.target.value)}
+            max={10}
+            step={0.01}
+            value={feePct}
+            onChange={(e) => {
+              setFeePct(e.target.value);
+              feePctTouched.current = true;
+            }}
+            hint={
+              feeRp != null
+                ? `= ${fmtRp(feeRp)}`
+                : "brokers charge ~0.15% buy · 0.25% sell"
+            }
           />
           <Field
             label="Date"
