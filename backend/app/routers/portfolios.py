@@ -60,8 +60,13 @@ async def _cash_state(
     session: AsyncSession, portfolio_id: uuid.UUID
 ) -> tuple[int, bool]:
     """(balance, tracked). Balance = deposits - withdrawals - buy costs
-    (incl. fees) + sell proceeds (net of fees). tracked=False means the
-    portfolio never opted into the cash ledger (original behavior)."""
+    (incl. fees) + sell proceeds (net of fees).
+
+    Only trades ON OR AFTER the first cash-flow date count: opting into
+    the ledger mid-life must not let old buys drag the balance negative.
+    Backdating the opening deposit before the first trade includes the
+    full history (the demo seed does this). tracked=False means the
+    portfolio never opted in (original, unblocked behavior)."""
     row = (
         await session.execute(
             sa_text(
@@ -76,7 +81,11 @@ async def _cash_state(
                                             THEN -(t.shares * t.price_per_share + t.fee)
                                             ELSE t.shares * t.price_per_share - t.fee END)
                             FROM transactions t
-                            WHERE t.portfolio_id = :p), 0) AS balance,
+                            WHERE t.portfolio_id = :p
+                              AND t.executed_at >= (SELECT MIN(cf3.occurred_at)
+                                                    FROM cash_flows cf3
+                                                    WHERE cf3.portfolio_id = :p)), 0)
+                  AS balance,
                   EXISTS(SELECT 1 FROM cash_flows cf2
                          WHERE cf2.portfolio_id = :p) AS tracked
                 """

@@ -83,22 +83,43 @@ export function CashModal({
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <Field
-            label="Amount (Rp)"
-            type="number"
-            min={1}
-            step={1}
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            placeholder="10000000"
-            autoFocus
-          />
+          <div className="flex flex-col gap-2">
+            <Field
+              label="Amount (Rp)"
+              type="number"
+              min={1}
+              step={1}
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              placeholder="10000000"
+              hint={
+                type === "WITHDRAW" && summary
+                  ? `up to ${fmtRp(summary.balance)}`
+                  : undefined
+              }
+              autoFocus
+            />
+            {type === "WITHDRAW" && summary !== null && summary.balance > 0 && (
+              <button
+                type="button"
+                onClick={() => setAmount(String(summary.balance))}
+                className="w-max text-xs text-accent outline-none hover:underline focus-visible:underline"
+              >
+                Withdraw everything
+              </button>
+            )}
+          </div>
           <Field
             label="Date"
             type="date"
             value={date}
             max={new Date().toISOString().slice(0, 10)}
             onChange={(e) => setDate(e.target.value)}
+            hint={
+              type === "DEPOSIT"
+                ? "backdate to before your first trade to fund history"
+                : undefined
+            }
           />
         </div>
 

@@ -43,6 +43,36 @@ async def test_untracked_portfolio_never_blocks_buys(client):
     # no deposits ever -> buys work exactly as before the ledger existed
     assert (await _buy(client, auth, pid, 10, 6000, fee=5000)).status_code == 201
 
+    # and the untracked balance stays 0 (trades don't apply pre-ledger)
+    r = await client.get(f"/portfolios/{pid}/cash", headers=auth)
+    assert r.json()["balance"] == 0
+
+
+async def test_trades_before_first_deposit_do_not_count(client):
+    auth = await _login(client, "arif@example.com")
+    pid = (
+        await client.post("/portfolios", json={"name": "LateLedger"}, headers=auth)
+    ).json()["id"]
+
+    # trade first (2026-07-01), opt into cash later (2026-07-05):
+    # the old buy must not drag the fresh deposit negative
+    assert (await _buy(client, auth, pid, 1, 6000)).status_code == 201
+    r = await client.post(
+        f"/portfolios/{pid}/cash",
+        json={"type": "DEPOSIT", "amount": 500_000, "occurred_at": "2026-07-05"},
+        headers=auth,
+    )
+    assert r.json()["balance"] == 500_000
+
+    # so the full fresh deposit is withdrawable
+    r = await client.post(
+        f"/portfolios/{pid}/cash",
+        json={"type": "WITHDRAW", "amount": 500_000},
+        headers=auth,
+    )
+    assert r.status_code == 201
+    assert r.json()["balance"] == 0
+
 
 async def test_cash_ledger_enforces_balance(client):
     auth = await _login(client, "xena@example.com")
