@@ -135,6 +135,50 @@ async def test_cash_ledger_enforces_balance(client):
     assert totals["cash_balance"] == 9_000 and totals["cash_tracked"] is True
 
 
+async def test_delete_cash_flow_with_balance_guard(client):
+    auth = await _login(client, "bela@example.com")
+    pid = (
+        await client.post("/portfolios", json={"name": "CashDel"}, headers=auth)
+    ).json()["id"]
+
+    dep = await client.post(
+        f"/portfolios/{pid}/cash",
+        json={"type": "DEPOSIT", "amount": 700_000, "occurred_at": "2026-06-01"},
+        headers=auth,
+    )
+    dep_id = dep.json()["flows"][0]["id"]
+
+    # spend most of it on a buy (1 lot @6000 + 500 fee = 600_500)
+    assert (await _buy(client, auth, pid, 1, 6000, fee=500)).status_code == 201
+
+    # deleting the deposit would leave the balance negative -> refused
+    r = await client.delete(f"/portfolios/{pid}/cash/{dep_id}", headers=auth)
+    assert r.status_code == 422
+    assert "balance" in r.json()["detail"]
+    # and nothing changed
+    r = await client.get(f"/portfolios/{pid}/cash", headers=auth)
+    assert r.json()["balance"] == 99_500
+
+    # a withdrawal entry can always be deleted (balance only goes up)
+    w = await client.post(
+        f"/portfolios/{pid}/cash",
+        json={"type": "WITHDRAW", "amount": 50_000},
+        headers=auth,
+    )
+    w_id = next(f["id"] for f in w.json()["flows"] if f["type"] == "WITHDRAW")
+    r = await client.delete(f"/portfolios/{pid}/cash/{w_id}", headers=auth)
+    assert r.status_code == 204
+    r = await client.get(f"/portfolios/{pid}/cash", headers=auth)
+    assert r.json()["balance"] == 99_500
+
+    # unknown flow -> 404
+    r = await client.delete(
+        f"/portfolios/{pid}/cash/00000000-0000-0000-0000-000000000000",
+        headers=auth,
+    )
+    assert r.status_code == 404
+
+
 async def test_cash_validation(client):
     auth = await _login(client, "yani@example.com")
     pid = (

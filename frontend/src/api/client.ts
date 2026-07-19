@@ -380,6 +380,11 @@ export const api = {
       body: flow,
     }),
 
+  deleteCashFlow: (portfolioId: string, flowId: string) =>
+    request<void>(`/portfolios/${portfolioId}/cash/${flowId}`, {
+      method: "DELETE",
+    }),
+
   searchSecurities: (q: string) =>
     request<SearchResult[]>(`/securities/search?q=${encodeURIComponent(q)}`),
 

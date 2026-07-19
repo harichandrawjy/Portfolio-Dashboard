@@ -431,6 +431,40 @@ async def add_cash_flow(
     return await get_cash(portfolio_id, user, session)
 
 
+@router.delete(
+    "/portfolios/{portfolio_id}/cash/{flow_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def delete_cash_flow(
+    portfolio_id: uuid.UUID,
+    flow_id: uuid.UUID,
+    user: CurrentUser,
+    session: Session,
+) -> None:
+    portfolio = await _get_owned_portfolio(portfolio_id, user, session)
+    flow = await session.scalar(
+        select(CashFlow).where(
+            CashFlow.id == flow_id, CashFlow.portfolio_id == portfolio.id
+        )
+    )
+    if flow is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Cash flow not found")
+
+    # Recompute the balance as if the flow were gone (this also handles the
+    # earliest-deposit case, where the ledger start date itself moves).
+    await session.delete(flow)
+    await session.flush()
+    balance, tracked = await _cash_state(session, portfolio.id)
+    if tracked and balance < 0:
+        await session.rollback()
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_CONTENT,
+            f"Deleting this entry would leave the cash balance at "
+            f"Rp {balance:,}. Remove the spending that relied on it first.",
+        )
+    await session.commit()
+
+
 # ---------------------------------------------------------------------------
 # Holdings
 # ---------------------------------------------------------------------------

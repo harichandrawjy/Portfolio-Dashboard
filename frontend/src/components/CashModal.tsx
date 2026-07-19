@@ -1,3 +1,4 @@
+import { Trash } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
 
 import { api, type CashSummary } from "../api/client";
@@ -20,10 +21,25 @@ export function CashModal({
   const [note, setNote] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [deleting, setDeleting] = useState<string | null>(null);
 
   useEffect(() => {
     api.cash(portfolioId).then(setSummary, () => setSummary(null));
   }, [portfolioId]);
+
+  const removeFlow = async (flowId: string) => {
+    setError(null);
+    setDeleting(flowId);
+    try {
+      await api.deleteCashFlow(portfolioId, flowId);
+      setSummary(await api.cash(portfolioId));
+      onChanged();
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setDeleting(null);
+    }
+  };
 
   const submit = async () => {
     setError(null);
@@ -146,7 +162,7 @@ export function CashModal({
             <p className="mb-2 text-[13px] font-medium text-ink-2">Recent</p>
             <ul className="max-h-40 space-y-1.5 overflow-y-auto">
               {summary.flows.map((f) => (
-                <li key={f.id} className="flex items-baseline gap-3 text-[13px]">
+                <li key={f.id} className="flex items-center gap-3 text-[13px]">
                   <span
                     className={`w-16 shrink-0 text-xs font-semibold ${
                       f.type === "DEPOSIT" ? "text-pos" : "text-neg"
@@ -160,6 +176,14 @@ export function CashModal({
                   <span className="ml-auto shrink-0 text-xs text-ink-3">
                     {fmtDate(f.occurred_at)}
                   </span>
+                  <button
+                    onClick={() => removeFlow(f.id)}
+                    disabled={deleting === f.id}
+                    className="shrink-0 rounded-[5px] p-1 text-ink-3 outline-none transition-colors hover:bg-neg/10 hover:text-neg focus-visible:ring-2 focus-visible:ring-accent/70 disabled:opacity-40"
+                    aria-label={`Delete ${f.type.toLowerCase()} of ${fmtRp(f.amount)}`}
+                  >
+                    <Trash size={13} weight="light" />
+                  </button>
                 </li>
               ))}
             </ul>
