@@ -1,9 +1,10 @@
-import { MagnifyingGlass } from "@phosphor-icons/react";
+import { MagnifyingGlass, Minus, Plus } from "@phosphor-icons/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
   api,
   type Holding,
+  type Holdings,
   type NewTransaction,
   type SearchResult,
   type TxnType,
@@ -14,6 +15,15 @@ import { Button, ErrorNote, Field, Modal } from "./ui";
 
 const SHARES_PER_LOT = 100;
 
+/** IDX price tick sizes by price band. */
+function tickFor(price: number): number {
+  if (price < 200) return 1;
+  if (price < 500) return 2;
+  if (price < 2000) return 5;
+  if (price < 5000) return 10;
+  return 25;
+}
+
 /** One dropdown row, whether it came from universe search (BUY) or the
  *  portfolio's own holdings (SELL). */
 interface Suggestion {
@@ -22,6 +32,57 @@ interface Suggestion {
   last_price: number | null;
   heldLots: number | null;
   sector: string | null;
+}
+
+function Stepper({
+  label,
+  value,
+  onChange,
+  step,
+  min = 1,
+  hint,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  step: (current: number, dir: 1 | -1) => number;
+  min?: number;
+  hint?: string | null;
+}) {
+  const num = parseInt(value, 10);
+  const current = Number.isFinite(num) ? num : 0;
+  const bump = (dir: 1 | -1) =>
+    onChange(String(Math.max(min, step(current, dir))));
+  return (
+    <div className="flex flex-col gap-2">
+      <span className="text-[13px] font-medium text-ink-2">{label}</span>
+      <div className="flex items-stretch overflow-hidden rounded-[6px] bg-panel ring-1 ring-line">
+        <button
+          type="button"
+          onClick={() => bump(-1)}
+          aria-label={`Decrease ${label}`}
+          className="px-3 text-ink-2 outline-none transition-colors hover:bg-ink/5 focus-visible:bg-ink/5"
+        >
+          <Minus size={13} weight="bold" />
+        </button>
+        <input
+          inputMode="numeric"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="w-full border-x border-line bg-panel py-2 text-center font-mono text-sm text-ink outline-none focus:ring-2 focus:ring-accent/60"
+        />
+        <button
+          type="button"
+          onClick={() => bump(1)}
+          aria-label={`Increase ${label}`}
+          className="px-3 text-ink-2 outline-none transition-colors hover:bg-ink/5 focus-visible:bg-ink/5"
+        >
+          <Plus size={13} weight="bold" />
+        </button>
+      </div>
+      {hint && <span className="text-xs text-ink-3">{hint}</span>}
+    </div>
+  );
 }
 
 export function AddTransactionModal({
@@ -38,13 +99,9 @@ export function AddTransactionModal({
   const [tickerPicked, setTickerPicked] = useState(false);
   const [lots, setLots] = useState("1");
   const [price, setPrice] = useState("");
-  // true while the price came from autocomplete; a manual edit clears it so
-  // we never overwrite something the user typed
   const [priceAutofilled, setPriceAutofilled] = useState(false);
   const [priceHint, setPriceHint] = useState<string | null>(null);
-  // set the moment the user types a price by hand; async fills check it
   const userTypedPrice = useRef(false);
-  // bumping this cancels any in-flight price poll (new pick, or unmount)
   const pollToken = useRef(0);
   const [fee, setFee] = useState("0");
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
@@ -52,14 +109,14 @@ export function AddTransactionModal({
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  // ---- current holdings (the only sellable things) -----------------
-  const [held, setHeld] = useState<Holding[] | null>(null);
+  // ---- holdings + cash (sellable things & buying power) ------------
+  const [portfolioState, setPortfolioState] = useState<Holdings | null>(null);
   useEffect(() => {
-    api.holdings(portfolioId).then(
-      (h) => setHeld(h.holdings),
-      () => setHeld([]),
-    );
+    api.holdings(portfolioId).then(setPortfolioState, () => setPortfolioState(null));
   }, [portfolioId]);
+  const held: Holding[] | null = portfolioState?.holdings ?? null;
+  const cashTracked = portfolioState?.totals.cash_tracked ?? false;
+  const cashBalance = portfolioState?.totals.cash_balance ?? 0;
 
   // ---- autocomplete ------------------------------------------------
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
@@ -116,7 +173,6 @@ export function AddTransactionModal({
     }));
   }, [type, ticker, held, searchResults]);
 
-  // switching Buy/Sell resets the dropdown, not the user's input
   useEffect(() => {
     setOpen(false);
     setSearchResults([]);
@@ -133,12 +189,11 @@ export function AddTransactionModal({
 
   useEffect(() => {
     return () => {
-      pollToken.current += 1; // cancel polls when the modal unmounts
+      pollToken.current += 1;
     };
   }, []);
 
-  /** A picked ticker with no local price (BUY only): enqueue the lazy
-   *  backfill, then poll the local search until its price lands. */
+  /** BUY of a never-priced ticker: enqueue the lazy backfill and poll. */
   const fetchPriceInBackground = async (symbol: string) => {
     const token = ++pollToken.current;
     setPriceHint("No local price yet · fetching…");
@@ -173,11 +228,18 @@ export function AddTransactionModal({
     }
   };
 
+  const onPriceEdit = (v: string) => {
+    setPrice(v);
+    setPriceAutofilled(false);
+    setPriceHint(null);
+    userTypedPrice.current = true;
+  };
+
   const pickSuggestion = (s: Suggestion) => {
     setTicker(s.ticker);
     setTickerPicked(true);
     setOpen(false);
-    pollToken.current += 1; // stop any previous poll
+    pollToken.current += 1;
     if (price === "" || priceAutofilled) userTypedPrice.current = false;
     if (s.last_price != null) {
       if (price === "" || priceAutofilled) {
@@ -188,15 +250,49 @@ export function AddTransactionModal({
     } else if (type === "BUY") {
       void fetchPriceInBackground(s.ticker);
     }
+    // selling: clamp the lot count to what is actually held
+    if (s.heldLots != null) {
+      const cur = parseInt(lots, 10);
+      if (!Number.isFinite(cur) || cur < 1 || cur > s.heldLots)
+        setLots(String(Math.max(1, Math.min(cur || 1, s.heldLots))));
+    }
   };
 
+  // ---- derived order math ------------------------------------------
   const lotsNum = parseInt(lots, 10);
-  const shares =
-    Number.isFinite(lotsNum) && lotsNum > 0 ? lotsNum * SHARES_PER_LOT : null;
+  const lotsOk = Number.isFinite(lotsNum) && lotsNum >= 1;
+  const priceNum = parseInt(price, 10);
+  const priceOk = Number.isFinite(priceNum) && priceNum >= 1;
+  const feeNum = parseInt(fee || "0", 10);
+  const feeOk = Number.isFinite(feeNum) && feeNum >= 0;
+  const shares = lotsOk ? lotsNum * SHARES_PER_LOT : null;
 
-  const heldPosition = held?.find((h) => h.ticker === ticker.trim().toUpperCase());
+  const heldPosition = held?.find(
+    (h) => h.ticker === ticker.trim().toUpperCase(),
+  );
   const sellingUnheld =
-    type === "SELL" && held !== null && ticker.trim() !== "" && tickerPicked && !heldPosition;
+    type === "SELL" &&
+    held !== null &&
+    ticker.trim() !== "" &&
+    tickerPicked &&
+    !heldPosition;
+
+  const buyMaxLots =
+    type === "BUY" && cashTracked && priceOk
+      ? Math.max(
+          0,
+          Math.floor((cashBalance - (feeOk ? feeNum : 0)) / (priceNum * SHARES_PER_LOT)),
+        )
+      : null;
+  const sellMaxLots = type === "SELL" && heldPosition ? heldPosition.lots : null;
+  const sliderMax = type === "BUY" ? buyMaxLots : sellMaxLots;
+
+  const total =
+    priceOk && lotsOk
+      ? lotsNum * SHARES_PER_LOT * priceNum + (type === "BUY" ? (feeOk ? feeNum : 0) : -(feeOk ? feeNum : 0))
+      : null;
+  const insufficient =
+    type === "BUY" && cashTracked && total != null && total > cashBalance;
 
   const lotsHint =
     type === "SELL" && heldPosition
@@ -207,15 +303,11 @@ export function AddTransactionModal({
 
   const submit = async () => {
     setError(null);
-    const priceNum = parseInt(price, 10);
-    const feeNum = parseInt(fee || "0", 10);
     if (!ticker.trim()) return setError("Pick a ticker first.");
-    if (!Number.isFinite(lotsNum) || lotsNum < 1)
-      return setError("Lots must be a whole number of at least 1.");
-    if (!Number.isFinite(priceNum) || priceNum < 1)
+    if (!lotsOk) return setError("Lots must be a whole number of at least 1.");
+    if (!priceOk)
       return setError("Price per share must be a positive whole-rupiah amount.");
-    if (!Number.isFinite(feeNum) || feeNum < 0)
-      return setError("Fee cannot be negative.");
+    if (!feeOk) return setError("Fee cannot be negative.");
 
     const txn: NewTransaction = {
       ticker: ticker.trim().toUpperCase(),
@@ -347,31 +439,66 @@ export function AddTransactionModal({
           )}
         </div>
 
+        {/* buying power strip */}
+        {type === "BUY" && cashTracked && (
+          <div className="flex items-baseline justify-between rounded-[6px] bg-ink/[0.03] px-3 py-2 ring-1 ring-line">
+            <span className="text-[13px] text-ink-2">Cash available</span>
+            <span className="tnum font-mono text-sm font-semibold text-ink">
+              {fmtRp(cashBalance)}
+            </span>
+          </div>
+        )}
+
         <div className="grid grid-cols-2 gap-4">
-          <Field
-            label="Lots"
-            type="number"
+          <Stepper
+            label="Price per share (Rp)"
+            value={price}
+            onChange={onPriceEdit}
+            step={(cur, dir) =>
+              dir > 0 ? cur + tickFor(cur) : cur - tickFor(Math.max(0, cur - 1))
+            }
             min={1}
-            step={1}
+            hint={priceHint}
+          />
+          <Stepper
+            label="Lots"
             value={lots}
-            onChange={(e) => setLots(e.target.value)}
+            onChange={setLots}
+            step={(cur, dir) => cur + dir}
+            min={1}
             hint={lotsHint}
           />
-          <Field
-            label="Price per share (Rp)"
-            type="number"
-            min={1}
-            step={1}
-            value={price}
-            onChange={(e) => {
-              setPrice(e.target.value);
-              setPriceAutofilled(false);
-              setPriceHint(null);
-              userTypedPrice.current = true;
-            }}
-            placeholder="6500"
-            hint={priceHint ?? undefined}
-          />
+        </div>
+
+        {/* drag how many: bounded by cash (buy) or holdings (sell) */}
+        {sliderMax != null && (
+          <div className="flex items-center gap-3">
+            <input
+              type="range"
+              className="lot-slider"
+              min={1}
+              max={Math.max(1, sliderMax)}
+              step={1}
+              disabled={sliderMax < 1}
+              value={Math.min(lotsOk ? lotsNum : 1, Math.max(1, sliderMax))}
+              onChange={(e) => setLots(e.target.value)}
+              style={
+                {
+                  "--fill":
+                    sliderMax > 1
+                      ? `${(((lotsOk ? Math.min(lotsNum, sliderMax) : 1) - 1) / (sliderMax - 1)) * 100}%`
+                      : "0%",
+                } as React.CSSProperties
+              }
+              aria-label="Lots"
+            />
+            <span className="tnum shrink-0 font-mono text-xs text-ink-3">
+              max {fmtNum(sliderMax)}
+            </span>
+          </div>
+        )}
+
+        <div className="grid grid-cols-2 gap-4">
           <Field
             label="Fee (Rp)"
             type="number"
@@ -396,13 +523,37 @@ export function AddTransactionModal({
           placeholder="Why this trade?"
         />
 
+        {/* order total */}
+        <div className="flex items-baseline justify-between border-t border-line pt-3">
+          <span className="text-[13px] text-ink-2">
+            {type === "BUY" ? "Total cost, incl. fee" : "Est. proceeds, after fee"}
+          </span>
+          <span
+            className={`tnum font-mono text-xl font-semibold ${insufficient ? "text-neg" : "text-ink"}`}
+          >
+            {total == null ? "—" : fmtRp(total)}
+          </span>
+        </div>
+
+        {insufficient && (
+          <ErrorNote
+            message={`Insufficient cash: Rp ${fmtNum(total! - cashBalance)} short. Deposit from the portfolio page or reduce the order.`}
+          />
+        )}
+        {type === "BUY" && !cashTracked && portfolioState !== null && (
+          <p className="text-xs text-ink-3">
+            No cash ledger yet. Use the Cash button on the portfolio page to
+            track buying power.
+          </p>
+        )}
+
         {error && <ErrorNote message={error} />}
 
         <div className="flex justify-end gap-2 pt-1">
           <Button variant="ghost" onClick={onClose}>
             Cancel
           </Button>
-          <Button onClick={submit} busy={busy}>
+          <Button onClick={submit} busy={busy} disabled={insufficient}>
             {type === "BUY" ? "Record buy" : "Record sell"}
           </Button>
         </div>

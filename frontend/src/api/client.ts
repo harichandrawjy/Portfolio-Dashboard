@@ -125,7 +125,23 @@ export interface Holdings {
     market_value: number | null;
     unrealized_pnl: number | null;
     unpriced_holdings: number;
+    cash_balance: number;
+    cash_tracked: boolean;
   };
+}
+
+export interface CashFlowEntry {
+  id: string;
+  type: "DEPOSIT" | "WITHDRAW";
+  amount: number;
+  occurred_at: string;
+  note: string | null;
+}
+
+export interface CashSummary {
+  balance: number;
+  tracked: boolean;
+  flows: CashFlowEntry[];
 }
 
 export type RangeKey = "1mo" | "6mo" | "1y" | "all";
@@ -346,6 +362,22 @@ export const api = {
     request<Metrics>(`/portfolios/${id}/metrics?range=${range}`),
 
   allocation: (id: string) => request<Allocation>(`/portfolios/${id}/allocation`),
+
+  cash: (id: string) => request<CashSummary>(`/portfolios/${id}/cash`),
+
+  addCashFlow: (
+    id: string,
+    flow: {
+      type: "DEPOSIT" | "WITHDRAW";
+      amount: number;
+      occurred_at?: string;
+      note?: string | null;
+    },
+  ) =>
+    request<CashSummary>(`/portfolios/${id}/cash`, {
+      method: "POST",
+      body: flow,
+    }),
 
   searchSecurities: (q: string) =>
     request<SearchResult[]>(`/securities/search?q=${encodeURIComponent(q)}`),

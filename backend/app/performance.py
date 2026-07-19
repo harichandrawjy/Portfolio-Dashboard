@@ -9,8 +9,11 @@ would see in their account. For RETURN metrics we use TIME-WEIGHTED returns
     r_d = (V_d - F_d) / V_{d-1} - 1
 
 where F_d is the day's net flow: a buy injects (shares*price + fee) of
-outside money, a sell withdraws (shares*price - fee). This model holds no
-cash balance, so every trade IS an external flow.
+outside money, a sell withdraws (shares*price - fee). Trades are treated
+as external flows because analytics deliberately measure INVESTED capital
+only. (The optional cash ledger added in migration 0004 is a budgeting
+device for sizing buys; idle cash is excluded from the performance series
+and metrics on purpose.)
 
 Why TWR and not simple V_end/V_start: with simple returns a user who
 deposits Rp 10M mid-month "gains" 100% on a flat market. TWR removes the

@@ -30,6 +30,7 @@ from app.db import Base
 # SQLAlchemy/Alembic from trying to re-create them.
 security_kind = ENUM("stock", "index", name="security_kind", create_type=False)
 txn_type = ENUM("BUY", "SELL", name="txn_type", create_type=False)
+cash_flow_type = ENUM("DEPOSIT", "WITHDRAW", name="cash_flow_type", create_type=False)
 
 
 class User(Base):
@@ -111,6 +112,31 @@ class Transaction(Base):
     price_per_share: Mapped[int] = mapped_column(BigInteger)
     fee: Mapped[int] = mapped_column(BigInteger, server_default=text("0"))
     executed_at: Mapped[date] = mapped_column(Date)
+    note: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True), server_default=text("now()")
+    )
+
+
+class CashFlow(Base):
+    """Portfolio cash ledger entry (migration 0004). Balance is derived:
+    deposits - withdrawals - buy costs + net sell proceeds."""
+
+    __tablename__ = "cash_flows"
+    __table_args__ = (
+        CheckConstraint("amount > 0", name="cash_flows_amount_check"),
+        Index("idx_cash_flows_portfolio", "portfolio_id", "occurred_at"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()")
+    )
+    portfolio_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("portfolios.id", ondelete="CASCADE")
+    )
+    type: Mapped[str] = mapped_column(cash_flow_type)
+    amount: Mapped[int] = mapped_column(BigInteger)
+    occurred_at: Mapped[date] = mapped_column(Date)
     note: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True), server_default=text("now()")

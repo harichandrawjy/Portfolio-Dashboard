@@ -16,7 +16,7 @@ from datetime import date, timedelta
 from sqlalchemy import func, or_, select
 
 from app.db import SessionLocal
-from app.models import Portfolio, PriceHistory, Security, Transaction, User
+from app.models import CashFlow, Portfolio, PriceHistory, Security, Transaction, User
 from app.security import hash_password
 from app.sync.fundamentals import sync_fundamentals
 from app.sync.prices import backfill_ticker, sync_quotes
@@ -119,6 +119,18 @@ async def main() -> None:
             )
             session.add(portfolio)
             await session.flush()
+
+            # Opening deposit: the scripted buys cost ~Rp 86M and sells
+            # return ~Rp 5M, leaving a realistic leftover cash balance.
+            session.add(
+                CashFlow(
+                    portfolio_id=portfolio.id,
+                    type="DEPOSIT",
+                    amount=100_000_000,
+                    occurred_at=today - timedelta(days=24 * 30 + 7),
+                    note="opening deposit",
+                )
+            )
 
             for ticker, months_ago, txn_type, lots in SCRIPT:
                 sec = await session.scalar(

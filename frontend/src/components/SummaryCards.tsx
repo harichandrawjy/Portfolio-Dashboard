@@ -80,6 +80,17 @@ export function SummaryCards({
             {pnlPct == null ? DASH : `${fmtPct(pnlPct, true)} of cost basis`}
           </dd>
         </div>
+        {totals?.cash_tracked && (
+          <div className="px-8 sm:px-10">
+            <dt className="text-[13px] text-ink-3">Cash</dt>
+            <dd className="tnum mt-1 font-mono text-xl font-semibold text-ink">
+              {fmtRp(totals.cash_balance)}
+            </dd>
+            <dd className="tnum mt-1 text-xs text-ink-3">
+              deposits minus trades
+            </dd>
+          </div>
+        )}
         <div className="pl-8 sm:pl-10">
           <dt className="text-[13px] text-ink-3">
             vs IHSG <span className="text-ink-3/70">({metrics?.range ?? DASH})</span>

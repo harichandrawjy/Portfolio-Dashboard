@@ -115,6 +115,12 @@ time-weighted returns so deposits never masquerade as gains (documented in
 `app/performance.py`). Sharpe uses Bank Indonesia's policy rate from
 config as the risk-free assumption.
 
+**Cash ledger (opt-in).** A portfolio can track buying power: deposits and
+withdrawals live in `cash_flows`, the balance is derived (never stored),
+buys are rejected once they exceed it, and sells credit it back. Analytics
+still measure invested capital only — idle cash is a budgeting device, not
+part of the performance series.
+
 **Data licensing.** IDX's terms restrict commercial redistribution of
 their data, and Yahoo Finance data comes with its own usage limits. This
 is a personal, non-commercial project; a commercial version would use a

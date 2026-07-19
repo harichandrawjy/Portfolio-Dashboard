@@ -47,6 +47,47 @@ body::after {
   font-variant-numeric: tabular-nums;
 }
 
+/* Lot slider: accent fill up to --fill, hairline track beyond */
+input[type="range"].lot-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 9999px;
+  background: linear-gradient(
+    to right,
+    var(--color-accent) var(--fill, 0%),
+    rgb(22 24 29 / 0.12) var(--fill, 0%)
+  );
+  outline: none;
+}
+input[type="range"].lot-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 9999px;
+  background: #ffffff;
+  border: 2px solid var(--color-accent);
+  box-shadow: 0 1px 3px rgb(22 24 29 / 0.3);
+  cursor: pointer;
+}
+input[type="range"].lot-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 9999px;
+  background: #ffffff;
+  border: 2px solid var(--color-accent);
+  box-shadow: 0 1px 3px rgb(22 24 29 / 0.3);
+  cursor: pointer;
+}
+input[type="range"].lot-slider:disabled {
+  opacity: 0.4;
+}
+input[type="range"].lot-slider:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 3px rgb(29 91 191 / 0.35);
+}
+
 /* Staggered section entry: set --rise per section. Collapses to static
    under reduced motion. */
 @media (prefers-reduced-motion: no-preference) {

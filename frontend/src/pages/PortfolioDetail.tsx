@@ -4,6 +4,7 @@ import { Link, useParams } from "react-router-dom";
 
 import { api, type RangeKey } from "../api/client";
 import { AddTransactionModal } from "../components/AddTransactionModal";
+import { CashModal } from "../components/CashModal";
 import { AllocationDonut } from "../components/AllocationDonut";
 import { HoldingsTable } from "../components/HoldingsTable";
 import { PerformanceChart } from "../components/PerformanceChart";
@@ -16,6 +17,7 @@ export function PortfolioDetailPage() {
   const { id = "" } = useParams();
   const [range, setRange] = useState<RangeKey>("1y");
   const [adding, setAdding] = useState(false);
+  const [cashOpen, setCashOpen] = useState(false);
   const [refreshTick, setRefreshTick] = useState(0);
   const refresh = useCallback(() => setRefreshTick((t) => t + 1), []);
 
@@ -61,7 +63,10 @@ export function PortfolioDetailPage() {
             {portfolio.data.description}
           </span>
         )}
-        <div className="ml-auto">
+        <div className="ml-auto flex gap-2">
+          <Button variant="ghost" onClick={() => setCashOpen(true)}>
+            Cash
+          </Button>
           <Button onClick={() => setAdding(true)}>Add transaction</Button>
         </div>
       </div>
@@ -112,6 +117,13 @@ export function PortfolioDetailPage() {
           portfolioId={id}
           onClose={() => setAdding(false)}
           onSaved={refresh}
+        />
+      )}
+      {cashOpen && (
+        <CashModal
+          portfolioId={id}
+          onClose={() => setCashOpen(false)}
+          onChanged={refresh}
         />
       )}
     </div>

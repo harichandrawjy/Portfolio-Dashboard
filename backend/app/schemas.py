@@ -105,12 +105,42 @@ class HoldingsTotals(BaseModel):
     market_value: int | None
     unrealized_pnl: int | None
     unpriced_holdings: int  # how many holdings had no quote
+    # cash ledger (0 / false until the portfolio's first deposit)
+    cash_balance: int
+    cash_tracked: bool
 
 
 class HoldingsOut(BaseModel):
     portfolio_id: uuid.UUID
     holdings: list[HoldingOut]
     totals: HoldingsTotals
+
+
+# ---------------------------------------------------------------------------
+# Cash ledger
+# ---------------------------------------------------------------------------
+
+class CashFlowIn(BaseModel):
+    type: Literal["DEPOSIT", "WITHDRAW"]
+    amount: int = Field(gt=0, description="whole rupiah")
+    occurred_at: date | None = None  # defaults to today (WIB)
+    note: str | None = Field(default=None, max_length=500)
+
+
+class CashFlowOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    type: Literal["DEPOSIT", "WITHDRAW"]
+    amount: int
+    occurred_at: date
+    note: str | None
+
+
+class CashSummaryOut(BaseModel):
+    balance: int
+    tracked: bool  # false until the first deposit/withdrawal
+    flows: list[CashFlowOut]  # newest first, capped
 
 
 # ---------------------------------------------------------------------------

@@ -11,9 +11,19 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.deps import CurrentUser, Session
-from app.models import Portfolio, PriceHistory, Security, Transaction, User
+from app.models import (
+    CashFlow,
+    Portfolio,
+    PriceHistory,
+    Security,
+    Transaction,
+    User,
+)
 from app.scheduler import enqueue_backfill
 from app.schemas import (
+    CashFlowIn,
+    CashFlowOut,
+    CashSummaryOut,
     HoldingOut,
     HoldingsOut,
     HoldingsTotals,
@@ -44,6 +54,37 @@ async def _get_owned_portfolio(
         # 404 for "not yours" too — never reveal that someone else's exists
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Portfolio not found")
     return portfolio
+
+
+async def _cash_state(
+    session: AsyncSession, portfolio_id: uuid.UUID
+) -> tuple[int, bool]:
+    """(balance, tracked). Balance = deposits - withdrawals - buy costs
+    (incl. fees) + sell proceeds (net of fees). tracked=False means the
+    portfolio never opted into the cash ledger (original behavior)."""
+    row = (
+        await session.execute(
+            sa_text(
+                """
+                SELECT
+                  COALESCE((SELECT SUM(CASE WHEN cf.type = 'DEPOSIT'
+                                            THEN cf.amount ELSE -cf.amount END)
+                            FROM cash_flows cf
+                            WHERE cf.portfolio_id = :p), 0)
+                  +
+                  COALESCE((SELECT SUM(CASE WHEN t.type = 'BUY'
+                                            THEN -(t.shares * t.price_per_share + t.fee)
+                                            ELSE t.shares * t.price_per_share - t.fee END)
+                            FROM transactions t
+                            WHERE t.portfolio_id = :p), 0) AS balance,
+                  EXISTS(SELECT 1 FROM cash_flows cf2
+                         WHERE cf2.portfolio_id = :p) AS tracked
+                """
+            ),
+            {"p": portfolio_id},
+        )
+    ).one()
+    return int(row.balance), bool(row.tracked)
 
 
 def _txn_out(txn: Transaction, ticker: str) -> TransactionOut:
@@ -170,6 +211,18 @@ async def add_transaction(
         )
 
     shares = payload.lots * SHARES_PER_LOT
+
+    if payload.type == "BUY":
+        # Portfolios that opted into the cash ledger cannot spend cash
+        # they don't have. Untracked portfolios keep the original behavior.
+        balance, tracked = await _cash_state(session, portfolio.id)
+        cost = shares * payload.price_per_share + payload.fee
+        if tracked and cost > balance:
+            raise HTTPException(
+                status.HTTP_422_UNPROCESSABLE_CONTENT,
+                f"Insufficient cash: this buy costs Rp {cost:,} but only "
+                f"Rp {balance:,} is available. Deposit more or reduce the order.",
+            )
 
     if payload.type == "SELL":
         held = (
@@ -306,6 +359,70 @@ async def delete_transaction(
 
 
 # ---------------------------------------------------------------------------
+# Cash ledger
+# ---------------------------------------------------------------------------
+
+@router.get("/portfolios/{portfolio_id}/cash", response_model=CashSummaryOut)
+async def get_cash(
+    portfolio_id: uuid.UUID, user: CurrentUser, session: Session
+) -> CashSummaryOut:
+    portfolio = await _get_owned_portfolio(portfolio_id, user, session)
+    balance, tracked = await _cash_state(session, portfolio.id)
+    flows = list(
+        await session.scalars(
+            select(CashFlow)
+            .where(CashFlow.portfolio_id == portfolio.id)
+            .order_by(CashFlow.occurred_at.desc(), CashFlow.created_at.desc())
+            .limit(20)
+        )
+    )
+    return CashSummaryOut(
+        balance=balance,
+        tracked=tracked,
+        flows=[CashFlowOut.model_validate(f) for f in flows],
+    )
+
+
+@router.post(
+    "/portfolios/{portfolio_id}/cash",
+    response_model=CashSummaryOut,
+    status_code=status.HTTP_201_CREATED,
+)
+async def add_cash_flow(
+    portfolio_id: uuid.UUID,
+    payload: CashFlowIn,
+    user: CurrentUser,
+    session: Session,
+) -> CashSummaryOut:
+    portfolio = await _get_owned_portfolio(portfolio_id, user, session)
+    occurred = payload.occurred_at or datetime.now(JAKARTA).date()
+    if occurred > datetime.now(JAKARTA).date():
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_CONTENT, "occurred_at cannot be in the future"
+        )
+
+    if payload.type == "WITHDRAW":
+        balance, _ = await _cash_state(session, portfolio.id)
+        if payload.amount > balance:
+            raise HTTPException(
+                status.HTTP_422_UNPROCESSABLE_CONTENT,
+                f"Cannot withdraw Rp {payload.amount:,}; only Rp {balance:,} available",
+            )
+
+    session.add(
+        CashFlow(
+            portfolio_id=portfolio.id,
+            type=payload.type,
+            amount=payload.amount,
+            occurred_at=occurred,
+            note=payload.note,
+        )
+    )
+    await session.commit()
+    return await get_cash(portfolio_id, user, session)
+
+
+# ---------------------------------------------------------------------------
 # Holdings
 # ---------------------------------------------------------------------------
 
@@ -374,6 +491,7 @@ async def get_holdings(
         )
 
     priced_any = len(holdings) > unpriced
+    cash_balance, cash_tracked = await _cash_state(session, portfolio.id)
     return HoldingsOut(
         portfolio_id=portfolio.id,
         holdings=holdings,
@@ -382,5 +500,7 @@ async def get_holdings(
             market_value=total_mv if priced_any else None,
             unrealized_pnl=total_pnl if priced_any else None,
             unpriced_holdings=unpriced,
+            cash_balance=cash_balance,
+            cash_tracked=cash_tracked,
         ),
     )
