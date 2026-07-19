@@ -6,6 +6,7 @@ import type { Holding, Holdings } from "../api/client";
 import {
   DASH,
   fmtAsOf,
+  fmtDateShort,
   fmtNum,
   fmtPct,
   fmtRp,
@@ -159,7 +160,11 @@ function Row({ holding: h }: { holding: Holding }) {
         </span>
       </td>
       <td className="px-5 py-2.5 text-right text-xs text-ink-3">
-        {fmtAsOf(h.as_of)}
+        {h.as_of
+          ? fmtAsOf(h.as_of)
+          : h.last_price != null && h.last_close_date
+            ? `close, ${fmtDateShort(h.last_close_date)}`
+            : DASH}
       </td>
     </tr>
   );

@@ -441,14 +441,24 @@ async def get_holdings(
 ) -> HoldingsOut:
     portfolio = await _get_owned_portfolio(portfolio_id, user, session)
 
+    # Price preference: delayed quote, else the most recent stored close
+    # (as_of stays NULL then — the row is priced "at last close", and the
+    # UI labels it that way instead of faking a quote timestamp).
     rows = await session.execute(
         sa_text(
             """
             SELECT s.ticker, s.name, h.shares, h.avg_cost_per_share,
-                   q.price AS last_price, q.as_of
+                   COALESCE(q.price, ph.close) AS last_price,
+                   q.as_of,
+                   ph.trade_date AS last_close_date
             FROM holdings h
             JOIN securities s ON s.id = h.security_id
             LEFT JOIN latest_quotes q ON q.security_id = h.security_id
+            LEFT JOIN LATERAL (
+                SELECT close, trade_date FROM price_history p
+                WHERE p.security_id = h.security_id
+                ORDER BY p.trade_date DESC LIMIT 1
+            ) ph ON TRUE
             WHERE h.portfolio_id = :pid
             ORDER BY s.ticker
             """
@@ -496,6 +506,7 @@ async def get_holdings(
                 unrealized_pnl=pnl,
                 unrealized_pnl_pct=pnl_pct,
                 as_of=r["as_of"],
+                last_close_date=r["last_close_date"],
             )
         )
 

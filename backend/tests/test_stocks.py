@@ -204,6 +204,33 @@ async def test_position_panel_and_markers(client):
     ]
 
 
+async def test_holdings_fall_back_to_last_close(client):
+    # AAAA has price history (seeded by the performance test) but no
+    # latest_quotes row: the holdings table must price it at the last
+    # stored close instead of showing a dash
+    auth = await _login(client, "ujang@example.com")
+    pid = (
+        await client.post("/portfolios", json={"name": "CloseFallback"}, headers=auth)
+    ).json()["id"]
+    r = await client.post(
+        f"/portfolios/{pid}/transactions",
+        json={
+            "ticker": "AAAA", "type": "BUY", "lots": 1,
+            "price_per_share": 1000, "fee": 0, "executed_at": "2026-06-02",
+        },
+        headers=auth,
+    )
+    assert r.status_code == 201
+
+    h = (await client.get(f"/portfolios/{pid}/holdings", headers=auth)).json()
+    row = h["holdings"][0]
+    assert row["last_price"] == 1090  # AAAA's final synthetic close
+    assert row["as_of"] is None  # not a quote…
+    assert row["last_close_date"] == "2026-06-12"  # …but a dated close
+    assert row["market_value"] == 100 * 1090
+    assert h["totals"]["market_value"] == 109_000
+
+
 async def test_position_absent_for_non_holder(client):
     auth = await _login(client, "tomi@example.com")
     r = await client.get("/securities/BBCA/position", headers=auth)

@@ -61,10 +61,12 @@ export function SummaryCards({
         </p>
         <p className="tnum mt-2.5 text-xs text-ink-3">
           {totals && totals.unpriced_holdings > 0
-            ? `${totals.unpriced_holdings} holding(s) unpriced · as of ${fmtAsOf(newestAsOf)}`
+            ? `${totals.unpriced_holdings} holding(s) unpriced`
             : newestAsOf
               ? `as of ${fmtAsOf(newestAsOf)}`
-              : "no priced holdings yet"}
+              : totals?.market_value != null
+                ? "at last close"
+                : "no priced holdings yet"}
         </p>
       </div>
 

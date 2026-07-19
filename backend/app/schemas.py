@@ -93,11 +93,12 @@ class HoldingOut(BaseModel):
     lots: int
     avg_cost_per_share: float
     cost_basis: int  # whole rupiah
-    last_price: int | None  # None -> frontend renders "—"
+    last_price: int | None  # delayed quote, else last close; None -> "—"
     market_value: int | None
     unrealized_pnl: int | None
     unrealized_pnl_pct: float | None
-    as_of: datetime | None
+    as_of: datetime | None  # quote timestamp; None when priced at a close
+    last_close_date: date | None
 
 
 class HoldingsTotals(BaseModel):

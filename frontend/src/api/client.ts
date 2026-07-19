@@ -114,7 +114,8 @@ export interface Holding {
   market_value: number | null;
   unrealized_pnl: number | null;
   unrealized_pnl_pct: number | null;
-  as_of: string | null;
+  as_of: string | null; // quote time; null when priced at last close
+  last_close_date: string | null;
 }
 
 export interface Holdings {
