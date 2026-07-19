@@ -36,7 +36,7 @@ export function AllocationDonut({
 }) {
   if (loading) {
     return (
-      <Panel>
+      <Panel tone="flat">
         <PanelHeader title="Allocation" />
         <div className="flex flex-col items-center gap-4 px-5 pb-5">
           <Skeleton className="h-44 w-44 rounded-full" />
@@ -52,7 +52,7 @@ export function AllocationDonut({
   const sectors = allocation?.by_sector ?? [];
   if (!allocation || sectors.length === 0) {
     return (
-      <Panel>
+      <Panel tone="flat">
         <PanelHeader title="Allocation" />
         <EmptyState
           title="Nothing to allocate yet"
@@ -81,7 +81,7 @@ export function AllocationDonut({
   }
 
   return (
-    <Panel>
+    <Panel tone="flat">
       <PanelHeader title="Allocation" />
       <div className="px-5 pb-5">
         <div className="relative mx-auto h-48 w-48">

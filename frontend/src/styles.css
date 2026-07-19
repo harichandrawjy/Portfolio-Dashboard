@@ -16,10 +16,6 @@
 
   --font-sans: "Geist Sans", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", monospace;
-
-  --radius-panel: 14px;
-  --radius-control: 10px;
-  --radius-field: 8px;
 }
 
 html {
@@ -30,9 +26,59 @@ body {
   @apply bg-bg text-ink font-sans antialiased;
 }
 
+/* One light source: a faint accent glow from the top-left, fixed on its own
+   layer (no backdrop-filter — cheap to composite, no scroll jank). */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      1100px 520px at 16% -12%,
+      rgb(57 135 229 / 0.075),
+      transparent 62%
+    ),
+    radial-gradient(
+      900px 500px at 110% 110%,
+      rgb(0 0 0 / 0.5),
+      transparent 55%
+    );
+}
+
+/* Film grain to break digital flatness. Fixed, pointer-events-none, above
+   everything as a uniform physical texture. */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
 /* Numeric alignment for tables and stats */
 .tnum {
   font-variant-numeric: tabular-nums;
+}
+
+/* Staggered section entry: set --rise per section. Collapses to static
+   under reduced motion. */
+@media (prefers-reduced-motion: no-preference) {
+  .rise {
+    opacity: 0;
+    transform: translateY(14px);
+    animation: rise 0.65s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    animation-delay: calc(var(--rise, 0) * 75ms);
+  }
+  @keyframes rise {
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
 }
 
 /* Skeleton shimmer, disabled under reduced motion */

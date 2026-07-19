@@ -35,9 +35,10 @@ export function TransactionsList({
   };
 
   return (
-    <Panel>
+    <Panel tone="flat">
       <PanelHeader
-        title={`Transactions${transactions ? ` (${transactions.total})` : ""}`}
+        title="Transactions"
+        meta={transactions ? String(transactions.total) : undefined}
       />
       <div className="px-5 pb-4">
         {error && (

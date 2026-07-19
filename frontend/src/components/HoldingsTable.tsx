@@ -65,9 +65,10 @@ export function HoldingsTable({
     <Panel>
       <PanelHeader
         title="Holdings"
+        meta={!loading && rows.length > 0 ? String(rows.length) : undefined}
         right={
           !loading && rows.length > 0 ? (
-            <Button variant="ghost" onClick={onAddTransaction} className="!px-3 !py-1.5 text-xs">
+            <Button variant="text" onClick={onAddTransaction} className="!py-1 text-xs">
               Add transaction
             </Button>
           ) : undefined

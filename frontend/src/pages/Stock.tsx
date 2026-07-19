@@ -93,10 +93,13 @@ export function StockPage() {
       ) : (
         <>
           {/* ------------------------------------------------ header */}
-          <div className="flex flex-wrap items-end justify-between gap-4">
+          <div
+            className="rise flex flex-wrap items-end justify-between gap-4 border-b border-line pb-6"
+            style={{ "--rise": 0 } as React.CSSProperties}
+          >
             <div>
               <div className="flex items-center gap-3">
-                <h1 className="font-mono text-2xl font-semibold text-ink">
+                <h1 className="font-mono text-3xl font-semibold tracking-tight text-ink">
                   {d.ticker}
                 </h1>
                 {!d.is_active && (
@@ -105,7 +108,7 @@ export function StockPage() {
                   </span>
                 )}
               </div>
-              <p className="mt-0.5 text-sm text-ink-2">{d.name}</p>
+              <p className="mt-1 text-sm text-ink-2">{d.name}</p>
               <p className="mt-1 text-xs text-ink-3">
                 {[d.sector, d.board ? `${d.board} board` : null]
                   .filter(Boolean)
@@ -113,10 +116,10 @@ export function StockPage() {
               </p>
             </div>
             <div className="text-right">
-              <p className="tnum font-mono text-3xl font-semibold text-ink">
+              <p className="tnum font-mono text-[40px] font-semibold leading-none tracking-tight text-ink">
                 {fmtRp(displayPrice)}
               </p>
-              <p className="mt-0.5 flex items-center justify-end gap-2 text-[13px]">
+              <p className="mt-2 flex items-center justify-end gap-2 text-[13px]">
                 <span className={`tnum font-mono ${signClass(d.quote_change_pct)}`}>
                   {fmtPct(d.quote_change_pct, true)}
                 </span>
@@ -156,19 +159,24 @@ export function StockPage() {
             </Panel>
           ) : (
             <>
-              <StockChart
-                points={prices.data?.points ?? []}
-                loading={prices.loading}
-                range={range}
-                onRangeChange={setRange}
-                showIhsg={showIhsg}
-                onToggleIhsg={() => setShowIhsg((v) => !v)}
-                markers={position.data?.transactions ?? []}
-              />
+              <div className="rise" style={{ "--rise": 1 } as React.CSSProperties}>
+                <StockChart
+                  points={prices.data?.points ?? []}
+                  loading={prices.loading}
+                  range={range}
+                  onRangeChange={setRange}
+                  showIhsg={showIhsg}
+                  onToggleIhsg={() => setShowIhsg((v) => !v)}
+                  markers={position.data?.transactions ?? []}
+                />
+              </div>
 
-              <div className="grid grid-cols-1 gap-4 lg:grid-cols-[2fr_1fr]">
+              <div
+                className="rise grid grid-cols-1 gap-5 lg:grid-cols-[2fr_1fr]"
+                style={{ "--rise": 2 } as React.CSSProperties}
+              >
                 <StatsPanel stats={d.stats} />
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-5">
                   {position.data?.held && (
                     <PositionPanel position={position.data} />
                   )}
@@ -208,7 +216,7 @@ const RETURN_TILES: { key: keyof SecurityStats; label: string }[] = [
 
 function StatsPanel({ stats }: { stats: SecurityStats | null }) {
   return (
-    <Panel>
+    <Panel tone="flat">
       <PanelHeader title="Statistics" />
       {stats === null ? (
         <EmptyState
@@ -217,16 +225,16 @@ function StatsPanel({ stats }: { stats: SecurityStats | null }) {
         />
       ) : (
         <div className="px-5 pb-5">
-          <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+          {/* one strip with internal dividers, not six identical boxes */}
+          <div className="grid grid-cols-3 divide-x divide-line/60 overflow-hidden rounded-xl bg-black/20 ring-1 ring-line sm:grid-cols-6">
             {RETURN_TILES.map(({ key, label }) => {
               const v = stats[key] as number | null;
               return (
-                <div
-                  key={key}
-                  className="rounded-[8px] bg-panel-2 px-2 py-2 text-center ring-1 ring-line"
-                >
+                <div key={key} className="px-2 py-3 text-center">
                   <p className="text-[11px] text-ink-3">{label}</p>
-                  <p className={`tnum mt-0.5 font-mono text-[13px] ${signClass(v)}`}>
+                  <p
+                    className={`tnum mt-1 font-mono text-[13px] font-medium ${signClass(v)}`}
+                  >
                     {fmtPct(v, true)}
                   </p>
                 </div>
@@ -375,7 +383,7 @@ function FundamentalsPanel({
   fundamentals: Fundamentals | null;
 }) {
   return (
-    <Panel>
+    <Panel tone="flat">
       <PanelHeader title="Fundamentals" />
       {f === null ? (
         <div className="px-5 pb-5">

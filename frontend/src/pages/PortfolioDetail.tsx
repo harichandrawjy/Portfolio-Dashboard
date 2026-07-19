@@ -40,17 +40,20 @@ export function PortfolioDetailPage() {
     );
   }
 
+  const rise = (i: number) =>
+    ({ "--rise": i }) as React.CSSProperties;
+
   return (
-    <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-4 px-4 py-8">
-      <div className="mb-1 flex flex-wrap items-center gap-3">
+    <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-5 px-4 pb-12 pt-4">
+      <div className="rise flex flex-wrap items-center gap-3" style={rise(0)}>
         <Link
           to="/"
           className="flex items-center gap-1.5 text-[13px] text-ink-3 transition-colors hover:text-ink-2"
         >
           <ArrowLeft size={14} weight="light" /> Portfolios
         </Link>
-        <span className="text-ink-3">/</span>
-        <h1 className="text-lg font-semibold text-ink">
+        <span className="text-ink-3/60">/</span>
+        <h1 className="text-xl font-semibold tracking-tight text-ink">
           {portfolio.data?.name ?? "…"}
         </h1>
         {portfolio.data?.description && (
@@ -63,20 +66,27 @@ export function PortfolioDetailPage() {
         </div>
       </div>
 
-      <SummaryCards
-        holdings={holdings.data}
-        metrics={metrics.data}
-        loading={holdings.loading || metrics.loading}
-      />
+      <div className="rise" style={rise(1)}>
+        <SummaryCards
+          holdings={holdings.data}
+          metrics={metrics.data}
+          loading={holdings.loading || metrics.loading}
+        />
+      </div>
 
-      <PerformanceChart
-        performance={performance.data}
-        loading={performance.loading}
-        range={range}
-        onRangeChange={setRange}
-      />
+      <div className="rise" style={rise(2)}>
+        <PerformanceChart
+          performance={performance.data}
+          loading={performance.loading}
+          range={range}
+          onRangeChange={setRange}
+        />
+      </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[2fr_1fr]">
+      <div
+        className="rise grid grid-cols-1 gap-5 lg:grid-cols-[2fr_1fr]"
+        style={rise(3)}
+      >
         <HoldingsTable
           holdings={holdings.data}
           loading={holdings.loading}
@@ -88,12 +98,14 @@ export function PortfolioDetailPage() {
         />
       </div>
 
-      <TransactionsList
-        portfolioId={id}
-        transactions={transactions.data}
-        loading={transactions.loading}
-        onChanged={refresh}
-      />
+      <div className="rise" style={rise(4)}>
+        <TransactionsList
+          portfolioId={id}
+          transactions={transactions.data}
+          loading={transactions.loading}
+          onChanged={refresh}
+        />
+      </div>
 
       {adding && (
         <AddTransactionModal

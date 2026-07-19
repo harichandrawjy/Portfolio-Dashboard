@@ -20,9 +20,21 @@ export function PortfoliosPage() {
   const [creating, setCreating] = useState(false);
 
   return (
-    <div className="mx-auto w-full max-w-[1200px] px-4 py-8">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-lg font-semibold text-ink">Portfolios</h1>
+    <div className="mx-auto w-full max-w-[1200px] px-4 pb-12 pt-4">
+      <div
+        className="rise mb-8 flex items-end justify-between border-b border-line pb-5"
+        style={{ "--rise": 0 } as React.CSSProperties}
+      >
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-ink">
+            Portfolios
+          </h1>
+          {(data?.length ?? 0) > 0 && (
+            <p className="tnum mt-1 font-mono text-xs text-ink-3">
+              {data!.length} portfolio{data!.length > 1 ? "s" : ""}
+            </p>
+          )}
+        </div>
         {(data?.length ?? 0) > 0 && (
           <Button onClick={() => setCreating(true)}>
             <Plus size={15} weight="bold" /> New portfolio
@@ -56,18 +68,25 @@ export function PortfoliosPage() {
           />
         </Panel>
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {data!.map((p) => (
-            <Link key={p.id} to={`/portfolios/${p.id}`}>
-              <Panel className="h-full p-5 transition-all duration-200 ease-[cubic-bezier(0.32,0.72,0,1)] hover:ring-line-2 hover:bg-panel-2">
-                <p className="font-medium text-ink">{p.name}</p>
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {data!.map((p, i) => (
+            <Link
+              key={p.id}
+              to={`/portfolios/${p.id}`}
+              className="rise group"
+              style={{ "--rise": i + 1 } as React.CSSProperties}
+            >
+              <Panel className="h-full p-5 transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:-translate-y-0.5 group-hover:ring-line-2 group-hover:shadow-[0_32px_56px_-28px_rgb(2_4_10/0.95)]">
+                <p className="text-[15px] font-semibold tracking-tight text-ink">
+                  {p.name}
+                </p>
                 {p.description && (
-                  <p className="mt-1 line-clamp-2 text-[13px] text-ink-3">
+                  <p className="mt-1 line-clamp-2 text-[13px] leading-relaxed text-ink-3">
                     {p.description}
                   </p>
                 )}
-                <p className="mt-3 text-xs text-ink-3">
-                  Since {fmtDate(p.created_at)}
+                <p className="tnum mt-4 font-mono text-xs text-ink-3">
+                  since {fmtDate(p.created_at)}
                 </p>
               </Panel>
             </Link>

@@ -11,7 +11,7 @@ import {
 import type { Performance, RangeKey } from "../api/client";
 import { CHART_NEUTRAL, SERIES } from "../colors";
 import { fmtDateShort, fmtRp, fmtRpCompact } from "../lib/format";
-import { EmptyState, Panel, PanelHeader, Segmented, Skeleton } from "./ui";
+import { EmptyState, Panel, Segmented, Skeleton } from "./ui";
 
 const PORTFOLIO_COLOR = SERIES[0];
 
@@ -104,18 +104,14 @@ export function PerformanceChart({
 
   return (
     <Panel>
-      <PanelHeader
-        title="Performance"
-        right={
-          <div className="flex items-center gap-4">
-            <div className="hidden items-center gap-3 sm:flex">
-              <LegendChip color={PORTFOLIO_COLOR} label="Portfolio" />
-              <LegendChip color={CHART_NEUTRAL} label="IHSG, rebased" dashed />
-            </div>
-            <Segmented options={RANGES} value={range} onChange={onRangeChange} />
-          </div>
-        }
-      />
+      {/* the legend IS the header — the chart needs no label */}
+      <div className="flex items-center justify-between gap-4 px-5 pt-4 pb-3">
+        <div className="flex items-center gap-3">
+          <LegendChip color={PORTFOLIO_COLOR} label="Portfolio" />
+          <LegendChip color={CHART_NEUTRAL} label="IHSG, rebased" dashed />
+        </div>
+        <Segmented options={RANGES} value={range} onChange={onRangeChange} />
+      </div>
       <div className="px-3 pb-4">
         {loading ? (
           <Skeleton className="mx-2 h-[280px]" />
