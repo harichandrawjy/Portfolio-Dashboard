@@ -171,17 +171,22 @@ export function StockPage() {
                 />
               </div>
 
-              <div
-                className="rise grid grid-cols-1 gap-5 lg:grid-cols-[2fr_1fr]"
-                style={{ "--rise": 2 } as React.CSSProperties}
-              >
-                <StatsPanel stats={d.stats} />
-                <div className="flex flex-col gap-5">
-                  {position.data?.held && (
-                    <PositionPanel position={position.data} />
-                  )}
-                  <FundamentalsPanel fundamentals={d.fundamentals} />
+              {position.data?.held ? (
+                <div
+                  className="rise grid grid-cols-1 gap-5 lg:grid-cols-[2fr_1fr]"
+                  style={{ "--rise": 2 } as React.CSSProperties}
+                >
+                  <StatsPanel stats={d.stats} />
+                  <PositionPanel position={position.data} />
                 </div>
+              ) : (
+                <div className="rise" style={{ "--rise": 2 } as React.CSSProperties}>
+                  <StatsPanel stats={d.stats} />
+                </div>
+              )}
+
+              <div className="rise" style={{ "--rise": 3 } as React.CSSProperties}>
+                <FundamentalsPanel fundamentals={d.fundamentals} />
               </div>
             </>
           )}
@@ -493,20 +498,20 @@ function FundamentalsPanel({
     <Panel tone="flat">
       <PanelHeader title="Fundamentals" />
       <div className="px-5 pb-5">
-        {groups.map((g, gi) => (
-          <div
-            key={g.title}
-            className={gi > 0 ? "mt-4 border-t border-line pt-3" : ""}
-          >
-            <p className="mb-2 text-xs font-medium text-ink-3">{g.title}</p>
-            <dl className="flex flex-col gap-1.5 text-[13px]">
-              {g.rows.map(([label, value]) => (
-                <PosRow key={label} label={label} value={value} />
-              ))}
-            </dl>
-          </div>
-        ))}
-        <p className="mt-4 text-xs text-ink-3">
+        {/* newspaper-style column spread instead of one long skinny list */}
+        <div className="grid grid-cols-1 gap-x-10 gap-y-6 sm:grid-cols-2 lg:grid-cols-3">
+          {groups.map((g) => (
+            <div key={g.title} className="border-t border-line pt-3">
+              <p className="mb-2 text-xs font-medium text-ink-3">{g.title}</p>
+              <dl className="flex flex-col gap-1.5 text-[13px]">
+                {g.rows.map(([label, value]) => (
+                  <PosRow key={label} label={label} value={value} />
+                ))}
+              </dl>
+            </div>
+          ))}
+        </div>
+        <p className="mt-5 text-xs text-ink-3">
           From Yahoo, refreshed weekly · updated {fmtDate(f.last_updated)}
         </p>
       </div>
