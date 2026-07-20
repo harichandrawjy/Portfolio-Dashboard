@@ -426,8 +426,12 @@ function FundamentalsPanel({
         ],
         ["Trailing P/E", ratio(f.pe_ratio)],
         ["Forward P/E", ratio(x?.forward_pe)],
+        ["Earnings yield", fmtPct(x?.earnings_yield_pct)],
+        ["PEG ratio", x?.peg_ratio != null ? x.peg_ratio.toFixed(2) : DASH],
         ["Price / sales", ratio(x?.price_to_sales)],
         ["Price / book", ratio(x?.price_to_book)],
+        ["Price / cash flow", ratio(x?.price_to_cashflow)],
+        ["Price / free cash flow", ratio(x?.price_to_fcf)],
         ["EV / revenue", ratio(x?.ev_to_revenue)],
         ["EV / EBITDA", ratio(x?.ev_to_ebitda)],
       ],
@@ -435,10 +439,22 @@ function FundamentalsPanel({
     {
       title: "Profitability",
       rows: [
-        ["Profit margin", fmtPct(x?.profit_margin_pct)],
+        ["Gross margin", fmtPct(x?.gross_margin_pct)],
         ["Operating margin", fmtPct(x?.operating_margin_pct)],
+        ["EBITDA margin", fmtPct(x?.ebitda_margin_pct)],
+        ["Profit margin", fmtPct(x?.profit_margin_pct)],
         ["Return on assets", fmtPct(x?.roa_pct)],
         ["Return on equity", fmtPct(x?.roe_pct)],
+      ],
+    },
+    {
+      title: cur && cur !== "IDR" ? `Per share (${cur})` : "Per share",
+      rows: [
+        ["EPS (trailing)", fmtRpFine(f.eps)],
+        ["Revenue / share", fmtRpFine(x?.revenue_per_share ?? null)],
+        ["Cash / share", fmtRpFine(x?.cash_per_share ?? null)],
+        ["Free cash flow / share", fmtRpFine(x?.fcf_per_share ?? null)],
+        ["Book value / share", fmtRpFine(f.book_value)],
       ],
     },
     {
@@ -458,14 +474,18 @@ function FundamentalsPanel({
       rows: [
         ["Total cash", money(x?.total_cash)],
         ["Total debt", money(x?.total_debt)],
+        ["Net debt", money(x?.net_debt)],
         ["Debt / equity", fmtPct(x?.debt_to_equity_pct)],
         [
           "Current ratio",
           x?.current_ratio != null ? x.current_ratio.toFixed(2) : DASH,
         ],
+        [
+          "Quick ratio",
+          x?.quick_ratio != null ? x.quick_ratio.toFixed(2) : DASH,
+        ],
         ["Operating cash flow", money(x?.operating_cash_flow)],
         ["Free cash flow", money(x?.free_cash_flow)],
-        ["Book value / share", fmtRpFine(f.book_value)],
       ],
     },
     {

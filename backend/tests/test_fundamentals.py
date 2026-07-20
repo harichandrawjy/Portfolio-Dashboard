@@ -70,6 +70,8 @@ async def test_sync_stores_partial_and_empty_info(client, monkeypatch):
             "exDividendDate": 1_777_334_400,  # 2026-04-28 UTC
             # IDR price / USD book value = nonsense; must be dropped
             "priceToBook": 15_000.0,
+            "sharesOutstanding": 1_000_000_000,
+            "operatingCashflow": 700_000_000,
         },
         "FNDB.JK": {"marketCap": 142_800_633_856},
     }
@@ -101,6 +103,12 @@ async def test_sync_stores_partial_and_empty_info(client, monkeypatch):
     assert x["forward_pe"] is None  # absent upstream stays absent
     # cross-currency ratio guard: USD reporter -> Yahoo's P/B is dropped
     assert x["price_to_book"] is None
+    # derived: earnings yield = 100 / 13.7552 = 7.27%
+    assert x["earnings_yield_pct"] == pytest.approx(7.27, abs=0.01)
+    # per-share stays in financial currency: 1.96B USD / 1B shares
+    assert x["revenue_per_share"] == pytest.approx(1.96)
+    # P/CF would divide IDR market cap by USD cash flow -> never computed
+    assert x["price_to_cashflow"] is None
 
     r = await client.get("/securities/FNDB", headers=auth)
     f = r.json()["fundamentals"]

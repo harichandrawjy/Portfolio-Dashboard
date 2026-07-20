@@ -105,9 +105,12 @@ def _build_extra(info: dict) -> dict:
         "price_to_book": _f(info.get("priceToBook")),
         "ev_to_revenue": _f(info.get("enterpriseToRevenue")),
         "ev_to_ebitda": _f(info.get("enterpriseToEbitda")),
+        "peg_ratio": _f(info.get("trailingPegRatio")),
         # profitability (fractions -> %)
         "profit_margin_pct": _frac_pct(info.get("profitMargins")),
         "operating_margin_pct": _frac_pct(info.get("operatingMargins")),
+        "gross_margin_pct": _frac_pct(info.get("grossMargins")),
+        "ebitda_margin_pct": _frac_pct(info.get("ebitdaMargins")),
         "roa_pct": _frac_pct(info.get("returnOnAssets")),
         "roe_pct": _frac_pct(info.get("returnOnEquity")),
         # income statement (financial_currency)
@@ -121,6 +124,7 @@ def _build_extra(info: dict) -> dict:
         "total_debt": _i(info.get("totalDebt")),
         "debt_to_equity_pct": _f(info.get("debtToEquity")),  # already %
         "current_ratio": _f(info.get("currentRatio")),
+        "quick_ratio": _f(info.get("quickRatio")),
         "operating_cash_flow": _i(info.get("operatingCashflow")),
         "free_cash_flow": _i(info.get("freeCashflow")),
         # share statistics
@@ -146,11 +150,44 @@ def _build_extra(info: dict) -> dict:
         ),
     }
 
+    # ---- derived metrics (computed here, not scraped) --------------------
+    # Earnings yield = 1 / trailing P/E; P/E is price-based so no currency
+    # mismatch (Yahoo converts trailing EPS to the quote currency).
+    pe = _f(info.get("trailingPE"))
+    if pe and pe > 0:
+        extra["earnings_yield_pct"] = round(100 / pe, 2)
+
+    shares = _i(info.get("sharesOutstanding"))
+    market_cap = info.get("marketCap")
+    idr_reporter = extra["financial_currency"] in (None, "IDR")
+
+    # market cap is IDR; cash-flow figures are financial-currency — the
+    # ratio is only honest for IDR reporters
+    if idr_reporter and isinstance(market_cap, (int, float)):
+        ocf = extra["operating_cash_flow"]
+        fcf = extra["free_cash_flow"]
+        if ocf and ocf > 0:
+            extra["price_to_cashflow"] = round(market_cap / ocf, 2)
+        if fcf and fcf > 0:
+            extra["price_to_fcf"] = round(market_cap / fcf, 2)
+
+    # per-share figures stay in financial_currency (labeled by the UI)
+    if shares:
+        if extra["revenue"] is not None:
+            extra["revenue_per_share"] = round(extra["revenue"] / shares, 2)
+        if extra["total_cash"] is not None:
+            extra["cash_per_share"] = round(extra["total_cash"] / shares, 2)
+        if extra["free_cash_flow"] is not None:
+            extra["fcf_per_share"] = round(extra["free_cash_flow"] / shares, 2)
+
+    if extra["total_debt"] is not None and extra["total_cash"] is not None:
+        extra["net_debt"] = extra["total_debt"] - extra["total_cash"]
+
     # Yahoo's precomputed price/EV ratios divide an IDR price or IDR
     # enterprise value by financial-currency figures. For USD reporters
     # (ADRO, INCO, ...) that yields nonsense like P/B 15,000x, so those
     # ratios are dropped rather than shown wrong.
-    if extra["financial_currency"] not in (None, "IDR"):
+    if not idr_reporter:
         for key in ("price_to_book", "price_to_sales", "ev_to_revenue", "ev_to_ebitda"):
             extra[key] = None
 
