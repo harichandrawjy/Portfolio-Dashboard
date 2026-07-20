@@ -1,8 +1,9 @@
-import { Trash } from "@phosphor-icons/react";
+import { PencilSimple, Trash } from "@phosphor-icons/react";
 import { useState } from "react";
 
-import { api, type TransactionList } from "../api/client";
+import { api, type Transaction, type TransactionList } from "../api/client";
 import { fmtDate, fmtNum, fmtRp } from "../lib/format";
+import { EditTransactionModal } from "./EditTransactionModal";
 import { ErrorNote, Panel, PanelHeader, Skeleton } from "./ui";
 
 export function TransactionsList({
@@ -18,6 +19,7 @@ export function TransactionsList({
 }) {
   const [error, setError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [editing, setEditing] = useState<Transaction | null>(null);
 
   if (!loading && (transactions?.items.length ?? 0) === 0) return null;
 
@@ -74,6 +76,13 @@ export function TransactionsList({
                   {fmtDate(t.executed_at)}
                 </span>
                 <button
+                  onClick={() => setEditing(t)}
+                  className="rounded-[7px] p-1.5 text-ink-3 transition-colors hover:bg-ink/5 hover:text-ink"
+                  aria-label={`Edit ${t.type} ${t.ticker}`}
+                >
+                  <PencilSimple size={14} weight="light" />
+                </button>
+                <button
                   onClick={() => remove(t.id)}
                   disabled={deleting === t.id}
                   className="rounded-[7px] p-1.5 text-ink-3 transition-colors hover:bg-neg/10 hover:text-neg disabled:opacity-40"
@@ -86,6 +95,15 @@ export function TransactionsList({
           </ul>
         )}
       </div>
+
+      {editing && (
+        <EditTransactionModal
+          portfolioId={portfolioId}
+          transaction={editing}
+          onClose={() => setEditing(null)}
+          onSaved={onChanged}
+        />
+      )}
     </Panel>
   );
 }

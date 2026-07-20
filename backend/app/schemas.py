@@ -66,6 +66,16 @@ class TransactionIn(BaseModel):
     note: str | None = Field(default=None, max_length=500)
 
 
+class TransactionUpdate(BaseModel):
+    # ticker is fixed on edit (delete + re-add to change the security)
+    type: Literal["BUY", "SELL"]
+    lots: int = Field(ge=1)
+    price_per_share: int = Field(gt=0)
+    fee: int = Field(default=0, ge=0)
+    executed_at: date
+    note: str | None = Field(default=None, max_length=500)
+
+
 class TransactionOut(BaseModel):
     id: uuid.UUID
     ticker: str

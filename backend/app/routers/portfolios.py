@@ -33,6 +33,7 @@ from app.schemas import (
     TransactionIn,
     TransactionListOut,
     TransactionOut,
+    TransactionUpdate,
 )
 
 router = APIRouter(tags=["portfolios"])
@@ -316,6 +317,85 @@ async def list_transactions(
         limit=limit,
         offset=offset,
     )
+
+
+@router.patch(
+    "/portfolios/{portfolio_id}/transactions/{transaction_id}",
+    response_model=TransactionOut,
+)
+async def update_transaction(
+    portfolio_id: uuid.UUID,
+    transaction_id: uuid.UUID,
+    payload: TransactionUpdate,
+    user: CurrentUser,
+    session: Session,
+) -> TransactionOut:
+    """Edit an existing transaction. The security is fixed; everything else
+    may change. The edit is applied, then the derived state is re-validated
+    (holdings never net-negative, cash never negative when tracked) and
+    rolled back if it would break either invariant."""
+    portfolio = await _get_owned_portfolio(portfolio_id, user, session)
+    txn = await session.scalar(
+        select(Transaction).where(
+            Transaction.id == transaction_id,
+            Transaction.portfolio_id == portfolio.id,
+        )
+    )
+    if txn is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Transaction not found")
+
+    if payload.executed_at > datetime.now(JAKARTA).date():
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_CONTENT, "executed_at cannot be in the future"
+        )
+
+    security = await session.get(Security, txn.security_id)
+    ticker = security.ticker  # capture before rollback can expire it
+
+    txn.type = payload.type
+    txn.shares = payload.lots * SHARES_PER_LOT
+    txn.price_per_share = payload.price_per_share
+    txn.fee = payload.fee
+    txn.executed_at = payload.executed_at
+    txn.note = payload.note
+    await session.flush()
+
+    net = await session.scalar(
+        select(
+            func.coalesce(
+                func.sum(
+                    case(
+                        (Transaction.type == "BUY", Transaction.shares),
+                        else_=-Transaction.shares,
+                    )
+                ),
+                0,
+            )
+        ).where(
+            Transaction.portfolio_id == portfolio.id,
+            Transaction.security_id == txn.security_id,
+        )
+    )
+    if net < 0:
+        await session.rollback()
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_CONTENT,
+            f"This edit would leave {ticker} holdings at "
+            f"{net // SHARES_PER_LOT} lots. Adjust the sells for this ticker first.",
+        )
+
+    balance, tracked = await _cash_state(session, portfolio.id)
+    if tracked and balance < 0:
+        await session.rollback()
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_CONTENT,
+            f"This edit would overspend cash by Rp {abs(balance):,}. "
+            "Deposit more or reduce the order.",
+        )
+
+    await session.commit()
+    await session.refresh(txn)
+    return _txn_out(txn, ticker)
 
 
 @router.delete(

@@ -158,6 +158,84 @@ async def test_first_use_ticker_enqueues_backfill(client, monkeypatch):
     assert calls == ["TLKM"]
 
 
+async def test_edit_transaction(client):
+    auth = await _login(client, "edit@example.com")
+    pid = (
+        await client.post("/portfolios", json={"name": "Editable"}, headers=auth)
+    ).json()["id"]
+
+    buy = await _buy(client, auth, pid, "BBCA", 5, 6000, day="2026-07-01")
+    txn_id = buy.json()["id"]
+
+    # edit lots and price
+    r = await client.patch(
+        f"/portfolios/{pid}/transactions/{txn_id}",
+        json={
+            "type": "BUY", "lots": 8, "price_per_share": 6100,
+            "fee": 10000, "executed_at": "2026-07-02",
+        },
+        headers=auth,
+    )
+    assert r.status_code == 200
+    body = r.json()
+    assert body["lots"] == 8 and body["shares"] == 800
+    assert body["price_per_share"] == 6100 and body["fee"] == 10000
+    assert body["executed_at"] == "2026-07-02"
+
+    # holdings reflect the edit: 8 lots, avg = (800*6100 + 10000)/800 = 6112.5
+    h = (await client.get(f"/portfolios/{pid}/holdings", headers=auth)).json()
+    assert h["holdings"][0]["lots"] == 8
+    assert h["holdings"][0]["avg_cost_per_share"] == 6112.5
+
+
+async def test_edit_rejected_when_it_would_strand_sells(client):
+    auth = await _login(client, "editguard@example.com")
+    pid = (
+        await client.post("/portfolios", json={"name": "EditGuard"}, headers=auth)
+    ).json()["id"]
+
+    buy = await _buy(client, auth, pid, "BBCA", 5, 6000)
+    buy_id = buy.json()["id"]
+    # sell 3 -> net 2
+    await client.post(
+        f"/portfolios/{pid}/transactions",
+        json={"ticker": "BBCA", "type": "SELL", "lots": 3,
+              "price_per_share": 6200, "fee": 0, "executed_at": "2026-07-05"},
+        headers=auth,
+    )
+
+    # shrinking the buy to 2 lots would make net = 2 - 3 = -1 -> reject
+    r = await client.patch(
+        f"/portfolios/{pid}/transactions/{buy_id}",
+        json={"type": "BUY", "lots": 2, "price_per_share": 6000,
+              "fee": 0, "executed_at": "2026-07-01"},
+        headers=auth,
+    )
+    assert r.status_code == 422
+    assert "holdings" in r.json()["detail"]
+
+    # unchanged: still 5 lots bought
+    h = (await client.get(f"/portfolios/{pid}/holdings", headers=auth)).json()
+    assert h["holdings"][0]["lots"] == 2  # 5 bought - 3 sold
+
+
+async def test_edit_requires_ownership(client):
+    auth_a = await _login(client, "editowner@example.com")
+    auth_b = await _login(client, "editother@example.com")
+    pid = (
+        await client.post("/portfolios", json={"name": "Owned"}, headers=auth_a)
+    ).json()["id"]
+    txn_id = (await _buy(client, auth_a, pid, "BBCA", 1, 6000)).json()["id"]
+
+    r = await client.patch(
+        f"/portfolios/{pid}/transactions/{txn_id}",
+        json={"type": "BUY", "lots": 2, "price_per_share": 6000,
+              "fee": 0, "executed_at": "2026-07-01"},
+        headers=auth_b,
+    )
+    assert r.status_code == 404
+
+
 async def test_transaction_validation(client):
     auth = await _login(client, "dodi@example.com")
     r = await client.post("/portfolios", json={"name": "Val"}, headers=auth)

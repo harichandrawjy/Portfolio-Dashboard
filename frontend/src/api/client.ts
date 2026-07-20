@@ -433,6 +433,16 @@ export const api = {
       body: txn,
     }),
 
+  updateTransaction: (
+    portfolioId: string,
+    txnId: string,
+    txn: Omit<NewTransaction, "ticker">,
+  ) =>
+    request<Transaction>(`/portfolios/${portfolioId}/transactions/${txnId}`, {
+      method: "PATCH",
+      body: txn,
+    }),
+
   deleteTransaction: (portfolioId: string, txnId: string) =>
     request<void>(`/portfolios/${portfolioId}/transactions/${txnId}`, {
       method: "DELETE",
