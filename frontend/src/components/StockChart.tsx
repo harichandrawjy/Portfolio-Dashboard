@@ -1,4 +1,5 @@
 import {
+  AreaSeries,
   CandlestickSeries,
   ColorType,
   HistogramSeries,
@@ -6,18 +7,20 @@ import {
   LineStyle,
   createChart,
   createSeriesMarkers,
+  type ISeriesApi,
   type SeriesMarker,
   type Time,
 } from "lightweight-charts";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import type { PositionTxn, RangeKey, StockPricePoint } from "../api/client";
-import { CHART_NEUTRAL } from "../colors";
+import { CHART_NEUTRAL, SERIES } from "../colors";
 import { EmptyState, Panel, Segmented, Skeleton } from "./ui";
 
 const POS = "#177245";
 const NEG = "#b42332";
 const INK_MUTED = "#6e7581";
+const ACCENT = SERIES[0];
 
 const RANGES: { value: RangeKey; label: string }[] = [
   { value: "1mo", label: "1M" },
@@ -25,6 +28,9 @@ const RANGES: { value: RangeKey; label: string }[] = [
   { value: "1y", label: "1Y" },
   { value: "all", label: "All" },
 ];
+
+type ChartStyle = "candles" | "line";
+const STYLE_KEY = "arus.chartStyle";
 
 /** Candlestick chart on TradingView's open-source Lightweight Charts™
  *  engine — rendering only; every bar comes from our own price_history.
@@ -48,6 +54,13 @@ export function StockChart({
   markers: PositionTxn[];
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [style, setStyle] = useState<ChartStyle>(() =>
+    localStorage.getItem(STYLE_KEY) === "line" ? "line" : "candles",
+  );
+  const pickStyle = (s: ChartStyle) => {
+    setStyle(s);
+    localStorage.setItem(STYLE_KEY, s);
+  };
 
   useEffect(() => {
     const el = containerRef.current;
@@ -76,22 +89,38 @@ export function StockChart({
       },
     });
 
-    const candles = chart.addSeries(CandlestickSeries, {
-      upColor: POS,
-      downColor: NEG,
-      wickUpColor: POS,
-      wickDownColor: NEG,
-      borderVisible: false,
-    });
-    candles.setData(
-      points.map((p) => ({
-        time: p.date as Time,
-        open: p.open ?? p.close,
-        high: p.high ?? p.close,
-        low: p.low ?? p.close,
-        close: p.close,
-      })),
-    );
+    let mainSeries: ISeriesApi<"Candlestick"> | ISeriesApi<"Area">;
+    if (style === "candles") {
+      const candles = chart.addSeries(CandlestickSeries, {
+        upColor: POS,
+        downColor: NEG,
+        wickUpColor: POS,
+        wickDownColor: NEG,
+        borderVisible: false,
+      });
+      candles.setData(
+        points.map((p) => ({
+          time: p.date as Time,
+          open: p.open ?? p.close,
+          high: p.high ?? p.close,
+          low: p.low ?? p.close,
+          close: p.close,
+        })),
+      );
+      mainSeries = candles;
+    } else {
+      const area = chart.addSeries(AreaSeries, {
+        lineColor: ACCENT,
+        lineWidth: 2,
+        topColor: "rgba(29, 91, 191, 0.12)",
+        bottomColor: "rgba(29, 91, 191, 0)",
+        crosshairMarkerRadius: 4,
+      });
+      area.setData(
+        points.map((p) => ({ time: p.date as Time, value: p.close })),
+      );
+      mainSeries = area;
+    }
 
     const volume = chart.addSeries(HistogramSeries, {
       priceScaleId: "vol",
@@ -147,23 +176,37 @@ export function StockChart({
             };
       })
       .filter((m): m is SeriesMarker<Time> => m !== null);
-    if (seriesMarkers.length > 0) createSeriesMarkers(candles, seriesMarkers);
+    if (seriesMarkers.length > 0) createSeriesMarkers(mainSeries, seriesMarkers);
 
     chart.timeScale().fitContent();
     return () => chart.remove();
-  }, [points, loading, showIhsg, markers]);
+  }, [points, loading, showIhsg, markers, style]);
 
   return (
     <Panel>
-      <div className="flex items-center justify-between gap-4 px-5 pt-4 pb-3">
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-5 pt-4 pb-3">
         <p className="text-xs text-ink-3">
-          <span className="text-pos">▲</span> up day ·{" "}
-          <span className="text-neg">▼</span> down day
+          {style === "candles" ? (
+            <>
+              <span className="text-pos">▲</span> up day ·{" "}
+              <span className="text-neg">▼</span> down day
+            </>
+          ) : (
+            "daily closes"
+          )}
           {markers.length > 0 && (
             <span className="ml-2">· B/S arrows mark your trades</span>
           )}
         </p>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <Segmented
+            options={[
+              { value: "candles" as ChartStyle, label: "Candles" },
+              { value: "line" as ChartStyle, label: "Line" },
+            ]}
+            value={style}
+            onChange={pickStyle}
+          />
           <button
             onClick={onToggleIhsg}
             aria-pressed={showIhsg}
