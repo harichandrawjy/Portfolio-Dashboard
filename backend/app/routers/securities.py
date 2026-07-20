@@ -180,7 +180,14 @@ async def security_prices(
     start = None if range_key == "all" else today - timedelta(days=RANGE_DAYS[range_key])
 
     stmt = (
-        select(PriceHistory.trade_date, PriceHistory.close, PriceHistory.volume)
+        select(
+            PriceHistory.trade_date,
+            PriceHistory.open,
+            PriceHistory.high,
+            PriceHistory.low,
+            PriceHistory.close,
+            PriceHistory.volume,
+        )
         .where(PriceHistory.security_id == sec.id)
         .order_by(PriceHistory.trade_date)
     )
@@ -215,7 +222,13 @@ async def security_prices(
         )
         points.append(
             StockPricePoint(
-                date=bar.trade_date, close=bar.close, volume=bar.volume, ihsg=rebased
+                date=bar.trade_date,
+                open=bar.open,
+                high=bar.high,
+                low=bar.low,
+                close=bar.close,
+                volume=bar.volume,
+                ihsg=rebased,
             )
         )
 

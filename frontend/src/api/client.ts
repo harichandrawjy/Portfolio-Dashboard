@@ -294,6 +294,9 @@ export interface SecurityDetail {
 
 export interface StockPricePoint {
   date: string;
+  open: number | null;
+  high: number | null;
+  low: number | null;
   close: number;
   volume: number | null;
   ihsg: number | null;

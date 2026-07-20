@@ -146,7 +146,8 @@ async def test_prices_series_with_ihsg_overlay(client):
 
     assert len(points) == 10
     assert points[0] == {
-        "date": "2026-07-06", "close": 6800, "volume": 1_000_000, "ihsg": 6800,
+        "date": "2026-07-06", "open": None, "high": 6850, "low": 6750,
+        "close": 6800, "volume": 1_000_000, "ihsg": 6800,
     }
     # IHSG rebased to the stock's first close: 8000/7900 * 6800 = 6886.08
     assert points[-1]["close"] == 7000

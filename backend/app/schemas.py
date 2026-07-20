@@ -316,6 +316,9 @@ class SecurityDetailOut(BaseModel):
 
 class StockPricePoint(BaseModel):
     date: date
+    open: int | None
+    high: int | None
+    low: int | None
     close: int
     volume: int | None
     ihsg: int | None  # IHSG rebased to the stock's first close in range

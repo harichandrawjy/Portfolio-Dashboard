@@ -1,23 +1,23 @@
 import {
-  Bar,
-  CartesianGrid,
-  ComposedChart,
-  Line,
-  ReferenceDot,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+  CandlestickSeries,
+  ColorType,
+  HistogramSeries,
+  LineSeries,
+  LineStyle,
+  createChart,
+  createSeriesMarkers,
+  type SeriesMarker,
+  type Time,
+} from "lightweight-charts";
+import { useEffect, useRef } from "react";
 
 import type { PositionTxn, RangeKey, StockPricePoint } from "../api/client";
-import { CHART_NEUTRAL, SERIES } from "../colors";
-import { fmtDateShort, fmtNumCompact, fmtRp, fmtRpCompact } from "../lib/format";
-import { EmptyState, Panel, PanelHeader, Segmented, Skeleton } from "./ui";
+import { CHART_NEUTRAL } from "../colors";
+import { EmptyState, Panel, Segmented, Skeleton } from "./ui";
 
-const PRICE_COLOR = SERIES[0];
 const POS = "#177245";
 const NEG = "#b42332";
+const INK_MUTED = "#6e7581";
 
 const RANGES: { value: RangeKey; label: string }[] = [
   { value: "1mo", label: "1M" },
@@ -26,34 +26,10 @@ const RANGES: { value: RangeKey; label: string }[] = [
   { value: "all", label: "All" },
 ];
 
-function ChartTooltip({
-  active,
-  payload,
-  label,
-  showIhsg,
-}: {
-  active?: boolean;
-  payload?: { dataKey: string; value: number }[];
-  label?: string;
-  showIhsg: boolean;
-}) {
-  if (!active || !payload?.length || !label) return null;
-  const rows: Record<string, number> = {};
-  for (const p of payload) rows[p.dataKey] = p.value;
-  return (
-    <div className="rounded-[6px] bg-panel px-3 py-2 text-xs ring-1 ring-line-2 shadow-[0_12px_32px_-12px_rgb(22_24_29/0.35)]">
-      <p className="mb-1 font-medium text-ink-2">{fmtDateShort(label)}</p>
-      <p className="tnum font-mono text-ink">{fmtRp(rows.close)}</p>
-      {showIhsg && rows.ihsg != null && (
-        <p className="tnum font-mono text-ink-3">IHSG {fmtRp(rows.ihsg)}</p>
-      )}
-      {rows.volume != null && (
-        <p className="tnum mt-0.5 text-ink-3">vol {fmtNumCompact(rows.volume)}</p>
-      )}
-    </div>
-  );
-}
-
+/** Candlestick chart on TradingView's open-source Lightweight Charts™
+ *  engine — rendering only; every bar comes from our own price_history.
+ *  Native pan/zoom and crosshair; volume as a bottom histogram; the
+ *  user's trades as B/S arrows at their (snapped) dates. */
 export function StockChart({
   points,
   loading,
@@ -71,128 +47,148 @@ export function StockChart({
   onToggleIhsg: () => void;
   markers: PositionTxn[];
 }) {
-  // Snap each of the user's trades to the first plotted date on/after its
-  // execution date so weekend entries still land on the chart.
-  const markerDots = markers
-    .map((t) => {
-      const point = points.find((p) => p.date >= t.executed_at);
-      return point ? { x: point.date, y: t.price_per_share, type: t.type } : null;
-    })
-    .filter((m): m is { x: string; y: number; type: "BUY" | "SELL" } => m !== null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el || loading || points.length === 0) return;
+
+    const chart = createChart(el, {
+      autoSize: true,
+      layout: {
+        background: { type: ColorType.Solid, color: "transparent" },
+        textColor: INK_MUTED,
+        fontSize: 11,
+        fontFamily: "'JetBrains Mono', ui-monospace, monospace",
+      },
+      grid: {
+        vertLines: { visible: false },
+        horzLines: { color: "rgba(22, 24, 29, 0.06)" },
+      },
+      rightPriceScale: { borderVisible: false },
+      timeScale: { borderVisible: false },
+      crosshair: {
+        horzLine: { labelBackgroundColor: "#16181d" },
+        vertLine: { labelBackgroundColor: "#16181d" },
+      },
+      localization: {
+        priceFormatter: (p: number) => Math.round(p).toLocaleString("id-ID"),
+      },
+    });
+
+    const candles = chart.addSeries(CandlestickSeries, {
+      upColor: POS,
+      downColor: NEG,
+      wickUpColor: POS,
+      wickDownColor: NEG,
+      borderVisible: false,
+    });
+    candles.setData(
+      points.map((p) => ({
+        time: p.date as Time,
+        open: p.open ?? p.close,
+        high: p.high ?? p.close,
+        low: p.low ?? p.close,
+        close: p.close,
+      })),
+    );
+
+    const volume = chart.addSeries(HistogramSeries, {
+      priceScaleId: "vol",
+      priceFormat: { type: "volume" },
+      color: "rgba(22, 24, 29, 0.14)",
+      lastValueVisible: false,
+      priceLineVisible: false,
+    });
+    chart.priceScale("vol").applyOptions({
+      scaleMargins: { top: 0.82, bottom: 0 },
+    });
+    volume.setData(
+      points
+        .filter((p) => p.volume != null)
+        .map((p) => ({ time: p.date as Time, value: p.volume! })),
+    );
+
+    if (showIhsg) {
+      const ihsg = chart.addSeries(LineSeries, {
+        color: CHART_NEUTRAL,
+        lineWidth: 2,
+        lineStyle: LineStyle.Dashed,
+        lastValueVisible: false,
+        priceLineVisible: false,
+        crosshairMarkerVisible: false,
+      });
+      ihsg.setData(
+        points
+          .filter((p) => p.ihsg != null)
+          .map((p) => ({ time: p.date as Time, value: p.ihsg! })),
+      );
+    }
+
+    // trades snapped to the first plotted date on/after execution
+    const seriesMarkers = markers
+      .map((t): SeriesMarker<Time> | null => {
+        const pt = points.find((p) => p.date >= t.executed_at);
+        if (!pt) return null;
+        return t.type === "BUY"
+          ? {
+              time: pt.date as Time,
+              position: "belowBar",
+              color: POS,
+              shape: "arrowUp",
+              text: "B",
+            }
+          : {
+              time: pt.date as Time,
+              position: "aboveBar",
+              color: NEG,
+              shape: "arrowDown",
+              text: "S",
+            };
+      })
+      .filter((m): m is SeriesMarker<Time> => m !== null);
+    if (seriesMarkers.length > 0) createSeriesMarkers(candles, seriesMarkers);
+
+    chart.timeScale().fitContent();
+    return () => chart.remove();
+  }, [points, loading, showIhsg, markers]);
 
   return (
     <Panel>
-      <PanelHeader
-        title="Price"
-        right={
-          <div className="flex items-center gap-3">
-            <button
-              onClick={onToggleIhsg}
-              aria-pressed={showIhsg}
-              className={
-                "rounded-full px-3 py-1 text-xs font-medium ring-1 transition-colors duration-200 " +
-                (showIhsg
-                  ? "bg-ink/[0.07] text-ink ring-line-2"
-                  : "text-ink-3 ring-line hover:text-ink-2")
-              }
-            >
-              vs IHSG
-            </button>
-            <Segmented options={RANGES} value={range} onChange={onRangeChange} />
-          </div>
-        }
-      />
+      <div className="flex items-center justify-between gap-4 px-5 pt-4 pb-3">
+        <p className="text-xs text-ink-3">
+          <span className="text-pos">▲</span> up day ·{" "}
+          <span className="text-neg">▼</span> down day
+          {markers.length > 0 && (
+            <span className="ml-2">· B/S arrows mark your trades</span>
+          )}
+        </p>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={onToggleIhsg}
+            aria-pressed={showIhsg}
+            className={
+              "rounded-full px-3 py-1 text-xs font-medium ring-1 transition-colors duration-200 " +
+              (showIhsg
+                ? "bg-ink/[0.07] text-ink ring-line-2"
+                : "text-ink-3 ring-line hover:text-ink-2")
+            }
+          >
+            vs IHSG
+          </button>
+          <Segmented options={RANGES} value={range} onChange={onRangeChange} />
+        </div>
+      </div>
       <div className="px-3 pb-4">
         {loading ? (
-          <Skeleton className="mx-2 h-[300px]" />
+          <Skeleton className="mx-2 h-[320px]" />
         ) : points.length === 0 ? (
           <EmptyState
             title="No prices in this range"
             body="Try a wider range, or check back after the next nightly sync."
           />
         ) : (
-          <ResponsiveContainer width="100%" height={300}>
-            <ComposedChart
-              data={points}
-              margin={{ top: 8, right: 12, left: 4, bottom: 0 }}
-            >
-              <CartesianGrid vertical={false} stroke="rgb(22 24 29 / 0.07)" />
-              <XAxis
-                dataKey="date"
-                tickFormatter={fmtDateShort}
-                stroke="transparent"
-                tick={{ fill: "#6e7581", fontSize: 11 }}
-                tickLine={false}
-                minTickGap={48}
-              />
-              <YAxis
-                yAxisId="price"
-                tickFormatter={(v: number) => fmtRpCompact(v)}
-                stroke="transparent"
-                tick={{ fill: "#6e7581", fontSize: 11 }}
-                tickLine={false}
-                width={72}
-                domain={["auto", "auto"]}
-              />
-              {/* volume lives on a hidden axis, bars capped to the bottom quarter */}
-              <YAxis
-                yAxisId="vol"
-                hide
-                domain={[0, (dataMax: number) => dataMax * 4]}
-              />
-              <Tooltip
-                content={<ChartTooltip showIhsg={showIhsg} />}
-                cursor={{ stroke: "rgb(22 24 29 / 0.3)", strokeWidth: 1 }}
-              />
-              <Bar
-                yAxisId="vol"
-                dataKey="volume"
-                fill="rgb(22 24 29 / 0.08)"
-                isAnimationActive={false}
-              />
-              {showIhsg && (
-                <Line
-                  yAxisId="price"
-                  type="monotone"
-                  dataKey="ihsg"
-                  stroke={CHART_NEUTRAL}
-                  strokeWidth={2}
-                  strokeDasharray="5 4"
-                  dot={false}
-                  activeDot={{ r: 3, strokeWidth: 0 }}
-                />
-              )}
-              <Line
-                yAxisId="price"
-                type="monotone"
-                dataKey="close"
-                stroke={PRICE_COLOR}
-                strokeWidth={2}
-                dot={false}
-                activeDot={{ r: 3.5, strokeWidth: 0 }}
-              />
-              {markerDots.map((m, i) => (
-                <ReferenceDot
-                  key={i}
-                  yAxisId="price"
-                  x={m.x}
-                  y={m.y}
-                  r={4.5}
-                  fill={m.type === "BUY" ? POS : NEG}
-                  stroke="#ffffff"
-                  strokeWidth={2}
-                  ifOverflow="extendDomain"
-                />
-              ))}
-            </ComposedChart>
-          </ResponsiveContainer>
-        )}
-        {markerDots.length > 0 && (
-          <p className="mt-1 px-2 text-xs text-ink-3">
-            <span className="text-pos">●</span> your buys ·{" "}
-            <span className="text-neg">●</span> your sells, plotted at trade
-            price
-          </p>
+          <div ref={containerRef} className="h-[320px] w-full" />
         )}
       </div>
     </Panel>
