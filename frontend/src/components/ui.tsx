@@ -5,6 +5,7 @@ import {
   type InputHTMLAttributes,
   type ReactNode,
 } from "react";
+import { createPortal } from "react-dom";
 
 /* ------------------------------------------------------------------ */
 /* Surfaces — a white sheet for primary content, a thick ink rule      */
@@ -216,7 +217,9 @@ export function Modal({
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
-  return (
+  // Portal to <body> so no ancestor's transform/overflow can trap the
+  // fixed overlay inside a panel (the .rise entry animation uses transform).
+  return createPortal(
     <div
       className="fixed inset-0 z-40 flex items-start justify-center overflow-y-auto bg-ink/25 p-4 pt-[10vh]"
       onMouseDown={(e) => {
@@ -241,6 +244,7 @@ export function Modal({
         </div>
         <div className="px-5 py-4">{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
