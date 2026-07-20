@@ -382,42 +382,134 @@ function FundamentalsPanel({
 }: {
   fundamentals: Fundamentals | null;
 }) {
+  if (f === null) {
+    return (
+      <Panel tone="flat">
+        <PanelHeader title="Fundamentals" />
+        <div className="px-5 pb-5">
+          <p className="text-[13px] leading-relaxed text-ink-3">
+            Not fetched yet. Fundamentals load on a ticker's first visit and
+            refresh weekly; Yahoo's coverage of IDX names is patchy, so some
+            fields may stay empty.
+          </p>
+        </div>
+      </Panel>
+    );
+  }
+
+  const x = f.extra;
+  const cur = x?.financial_currency ?? null;
+  const ratio = (v: number | null | undefined) =>
+    v != null ? v.toFixed(2) + "×" : DASH;
+  const money = (v: number | null | undefined) => {
+    if (v == null) return DASH;
+    return cur && cur !== "IDR"
+      ? `${cur} ${fmtNumCompact(v)}`
+      : fmtRpCompact(v);
+  };
+  const count = (v: number | null | undefined) =>
+    v != null ? fmtNumCompact(v) : DASH;
+
+  const groups: { title: string; rows: [string, string][] }[] = [
+    {
+      title: "Valuation",
+      rows: [
+        ["Market cap", f.market_cap != null ? fmtRpCompact(f.market_cap) : DASH],
+        [
+          "Enterprise value",
+          x?.enterprise_value != null ? fmtRpCompact(x.enterprise_value) : DASH,
+        ],
+        ["Trailing P/E", ratio(f.pe_ratio)],
+        ["Forward P/E", ratio(x?.forward_pe)],
+        ["Price / sales", ratio(x?.price_to_sales)],
+        ["Price / book", ratio(x?.price_to_book)],
+        ["EV / revenue", ratio(x?.ev_to_revenue)],
+        ["EV / EBITDA", ratio(x?.ev_to_ebitda)],
+      ],
+    },
+    {
+      title: "Profitability",
+      rows: [
+        ["Profit margin", fmtPct(x?.profit_margin_pct)],
+        ["Operating margin", fmtPct(x?.operating_margin_pct)],
+        ["Return on assets", fmtPct(x?.roa_pct)],
+        ["Return on equity", fmtPct(x?.roe_pct)],
+      ],
+    },
+    {
+      title: cur && cur !== "IDR" ? `Income (${cur})` : "Income",
+      rows: [
+        ["Revenue (ttm)", money(x?.revenue)],
+        ["Revenue growth (yoy)", fmtPct(x?.revenue_growth_pct, true)],
+        ["EBITDA", money(x?.ebitda)],
+        ["Net income", money(x?.net_income)],
+        ["EPS (trailing)", fmtRpFine(f.eps)],
+        ["Earnings growth (yoy)", fmtPct(x?.earnings_growth_pct, true)],
+      ],
+    },
+    {
+      title:
+        cur && cur !== "IDR" ? `Balance & cash (${cur})` : "Balance & cash",
+      rows: [
+        ["Total cash", money(x?.total_cash)],
+        ["Total debt", money(x?.total_debt)],
+        ["Debt / equity", fmtPct(x?.debt_to_equity_pct)],
+        [
+          "Current ratio",
+          x?.current_ratio != null ? x.current_ratio.toFixed(2) : DASH,
+        ],
+        ["Operating cash flow", money(x?.operating_cash_flow)],
+        ["Free cash flow", money(x?.free_cash_flow)],
+        ["Book value / share", fmtRpFine(f.book_value)],
+      ],
+    },
+    {
+      title: "Shares",
+      rows: [
+        ["Outstanding", count(x?.shares_outstanding)],
+        ["Float", count(x?.float_shares)],
+        ["Held by insiders", fmtPct(x?.held_insiders_pct)],
+        ["Held by institutions", fmtPct(x?.held_institutions_pct)],
+        ["Avg volume (10d)", count(x?.avg_volume_10d)],
+      ],
+    },
+    {
+      title: "Dividends",
+      rows: [
+        ["Forward yield", fmtPct(f.dividend_yield_pct)],
+        ["Forward rate / share", fmtRpFine(x?.forward_dividend_rate ?? null)],
+        ["Trailing yield", fmtPct(x?.trailing_dividend_yield_pct)],
+        ["5y average yield", fmtPct(x?.five_year_avg_dividend_yield_pct)],
+        ["Payout ratio", fmtPct(x?.payout_ratio_pct)],
+        [
+          "Ex-dividend date",
+          x?.ex_dividend_date ? fmtDate(x.ex_dividend_date) : DASH,
+        ],
+      ],
+    },
+  ];
+
   return (
     <Panel tone="flat">
       <PanelHeader title="Fundamentals" />
-      {f === null ? (
-        <div className="px-5 pb-5">
-          <p className="text-[13px] leading-relaxed text-ink-3">
-            Not fetched yet. Fundamentals refresh weekly; Yahoo's coverage of
-            IDX names is patchy, so some fields may stay empty.
-          </p>
-        </div>
-      ) : (
-        <div className="px-5 pb-5">
-          <dl className="flex flex-col gap-1.5 text-[13px]">
-            <PosRow
-              label="Market cap"
-              value={f.market_cap != null ? fmtRpCompact(f.market_cap) : DASH}
-            />
-            <PosRow
-              label="P/E (trailing)"
-              value={f.pe_ratio != null ? f.pe_ratio.toFixed(1) + "×" : DASH}
-            />
-            <PosRow label="EPS (trailing)" value={fmtRpFine(f.eps)} />
-            <PosRow
-              label="Dividend yield"
-              value={fmtPct(f.dividend_yield_pct)}
-            />
-            <PosRow
-              label="Book value / share"
-              value={fmtRpFine(f.book_value)}
-            />
-          </dl>
-          <p className="mt-3 text-xs text-ink-3">
-            From Yahoo, refreshed weekly · updated {fmtDate(f.last_updated)}
-          </p>
-        </div>
-      )}
+      <div className="px-5 pb-5">
+        {groups.map((g, gi) => (
+          <div
+            key={g.title}
+            className={gi > 0 ? "mt-4 border-t border-line pt-3" : ""}
+          >
+            <p className="mb-2 text-xs font-medium text-ink-3">{g.title}</p>
+            <dl className="flex flex-col gap-1.5 text-[13px]">
+              {g.rows.map(([label, value]) => (
+                <PosRow key={label} label={label} value={value} />
+              ))}
+            </dl>
+          </div>
+        ))}
+        <p className="mt-4 text-xs text-ink-3">
+          From Yahoo, refreshed weekly · updated {fmtDate(f.last_updated)}
+        </p>
+      </div>
     </Panel>
   );
 }

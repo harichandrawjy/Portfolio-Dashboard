@@ -60,6 +60,16 @@ async def test_sync_stores_partial_and_empty_info(client, monkeypatch):
             "trailingEps": 470.73,
             "dividendYield": 5.5,
             "bookValue": 2108.889,
+            # extended stats, with Yahoo's mixed conventions:
+            "enterpriseValue": 55_000_000_000_000,
+            "profitMargins": 0.2543,  # fraction -> 25.43%
+            "debtToEquity": 19.54,  # already a percent
+            "heldPercentInsiders": 0.6723,  # fraction -> 67.23%
+            "totalRevenue": 1_960_000_000,
+            "financialCurrency": "USD",
+            "exDividendDate": 1_777_334_400,  # 2026-04-28 UTC
+            # IDR price / USD book value = nonsense; must be dropped
+            "priceToBook": 15_000.0,
         },
         "FNDB.JK": {"marketCap": 142_800_633_856},
     }
@@ -78,6 +88,19 @@ async def test_sync_stores_partial_and_empty_info(client, monkeypatch):
     assert f["dividend_yield_pct"] == pytest.approx(5.5)
     assert f["book_value"] == pytest.approx(2108.889)
     assert f["last_updated"] is not None
+
+    # extended stats, normalized per-field
+    x = f["extra"]
+    assert x["enterprise_value"] == 55_000_000_000_000
+    assert x["profit_margin_pct"] == pytest.approx(25.43)
+    assert x["debt_to_equity_pct"] == pytest.approx(19.54)
+    assert x["held_insiders_pct"] == pytest.approx(67.23)
+    assert x["revenue"] == 1_960_000_000
+    assert x["financial_currency"] == "USD"
+    assert x["ex_dividend_date"] == "2026-04-28"
+    assert x["forward_pe"] is None  # absent upstream stays absent
+    # cross-currency ratio guard: USD reporter -> Yahoo's P/B is dropped
+    assert x["price_to_book"] is None
 
     r = await client.get("/securities/FNDB", headers=auth)
     f = r.json()["fundamentals"]

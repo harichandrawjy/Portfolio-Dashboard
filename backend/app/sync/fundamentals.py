@@ -64,6 +64,99 @@ def _num(value) -> Decimal | None:
         return None
 
 
+def _f(value) -> float | None:
+    """Plain float, or None for anything non-numeric (Yahoo loves gaps)."""
+    if value is None or isinstance(value, bool):
+        return None
+    try:
+        return round(float(value), 4)
+    except (ValueError, TypeError):
+        return None
+
+
+def _frac_pct(value) -> float | None:
+    """Yahoo fraction (0.2543) -> percent (25.43)."""
+    v = _f(value)
+    return None if v is None else round(v * 100, 2)
+
+
+def _i(value) -> int | None:
+    return int(value) if isinstance(value, (int, float)) else None
+
+
+def _epoch_date(value) -> str | None:
+    if not isinstance(value, (int, float)):
+        return None
+    from datetime import datetime, timezone
+
+    return datetime.fromtimestamp(value, tz=timezone.utc).date().isoformat()
+
+
+def _build_extra(info: dict) -> dict:
+    """Whitelisted, normalized extended stats. Percent-form quirks are
+    per-field (some Yahoo keys are fractions, some already percents) —
+    verified against live payloads. Monetary income/balance figures are in
+    financial_currency (IDX issuers report in IDR or USD)."""
+    extra = {
+        # valuation
+        "enterprise_value": _i(info.get("enterpriseValue")),  # quote ccy (IDR)
+        "forward_pe": _f(info.get("forwardPE")),
+        "price_to_sales": _f(info.get("priceToSalesTrailing12Months")),
+        "price_to_book": _f(info.get("priceToBook")),
+        "ev_to_revenue": _f(info.get("enterpriseToRevenue")),
+        "ev_to_ebitda": _f(info.get("enterpriseToEbitda")),
+        # profitability (fractions -> %)
+        "profit_margin_pct": _frac_pct(info.get("profitMargins")),
+        "operating_margin_pct": _frac_pct(info.get("operatingMargins")),
+        "roa_pct": _frac_pct(info.get("returnOnAssets")),
+        "roe_pct": _frac_pct(info.get("returnOnEquity")),
+        # income statement (financial_currency)
+        "revenue": _i(info.get("totalRevenue")),
+        "revenue_growth_pct": _frac_pct(info.get("revenueGrowth")),
+        "ebitda": _i(info.get("ebitda")),
+        "net_income": _i(info.get("netIncomeToCommon")),
+        "earnings_growth_pct": _frac_pct(info.get("earningsQuarterlyGrowth")),
+        # balance sheet & cash flow (financial_currency)
+        "total_cash": _i(info.get("totalCash")),
+        "total_debt": _i(info.get("totalDebt")),
+        "debt_to_equity_pct": _f(info.get("debtToEquity")),  # already %
+        "current_ratio": _f(info.get("currentRatio")),
+        "operating_cash_flow": _i(info.get("operatingCashflow")),
+        "free_cash_flow": _i(info.get("freeCashflow")),
+        # share statistics
+        "shares_outstanding": _i(info.get("sharesOutstanding")),
+        "float_shares": _i(info.get("floatShares")),
+        "held_insiders_pct": _frac_pct(info.get("heldPercentInsiders")),
+        "held_institutions_pct": _frac_pct(info.get("heldPercentInstitutions")),
+        "avg_volume_10d": _i(info.get("averageDailyVolume10Day")),
+        # dividends
+        "forward_dividend_rate": _f(info.get("dividendRate")),  # IDR/share
+        "trailing_dividend_yield_pct": _frac_pct(
+            info.get("trailingAnnualDividendYield")
+        ),
+        "five_year_avg_dividend_yield_pct": _f(
+            info.get("fiveYearAvgDividendYield")
+        ),  # already %
+        "payout_ratio_pct": _frac_pct(info.get("payoutRatio")),
+        "ex_dividend_date": _epoch_date(info.get("exDividendDate")),
+        "financial_currency": (
+            info.get("financialCurrency")
+            if isinstance(info.get("financialCurrency"), str)
+            else None
+        ),
+    }
+
+    # Yahoo's precomputed price/EV ratios divide an IDR price or IDR
+    # enterprise value by financial-currency figures. For USD reporters
+    # (ADRO, INCO, ...) that yields nonsense like P/B 15,000x, so those
+    # ratios are dropped rather than shown wrong.
+    if extra["financial_currency"] not in (None, "IDR"):
+        for key in ("price_to_book", "price_to_sales", "ev_to_revenue", "ev_to_ebitda"):
+            extra[key] = None
+
+    return {k: v for k, v in extra.items() if v is not None}
+
+
 def _info_to_row(info: dict) -> dict:
     market_cap = info.get("marketCap")
     return {
@@ -72,6 +165,7 @@ def _info_to_row(info: dict) -> dict:
         "eps": _num(info.get("trailingEps")),
         "dividend_yield_pct": _num(info.get("dividendYield")),
         "book_value": _num(info.get("bookValue")),
+        "extra": _build_extra(info) or None,
     }
 
 
@@ -106,7 +200,7 @@ async def sync_fundamentals(tickers: list[str] | None = None) -> FundamentalsRes
                         set_={"last_updated": func.now(), **row},
                     )
                     await session.execute(ins)
-            missing = [k for k, v in row.items() if v is None]
+            missing = [k for k, v in row.items() if v is None and k != "extra"]
             logger.info(
                 "fundamentals %s: %s",
                 sec.ticker,

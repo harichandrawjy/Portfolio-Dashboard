@@ -21,7 +21,7 @@ from sqlalchemy import (
     UniqueConstraint,
     text,
 )
-from sqlalchemy.dialects.postgresql import ENUM, TIMESTAMP, UUID
+from sqlalchemy.dialects.postgresql import ENUM, JSONB, TIMESTAMP, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db import Base
@@ -208,6 +208,8 @@ class Fundamentals(Base):
     eps: Mapped[Decimal | None] = mapped_column(Numeric(14, 4))
     dividend_yield_pct: Mapped[Decimal | None] = mapped_column(Numeric(8, 4))
     book_value: Mapped[Decimal | None] = mapped_column(Numeric(14, 4))
+    # curated extended stats (see app/sync/fundamentals.py whitelist)
+    extra: Mapped[dict | None] = mapped_column(JSONB)
     last_updated: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True), server_default=text("now()")
     )

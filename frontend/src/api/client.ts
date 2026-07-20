@@ -231,12 +231,48 @@ export interface SecurityStats {
   beta_1y: number | null;
 }
 
+export interface ExtraStats {
+  enterprise_value: number | null;
+  forward_pe: number | null;
+  price_to_sales: number | null;
+  price_to_book: number | null;
+  ev_to_revenue: number | null;
+  ev_to_ebitda: number | null;
+  profit_margin_pct: number | null;
+  operating_margin_pct: number | null;
+  roa_pct: number | null;
+  roe_pct: number | null;
+  revenue: number | null;
+  revenue_growth_pct: number | null;
+  ebitda: number | null;
+  net_income: number | null;
+  earnings_growth_pct: number | null;
+  total_cash: number | null;
+  total_debt: number | null;
+  debt_to_equity_pct: number | null;
+  current_ratio: number | null;
+  operating_cash_flow: number | null;
+  free_cash_flow: number | null;
+  shares_outstanding: number | null;
+  float_shares: number | null;
+  held_insiders_pct: number | null;
+  held_institutions_pct: number | null;
+  avg_volume_10d: number | null;
+  forward_dividend_rate: number | null;
+  trailing_dividend_yield_pct: number | null;
+  five_year_avg_dividend_yield_pct: number | null;
+  payout_ratio_pct: number | null;
+  ex_dividend_date: string | null;
+  financial_currency: string | null;
+}
+
 export interface Fundamentals {
   market_cap: number | null;
   pe_ratio: number | null;
   eps: number | null;
   dividend_yield_pct: number | null;
   book_value: number | null;
+  extra: ExtraStats | null;
   last_updated: string;
 }
 

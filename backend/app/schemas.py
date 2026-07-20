@@ -248,6 +248,44 @@ class SecurityStatsOut(BaseModel):
     beta_1y: float | None
 
 
+class ExtraStats(BaseModel):
+    """Curated extended stats (see sync/fundamentals whitelist). Monetary
+    income/balance figures are denominated in financial_currency."""
+
+    enterprise_value: int | None = None
+    forward_pe: float | None = None
+    price_to_sales: float | None = None
+    price_to_book: float | None = None
+    ev_to_revenue: float | None = None
+    ev_to_ebitda: float | None = None
+    profit_margin_pct: float | None = None
+    operating_margin_pct: float | None = None
+    roa_pct: float | None = None
+    roe_pct: float | None = None
+    revenue: int | None = None
+    revenue_growth_pct: float | None = None
+    ebitda: int | None = None
+    net_income: int | None = None
+    earnings_growth_pct: float | None = None
+    total_cash: int | None = None
+    total_debt: int | None = None
+    debt_to_equity_pct: float | None = None
+    current_ratio: float | None = None
+    operating_cash_flow: int | None = None
+    free_cash_flow: int | None = None
+    shares_outstanding: int | None = None
+    float_shares: int | None = None
+    held_insiders_pct: float | None = None
+    held_institutions_pct: float | None = None
+    avg_volume_10d: int | None = None
+    forward_dividend_rate: float | None = None
+    trailing_dividend_yield_pct: float | None = None
+    five_year_avg_dividend_yield_pct: float | None = None
+    payout_ratio_pct: float | None = None
+    ex_dividend_date: date | None = None
+    financial_currency: str | None = None
+
+
 class FundamentalsOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -256,6 +294,7 @@ class FundamentalsOut(BaseModel):
     eps: float | None
     dividend_yield_pct: float | None
     book_value: float | None
+    extra: ExtraStats | None
     last_updated: datetime
 
 
