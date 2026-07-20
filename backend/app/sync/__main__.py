@@ -39,6 +39,11 @@ def main() -> None:
         "--tickers", help="comma-separated subset; default = all tracked tickers"
     )
 
+    p_stmt = sub.add_parser("statements", help="refresh financial statements")
+    p_stmt.add_argument(
+        "--tickers", help="comma-separated subset; default = all tracked tickers"
+    )
+
     p_quotes = sub.add_parser("quotes", help="refresh latest_quotes")
     p_quotes.add_argument(
         "--tickers",
@@ -74,6 +79,15 @@ def main() -> None:
         result = asyncio.run(sync_fundamentals(subset))
         print(
             f"fundamentals: {result.synced} synced, "
+            f"{len(result.failed)} failed {result.failed or ''}"
+        )
+    elif args.command == "statements":
+        from app.sync.statements import sync_statements
+
+        subset = args.tickers.split(",") if args.tickers else None
+        result = asyncio.run(sync_statements(subset))
+        print(
+            f"statements: {result.synced} synced ({result.periods} periods), "
             f"{len(result.failed)} failed {result.failed or ''}"
         )
     elif args.command == "quotes":

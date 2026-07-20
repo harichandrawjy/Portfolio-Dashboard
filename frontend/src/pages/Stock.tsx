@@ -8,6 +8,7 @@ import {
   type RangeKey,
   type SecurityStats,
 } from "../api/client";
+import { FinancialsPanel } from "../components/FinancialsPanel";
 import { StockChart } from "../components/StockChart";
 import { EmptyState, Panel, PanelHeader, Skeleton } from "../components/ui";
 import { useAsync } from "../lib/hooks";
@@ -36,6 +37,10 @@ export function StockPage() {
     [symbol, range, detail.data?.has_history],
   );
   const position = useAsync(() => api.securityPosition(symbol), [symbol]);
+  const financials = useAsync(
+    () => api.securityFinancials(symbol),
+    [symbol, detail.data?.has_history],
+  );
 
   // First visit to a never-priced ticker: kick the lazy backfill and poll
   // until history (and the stat cache computed at its tail end) appears.
@@ -187,6 +192,13 @@ export function StockPage() {
 
               <div className="rise" style={{ "--rise": 3 } as React.CSSProperties}>
                 <FundamentalsPanel fundamentals={d.fundamentals} />
+              </div>
+
+              <div className="rise" style={{ "--rise": 4 } as React.CSSProperties}>
+                <FinancialsPanel
+                  financials={financials.data}
+                  loading={financials.loading}
+                />
               </div>
             </>
           )}

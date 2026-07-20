@@ -41,8 +41,9 @@ fresh:
 | Universe sync | nightly 21:00 | IDX ticker list upsert; delistings deactivated, never deleted; CSV fallback if IDX is unreachable |
 | Daily prices | Mon–Fri 18:30 | Appends recent bars for every tracked ticker + IHSG, then rebuilds the stat cache |
 | Quote refresh | Mon–Fri 09:00–16:00, every 15 min | Delayed quotes for held tickers into `latest_quotes` |
-| Fundamentals | Sat 06:00 | Market cap, P/E, EPS, yield, book value (weekly — this data barely moves) |
-| Lazy backfill | on demand | 5y of daily OHLCV the first time anyone touches a ticker, then its stats and fundamentals immediately after |
+| Fundamentals | Sat 06:00 | Market cap, P/E, EPS, yield, book value + curated extended stats (weekly — this data barely moves) |
+| Statements | Sat 06:30 | Income statement, balance sheet, cash flow (≈4 annual, ≈5 quarters); solvency/efficiency metrics derived from them |
+| Lazy backfill | on demand | 5y of daily OHLCV the first time anyone touches a ticker, then its stats, fundamentals, and statements immediately after |
 
 Backend layout: `app/routers` (API), `app/sync` (all external data),
 `app/analytics.py` (pure functions), `app/performance.py` (series builder),

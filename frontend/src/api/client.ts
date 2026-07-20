@@ -303,6 +303,38 @@ export interface SecurityDetail {
   fundamentals: Fundamentals | null;
 }
 
+export interface StatementPeriod {
+  period_end: string;
+  items: Record<string, number>;
+}
+
+export interface DerivedMetrics {
+  interest_coverage: number | null;
+  financial_leverage: number | null;
+  lt_debt_to_equity: number | null;
+  liabilities_to_equity: number | null;
+  debt_to_assets: number | null;
+  asset_turnover: number | null;
+  roce_pct: number | null;
+  days_sales_outstanding: number | null;
+  days_inventory: number | null;
+  days_payables: number | null;
+  cash_conversion_cycle: number | null;
+  fcf_ttm: number | null;
+  price_to_fcf_ttm: number | null;
+  altman_z: number | null;
+  piotroski_f: number | null;
+  piotroski_max: number | null;
+}
+
+export interface Financials {
+  ticker: string;
+  currency: string | null;
+  annual: StatementPeriod[];
+  quarterly: StatementPeriod[];
+  derived: DerivedMetrics;
+}
+
 export interface StockPricePoint {
   date: string;
   open: number | null;
@@ -454,4 +486,7 @@ export const api = {
 
   securityPosition: (ticker: string) =>
     request<StockPosition>(`/securities/${encodeURIComponent(ticker)}/position`),
+
+  securityFinancials: (ticker: string) =>
+    request<Financials>(`/securities/${encodeURIComponent(ticker)}/financials`),
 };

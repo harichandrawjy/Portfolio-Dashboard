@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.deps import CurrentUser, Session
 from app.models import (
+    FinancialStatement,
     Fundamentals,
     LatestQuote,
     PriceHistory,
@@ -19,17 +20,21 @@ from app.models import (
 from app.performance import RANGE_DAYS, RangeKey
 from app.scheduler import enqueue_backfill
 from app.schemas import (
+    DerivedMetricsOut,
     EnsurePricesOut,
+    FinancialsOut,
     FundamentalsOut,
     PositionRow,
     PositionTxn,
     SecurityDetailOut,
     SecuritySearchOut,
     SecurityStatsOut,
+    StatementPeriodOut,
     StockPositionOut,
     StockPricePoint,
     StockPricesOut,
 )
+from app.sync.statements import compute_derived
 
 router = APIRouter(tags=["securities"])
 logger = logging.getLogger(__name__)
@@ -162,6 +167,51 @@ async def security_detail(
         fundamentals=(
             FundamentalsOut.model_validate(fundamentals) if fundamentals else None
         ),
+    )
+
+
+@router.get("/securities/{ticker}/financials", response_model=FinancialsOut)
+async def security_financials(
+    ticker: str, user: CurrentUser, session: Session
+) -> FinancialsOut:
+    """Stored statement periods + metrics derived from them. The derivation
+    is a pure function over <=10 small dicts — cheap enough per request."""
+    sec = await _get_stock(ticker, session)
+
+    rows = list(
+        await session.scalars(
+            select(FinancialStatement)
+            .where(FinancialStatement.security_id == sec.id)
+            .order_by(FinancialStatement.period_end.desc())
+        )
+    )
+    annual = [r for r in rows if r.period_type == "annual"][:5]
+    quarterly = [r for r in rows if r.period_type == "quarterly"][:6]
+
+    fund = await session.get(Fundamentals, sec.id)
+    currency = None
+    if fund and fund.extra:
+        currency = fund.extra.get("financial_currency")
+    idr_reporter = currency in (None, "IDR")
+
+    derived = compute_derived(
+        [r.items for r in quarterly],
+        [r.items for r in annual],
+        fund.market_cap if fund else None,
+        idr_reporter,
+    )
+
+    def _periods(items: list[FinancialStatement]) -> list[StatementPeriodOut]:
+        return [
+            StatementPeriodOut(period_end=r.period_end, items=r.items) for r in items
+        ]
+
+    return FinancialsOut(
+        ticker=sec.ticker,
+        currency=currency,
+        annual=_periods(annual),
+        quarterly=_periods(quarterly),
+        derived=DerivedMetricsOut(**derived),
     )
 
 

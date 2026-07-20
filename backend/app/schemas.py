@@ -325,6 +325,40 @@ class SecurityDetailOut(BaseModel):
     fundamentals: FundamentalsOut | None  # null until the weekly sync ran
 
 
+class StatementPeriodOut(BaseModel):
+    period_end: date
+    items: dict[str, float]  # whitelisted line items, reporting currency
+
+
+class DerivedMetricsOut(BaseModel):
+    """Computed from stored statements by app/sync/statements.py."""
+
+    interest_coverage: float | None = None
+    financial_leverage: float | None = None
+    lt_debt_to_equity: float | None = None
+    liabilities_to_equity: float | None = None
+    debt_to_assets: float | None = None
+    asset_turnover: float | None = None
+    roce_pct: float | None = None
+    days_sales_outstanding: float | None = None
+    days_inventory: float | None = None
+    days_payables: float | None = None
+    cash_conversion_cycle: float | None = None
+    fcf_ttm: float | None = None  # OCF - |capex|
+    price_to_fcf_ttm: float | None = None
+    altman_z: float | None = None  # emerging-markets Z''
+    piotroski_f: int | None = None
+    piotroski_max: int | None = None  # how many of the 9 signals were evaluable
+
+
+class FinancialsOut(BaseModel):
+    ticker: str
+    currency: str | None  # issuer's reporting currency
+    annual: list[StatementPeriodOut]  # newest first
+    quarterly: list[StatementPeriodOut]  # newest first
+    derived: DerivedMetricsOut
+
+
 class StockPricePoint(BaseModel):
     date: date
     open: int | None

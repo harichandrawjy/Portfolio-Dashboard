@@ -59,6 +59,17 @@ def create_scheduler() -> AsyncIOScheduler:
         misfire_grace_time=6 * 3600,
     )
 
+    # Financial statements right after — same weekly cadence.
+    from app.sync.statements import sync_statements
+
+    scheduler.add_job(
+        sync_statements,
+        CronTrigger(day_of_week="sat", hour=6, minute=30, timezone=JAKARTA),
+        id="statements-sync",
+        coalesce=True,
+        misfire_grace_time=6 * 3600,
+    )
+
     _scheduler = scheduler
     return scheduler
 

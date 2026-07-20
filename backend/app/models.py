@@ -118,6 +118,25 @@ class Transaction(Base):
     )
 
 
+class FinancialStatement(Base):
+    """One statement period per row; items is a whitelisted JSONB of line
+    items in the issuer's reporting currency (migration 0006)."""
+
+    __tablename__ = "financial_statements"
+
+    security_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("securities.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    period_type: Mapped[str] = mapped_column(Text, primary_key=True)
+    period_end: Mapped[date] = mapped_column(Date, primary_key=True)
+    items: Mapped[dict] = mapped_column(JSONB)
+    fetched_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True), server_default=text("now()")
+    )
+
+
 class CashFlow(Base):
     """Portfolio cash ledger entry (migration 0004). Balance is derived:
     deposits - withdrawals - buy costs + net sell proceeds."""

@@ -224,8 +224,8 @@ async def backfill_ticker(ticker: str, years: int = 5) -> BackfillResult:
 
     await refresh_stats([sec.id])
 
-    # Fundamentals too, so a first visit shows a complete page; failures are
-    # non-fatal (the weekly Saturday job retries everything tracked).
+    # Fundamentals and statements too, so a first visit shows a complete
+    # page; failures are non-fatal (the weekly Saturday jobs retry).
     try:
         from app.sync.fundamentals import sync_fundamentals
 
@@ -233,6 +233,15 @@ async def backfill_ticker(ticker: str, years: int = 5) -> BackfillResult:
     except Exception:
         logger.warning(
             "first-use fundamentals fetch failed for %s — weekly job will retry",
+            sec.ticker,
+        )
+    try:
+        from app.sync.statements import sync_statements
+
+        await sync_statements([sec.ticker])
+    except Exception:
+        logger.warning(
+            "first-use statements fetch failed for %s — weekly job will retry",
             sec.ticker,
         )
     return BackfillResult(sec.ticker, sec.yahoo_symbol, len(rows), resolved=True)
