@@ -100,14 +100,18 @@ export function AddTransactionModal({
   portfolioId,
   onClose,
   onSaved,
+  initialTicker,
+  initialType,
 }: {
   portfolioId: string;
   onClose: () => void;
   onSaved: () => void;
+  initialTicker?: string;
+  initialType?: TxnType;
 }) {
-  const [type, setType] = useState<TxnType>("BUY");
-  const [ticker, setTicker] = useState("");
-  const [tickerPicked, setTickerPicked] = useState(false);
+  const [type, setType] = useState<TxnType>(initialType ?? "BUY");
+  const [ticker, setTicker] = useState(initialTicker ?? "");
+  const [tickerPicked, setTickerPicked] = useState(!!initialTicker);
   const [lots, setLots] = useState("1");
   const [price, setPrice] = useState("");
   const [priceAutofilled, setPriceAutofilled] = useState(false);
@@ -206,6 +210,28 @@ export function AddTransactionModal({
     return () => {
       pollToken.current += 1;
     };
+  }, []);
+
+  // Pre-set ticker (row Buy/Sell buttons): prefill the price from search.
+  useEffect(() => {
+    if (!initialTicker) return;
+    let cancelled = false;
+    api.searchSecurities(initialTicker).then(
+      (rs) => {
+        if (cancelled) return;
+        const hit = rs.find((r) => r.ticker === initialTicker);
+        if (hit?.last_price != null && !userTypedPrice.current) {
+          setPrice(String(hit.last_price));
+          setPriceAutofilled(true);
+          setPriceHint("Last known price · edit freely");
+        }
+      },
+      () => {},
+    );
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   /** BUY of a never-priced ticker: enqueue the lazy backfill and poll. */

@@ -107,6 +107,7 @@ class HoldingOut(BaseModel):
     market_value: int | None
     unrealized_pnl: int | None
     unrealized_pnl_pct: float | None
+    realized_pnl: int  # locked in by past sells of this ticker (avg-cost)
     as_of: datetime | None  # quote timestamp; None when priced at a close
     last_close_date: date | None
 
@@ -115,6 +116,9 @@ class HoldingsTotals(BaseModel):
     cost_basis: int
     market_value: int | None
     unrealized_pnl: int | None
+    # realized across ALL of the portfolio's sells, incl. fully-closed
+    # positions that no longer appear in the holdings rows
+    realized_pnl: int
     unpriced_holdings: int  # how many holdings had no quote
     # cash ledger (0 / false until the portfolio's first deposit)
     cash_balance: int

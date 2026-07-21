@@ -73,6 +73,10 @@ async def test_buy_sell_holdings_math(client):
     assert totals["market_value"] == 4_200_000
     assert totals["unpriced_holdings"] == 0
 
+    # realized: sold 200 sh @ 6500 with avg cost 6150 -> (6500-6150)*200 = +70_000
+    assert h["realized_pnl"] == 70_000
+    assert totals["realized_pnl"] == 70_000
+
 
 async def test_fees_included_in_avg_cost(client):
     auth = await _login(client, "fee@example.com")

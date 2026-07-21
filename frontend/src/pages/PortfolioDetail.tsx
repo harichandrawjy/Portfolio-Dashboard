@@ -2,7 +2,7 @@ import { ArrowLeft } from "@phosphor-icons/react";
 import { useCallback, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
-import { api, type RangeKey } from "../api/client";
+import { api, type RangeKey, type TxnType } from "../api/client";
 import { AddTransactionModal } from "../components/AddTransactionModal";
 import { CashModal } from "../components/CashModal";
 import { AllocationDonut } from "../components/AllocationDonut";
@@ -16,7 +16,10 @@ import { useAsync } from "../lib/hooks";
 export function PortfolioDetailPage() {
   const { id = "" } = useParams();
   const [range, setRange] = useState<RangeKey>("1y");
-  const [adding, setAdding] = useState(false);
+  // null = closed; {} = blank add; {ticker,type} = pre-set from a holding row
+  const [trade, setTrade] = useState<
+    { ticker?: string; type?: TxnType } | null
+  >(null);
   const [cashOpen, setCashOpen] = useState(false);
   const [refreshTick, setRefreshTick] = useState(0);
   const refresh = useCallback(() => setRefreshTick((t) => t + 1), []);
@@ -67,7 +70,7 @@ export function PortfolioDetailPage() {
           <Button variant="ghost" onClick={() => setCashOpen(true)}>
             Cash
           </Button>
-          <Button onClick={() => setAdding(true)}>Add transaction</Button>
+          <Button onClick={() => setTrade({})}>Add transaction</Button>
         </div>
       </div>
 
@@ -95,7 +98,8 @@ export function PortfolioDetailPage() {
         <HoldingsTable
           holdings={holdings.data}
           loading={holdings.loading}
-          onAddTransaction={() => setAdding(true)}
+          onAddTransaction={() => setTrade({})}
+          onTrade={(ticker, type) => setTrade({ ticker, type })}
         />
         <AllocationDonut
           allocation={allocation.data}
@@ -112,10 +116,12 @@ export function PortfolioDetailPage() {
         />
       </div>
 
-      {adding && (
+      {trade && (
         <AddTransactionModal
           portfolioId={id}
-          onClose={() => setAdding(false)}
+          initialTicker={trade.ticker}
+          initialType={trade.type}
+          onClose={() => setTrade(null)}
           onSaved={refresh}
         />
       )}

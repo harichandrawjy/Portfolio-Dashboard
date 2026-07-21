@@ -2,6 +2,7 @@
 import uuid
 from datetime import datetime
 from decimal import ROUND_HALF_UP, Decimal
+from itertools import groupby
 from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, HTTPException, Query, status
@@ -19,6 +20,7 @@ from app.models import (
     Transaction,
     User,
 )
+from app.pnl import realized_pnl
 from app.scheduler import enqueue_backfill
 from app.schemas import (
     CashFlowIn,
@@ -557,13 +559,37 @@ async def get_holdings(
 ) -> HoldingsOut:
     portfolio = await _get_owned_portfolio(portfolio_id, user, session)
 
+    # Realized P&L (average-cost) per security, replayed from every trade —
+    # this captures fully-closed positions that no longer appear in holdings.
+    txn_rows = await session.execute(
+        select(
+            Transaction.security_id,
+            Transaction.type,
+            Transaction.shares,
+            Transaction.price_per_share,
+            Transaction.fee,
+        )
+        .where(Transaction.portfolio_id == portfolio.id)
+        .order_by(
+            Transaction.security_id,
+            Transaction.executed_at,
+            Transaction.created_at,
+        )
+    )
+    realized_by_sec: dict[uuid.UUID, int] = {}
+    for sid, group in groupby(txn_rows, key=lambda row: row[0]):
+        realized_by_sec[sid] = realized_pnl(
+            [(t[1], t[2], t[3], t[4]) for t in group]
+        )
+    total_realized = sum(realized_by_sec.values())
+
     # Price preference: delayed quote, else the most recent stored close
     # (as_of stays NULL then — the row is priced "at last close", and the
     # UI labels it that way instead of faking a quote timestamp).
     rows = await session.execute(
         sa_text(
             """
-            SELECT s.ticker, s.name, h.shares, h.avg_cost_per_share,
+            SELECT s.ticker, s.name, h.security_id, h.shares, h.avg_cost_per_share,
                    COALESCE(q.price, ph.close) AS last_price,
                    q.as_of,
                    ph.trade_date AS last_close_date
@@ -621,6 +647,7 @@ async def get_holdings(
                 market_value=market_value,
                 unrealized_pnl=pnl,
                 unrealized_pnl_pct=pnl_pct,
+                realized_pnl=realized_by_sec.get(r["security_id"], 0),
                 as_of=r["as_of"],
                 last_close_date=r["last_close_date"],
             )
@@ -635,6 +662,7 @@ async def get_holdings(
             cost_basis=total_cost,
             market_value=total_mv if priced_any else None,
             unrealized_pnl=total_pnl if priced_any else None,
+            realized_pnl=total_realized,
             unpriced_holdings=unpriced,
             cash_balance=cash_balance,
             cash_tracked=cash_tracked,

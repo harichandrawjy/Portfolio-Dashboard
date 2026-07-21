@@ -30,10 +30,12 @@ export function HoldingsTable({
   holdings,
   loading,
   onAddTransaction,
+  onTrade,
 }: {
   holdings: Holdings | null;
   loading: boolean;
   onAddTransaction: () => void;
+  onTrade: (ticker: string, type: "BUY" | "SELL") => void;
 }) {
   const [sortKey, setSortKey] = useState<SortKey>("market_value");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
@@ -91,7 +93,7 @@ export function HoldingsTable({
         />
       ) : (
         <div className="overflow-x-auto pb-2">
-          <table className="w-full min-w-[720px] text-[13px]">
+          <table className="w-full min-w-[820px] text-[13px]">
             <thead>
               <tr className="border-b border-line text-left text-xs text-ink-3">
                 {COLUMNS.map((c) => (
@@ -116,11 +118,14 @@ export function HoldingsTable({
                   </th>
                 ))}
                 <th className="px-5 py-2 text-right text-xs font-medium">As of</th>
+                <th className="px-5 py-2 text-right text-xs font-medium">
+                  <span className="sr-only">Trade</span>
+                </th>
               </tr>
             </thead>
             <tbody>
               {rows.map((h) => (
-                <Row key={h.ticker} holding={h} />
+                <Row key={h.ticker} holding={h} onTrade={onTrade} />
               ))}
             </tbody>
           </table>
@@ -130,7 +135,13 @@ export function HoldingsTable({
   );
 }
 
-function Row({ holding: h }: { holding: Holding }) {
+function Row({
+  holding: h,
+  onTrade,
+}: {
+  holding: Holding;
+  onTrade: (ticker: string, type: "BUY" | "SELL") => void;
+}) {
   return (
     <tr className="border-b border-line/50 transition-colors last:border-0 hover:bg-ink/[0.03]">
       <td className="px-5 py-2.5">
@@ -165,6 +176,22 @@ function Row({ holding: h }: { holding: Holding }) {
           : h.last_price != null && h.last_close_date
             ? `close, ${fmtDateShort(h.last_close_date)}`
             : DASH}
+      </td>
+      <td className="px-5 py-2.5">
+        <div className="flex justify-end gap-1.5">
+          <button
+            onClick={() => onTrade(h.ticker, "BUY")}
+            className="rounded-[5px] px-2 py-1 text-xs font-medium text-pos ring-1 ring-pos/30 outline-none transition-colors hover:bg-pos/10 focus-visible:ring-2 focus-visible:ring-accent/70"
+          >
+            Buy
+          </button>
+          <button
+            onClick={() => onTrade(h.ticker, "SELL")}
+            className="rounded-[5px] px-2 py-1 text-xs font-medium text-neg ring-1 ring-neg/30 outline-none transition-colors hover:bg-neg/10 focus-visible:ring-2 focus-visible:ring-accent/70"
+          >
+            Sell
+          </button>
+        </div>
       </td>
     </tr>
   );
