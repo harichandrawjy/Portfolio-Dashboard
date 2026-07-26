@@ -1,23 +1,25 @@
 /**
- * Chart colors. The 8 categorical slots are dataviz-validated against the
- * paper surface #f7f7f4 (lightness band, chroma floor, adjacent-pair CVD
- * separation >= 18.7 dE, contrast >= 3:1). Assign slots in fixed order,
- * never cycled; overflow folds into "Other" drawn in CHART_NEUTRAL.
+ * Chart colors, tuned to sit inside the cool porcelain + indigo system
+ * rather than fight it. The early slots are a cohesive cool family
+ * (indigo → teal → blue → periwinkle), so a typical few-sector donut
+ * reads as one designed set; warmer accents only appear once a portfolio
+ * spreads across many sectors. Slots are assigned in fixed order, never
+ * cycled; overflow folds into "Other" drawn in CHART_NEUTRAL.
  */
 
 export const SERIES = [
-  "#1d5bbf", // 1 cobalt (app accent — portfolio series)
-  "#a16207", // 2 amber
-  "#079e89", // 3 teal
-  "#bd5b2e", // 4 terracotta
-  "#7048b6", // 5 violet
-  "#56750f", // 6 olive
-  "#b23a7e", // 7 magenta
-  "#2b7fb8", // 8 steel
+  "#2b3570", // 1 ink-indigo (app accent — the current / portfolio series)
+  "#2f8f86", // 2 teal
+  "#4f80b8", // 3 cornflower blue
+  "#6f5fa8", // 4 periwinkle
+  "#c08a3e", // 5 muted gold
+  "#b0603c", // 6 terracotta
+  "#a95a7e", // 7 dusty rose
+  "#6f8a44", // 8 olive
 ] as const;
 
 /** Benchmark line + "Other" fold slice. Deliberately reads as neutral. */
-export const CHART_NEUTRAL = "#6b7280";
+export const CHART_NEUTRAL = "#7a8397";
 
 /** Canonical IDX-IC sector order so a sector keeps its color everywhere. */
 const SECTOR_ORDER = [

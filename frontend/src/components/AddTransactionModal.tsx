@@ -442,7 +442,7 @@ export function AddTransactionModal({
           </label>
 
           {open && (
-            <ul className="absolute z-10 mt-1 max-h-56 w-full overflow-y-auto rounded-[8px] bg-panel py-1 ring-1 ring-line-2 shadow-[0_24px_48px_-16px_rgb(22_24_29/0.35)]">
+            <ul className="absolute z-10 mt-1 max-h-56 w-full overflow-y-auto rounded-[8px] bg-panel py-1 ring-1 ring-line-2 shadow-[0_24px_48px_-16px_rgb(23_30_54/0.32)]">
               {type === "SELL" && held !== null && held.length === 0 ? (
                 <li className="px-3 py-2 text-[13px] text-ink-3">
                   Nothing held in this portfolio yet.

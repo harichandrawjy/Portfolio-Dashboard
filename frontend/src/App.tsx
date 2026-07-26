@@ -12,30 +12,37 @@ function Shell({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
   return (
     <div className="min-h-[100dvh]">
-      {/* masthead: serif wordmark over a thick ink rule, like a paper */}
-      <header className="mx-auto max-w-[1200px] px-4">
-        <div className="flex h-16 items-center gap-4 border-b-2 border-ink">
-          <Link
-            to="/"
-            className="shrink-0 font-serif text-[22px] font-semibold text-ink outline-none focus-visible:text-accent"
-          >
-            Arus<span className="text-accent">.</span>
-          </Link>
-          <div className="flex flex-1 justify-center px-2">
-            <TickerSearch />
-          </div>
-          <div className="flex shrink-0 items-center gap-3">
-            <span className="tnum hidden font-mono text-xs text-ink-3 sm:inline">
-              {user?.display_name || user?.email}
-            </span>
-            <button
-              onClick={logout}
-              className="flex items-center gap-1.5 rounded-[6px] px-2 py-1 text-[13px] text-ink-3 outline-none transition-colors hover:bg-ink/5 hover:text-ink focus-visible:ring-2 focus-visible:ring-accent/70"
+      {/* masthead: a broadsheet nameplate — a thick rule that starts bold
+          cobalt and fades to ink runs beneath, the wordmark's dot pulses */}
+      <header className="sticky top-0 z-30 bg-bg/95">
+        <div className="mx-auto max-w-[1200px] px-4">
+          <div className="flex h-16 items-center gap-4">
+            <Link
+              to="/"
+              className="group shrink-0 outline-none"
+              aria-label="Arus — home"
             >
-              <SignOut size={14} weight="light" /> Sign out
-            </button>
+              <span className="flow-underline font-serif text-[22px] font-semibold text-ink transition-colors group-focus-visible:text-accent">
+                Arus<span className="current-dot text-accent">.</span>
+              </span>
+            </Link>
+            <div className="flex flex-1 justify-center px-2">
+              <TickerSearch />
+            </div>
+            <div className="flex shrink-0 items-center gap-3">
+              <span className="tnum hidden font-mono text-xs text-ink-3 sm:inline">
+                {user?.display_name || user?.email}
+              </span>
+              <button
+                onClick={logout}
+                className="flex items-center gap-1.5 rounded-[6px] px-2 py-1 text-[13px] text-ink-3 outline-none transition-colors hover:bg-ink/[0.05] hover:text-ink focus-visible:ring-2 focus-visible:ring-accent/70"
+              >
+                <SignOut size={14} weight="light" /> Sign out
+              </button>
+            </div>
           </div>
         </div>
+        <div className="h-0.5 w-full [background:linear-gradient(90deg,#2b3570,rgb(23_30_54/0.32)_36%,rgb(23_30_54/0.16))]" />
       </header>
       {children}
     </div>

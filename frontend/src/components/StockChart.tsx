@@ -19,7 +19,7 @@ import { EmptyState, Panel, Segmented, Skeleton } from "./ui";
 
 const POS = "#177245";
 const NEG = "#b42332";
-const INK_MUTED = "#6e7581";
+const INK_MUTED = "#727a8c";
 const ACCENT = SERIES[0];
 
 const RANGES: { value: RangeKey; label: string }[] = [
@@ -76,13 +76,13 @@ export function StockChart({
       },
       grid: {
         vertLines: { visible: false },
-        horzLines: { color: "rgba(22, 24, 29, 0.06)" },
+        horzLines: { color: "rgba(23, 30, 54, 0.06)" },
       },
       rightPriceScale: { borderVisible: false },
       timeScale: { borderVisible: false },
       crosshair: {
-        horzLine: { labelBackgroundColor: "#16181d" },
-        vertLine: { labelBackgroundColor: "#16181d" },
+        horzLine: { labelBackgroundColor: "#1a1f2e" },
+        vertLine: { labelBackgroundColor: "#1a1f2e" },
       },
       localization: {
         priceFormatter: (p: number) => Math.round(p).toLocaleString("id-ID"),
@@ -112,8 +112,8 @@ export function StockChart({
       const area = chart.addSeries(AreaSeries, {
         lineColor: ACCENT,
         lineWidth: 2,
-        topColor: "rgba(29, 91, 191, 0.12)",
-        bottomColor: "rgba(29, 91, 191, 0)",
+        topColor: "rgba(43, 53, 112, 0.14)",
+        bottomColor: "rgba(43, 53, 112, 0)",
         crosshairMarkerRadius: 4,
       });
       area.setData(
@@ -125,7 +125,7 @@ export function StockChart({
     const volume = chart.addSeries(HistogramSeries, {
       priceScaleId: "vol",
       priceFormat: { type: "volume" },
-      color: "rgba(22, 24, 29, 0.14)",
+      color: "rgba(23, 30, 54, 0.12)",
       lastValueVisible: false,
       priceLineVisible: false,
     });

@@ -33,26 +33,62 @@ export function LoginPage() {
 
   return (
     <div className="grid min-h-[100dvh] lg:grid-cols-[1.1fr_1fr]">
-      {/* ------------------------------------------- brand half */}
-      <aside className="relative hidden flex-col justify-between overflow-hidden border-r border-line p-12 lg:flex">
-        <p className="font-serif text-[22px] font-semibold text-ink">
-          Arus<span className="text-accent">.</span>
+      {/* ------------------------------------- brand half: a bold cobalt
+          block with knockout type and a white current drawn on entry */}
+      <aside className="relative hidden flex-col justify-between overflow-hidden bg-accent p-12 text-white lg:flex">
+        {/* the current: a rising market line that draws itself on entry */}
+        <svg
+          className="pointer-events-none absolute inset-0 h-full w-full"
+          viewBox="0 0 600 900"
+          preserveAspectRatio="xMidYMid slice"
+          aria-hidden
+        >
+          <defs>
+            <linearGradient id="arus-fill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stopColor="#ffffff" stopOpacity="0.16" />
+              <stop offset="1" stopColor="#ffffff" stopOpacity="0" />
+            </linearGradient>
+            <linearGradient id="arus-line" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stopColor="#ffffff" stopOpacity="0.35" />
+              <stop offset="0.55" stopColor="#ffffff" stopOpacity="0.95" />
+              <stop offset="1" stopColor="#ffffff" stopOpacity="0.6" />
+            </linearGradient>
+          </defs>
+          <path
+            d="M0 640 C 90 620 130 540 210 520 C 300 498 330 596 420 540 C 500 490 520 360 600 300 L 600 900 L 0 900 Z"
+            fill="url(#arus-fill)"
+          />
+          <path
+            d="M0 640 C 90 620 130 540 210 520 C 300 498 330 596 420 540 C 500 490 520 360 600 300"
+            fill="none"
+            stroke="url(#arus-line)"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            pathLength={1}
+            className="draw-in"
+            style={{ filter: "drop-shadow(0 0 12px rgb(255 255 255 / 0.4))" }}
+          />
+        </svg>
+
+        <p className="relative font-serif text-[22px] font-semibold text-white">
+          Arus<span className="current-dot">.</span>
         </p>
 
-        <div className="rise" style={{ "--rise": 1 } as React.CSSProperties}>
-          <div className="mb-8 h-0.5 w-16 bg-ink" />
-          <h1 className="font-serif text-6xl font-semibold leading-[1.06] text-ink xl:text-7xl">
+        <div className="relative rise" style={{ "--rise": 1 } as React.CSSProperties}>
+          <div className="mb-8 h-0.5 w-16 rounded-full bg-gradient-to-r from-white to-transparent" />
+          <h1 className="font-serif text-6xl font-semibold leading-[1.06] text-white xl:text-7xl">
             Every lot,
             <br />
-            accounted for.
+            in the current.
           </h1>
-          <p className="mt-6 max-w-[44ch] text-[15px] leading-relaxed text-ink-2">
+          <p className="mt-6 max-w-[44ch] text-[15px] leading-relaxed text-white/80">
             Mock IDX portfolios with honest analytics: time-weighted returns,
             drawdowns, and a benchmark that keeps score.
           </p>
         </div>
 
-        <p className="tnum font-mono text-xs text-ink-3">
+        <p className="tnum relative flex items-center gap-2 font-mono text-xs text-white/75">
+          <span className="inline-block h-1.5 w-1.5 rounded-full bg-white current-dot" />
           963 IDX tickers · 5y daily bars · IHSG benchmark
         </p>
       </aside>
@@ -61,7 +97,7 @@ export function LoginPage() {
       <main className="flex items-center justify-center px-6 py-12">
         <div className="w-full max-w-sm">
           <p className="mb-10 font-serif text-[22px] font-semibold text-ink lg:hidden">
-            Arus<span className="text-accent">.</span>
+            Arus<span className="current-dot text-accent">.</span>
           </p>
 
           <h2 className="font-serif text-3xl font-semibold text-ink">

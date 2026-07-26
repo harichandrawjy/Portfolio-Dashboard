@@ -178,7 +178,7 @@ export function StockPage() {
 
               {position.data?.held ? (
                 <div
-                  className="rise grid grid-cols-1 gap-5 lg:grid-cols-[2fr_1fr]"
+                  className="rise grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]"
                   style={{ "--rise": 2 } as React.CSSProperties}
                 >
                   <StatsPanel stats={d.stats} />

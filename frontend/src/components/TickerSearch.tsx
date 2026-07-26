@@ -153,7 +153,7 @@ export function TickerSearch() {
       </kbd>
 
       {open && rows.length > 0 && (
-        <div className="absolute z-30 mt-1 w-full overflow-hidden rounded-[8px] bg-panel ring-1 ring-line-2 shadow-[0_24px_48px_-16px_rgb(22_24_29/0.35)]">
+        <div className="absolute z-30 mt-1 w-full overflow-hidden rounded-[8px] bg-panel ring-1 ring-line-2 shadow-[0_24px_48px_-16px_rgb(23_30_54/0.32)]">
           {!hasQuery && (
             <p className="flex items-center gap-1.5 px-3 pb-1 pt-2 text-[11px] font-medium text-ink-3">
               <Clock size={11} weight="light" /> Recent

@@ -1,19 +1,27 @@
 @import "tailwindcss";
 
-/* Light editorial ledger: paper, ink, ruled lines, one deep accent.
-   Semantic token names are stable so components retheme wholesale. */
+/* ══════════════════════════════════════════════════════════════════
+   ARUS — "Broadsheet"
+   A bold financial broadsheet on cool porcelain, not a quiet ledger.
+   Confident oversized editorial type, and ONE deep ink-indigo used
+   without apology — in full color blocks, not timid links. Arus is
+   Indonesian for current / flow: a flowing accent motif runs through
+   the masthead and login. Semantic token names stay stable so
+   components retheme wholesale.
+   ══════════════════════════════════════════════════════════════════ */
 @theme {
-  --color-bg: #f7f7f4; /* paper */
-  --color-panel: #ffffff; /* sheet */
-  --color-panel-2: #ffffff;
-  --color-line: rgb(22 24 29 / 0.14); /* hairline rule */
-  --color-line-2: rgb(22 24 29 / 0.3); /* strong rule */
-  --color-ink: #16181d;
-  --color-ink-2: #454d59;
-  --color-ink-3: #6e7581;
-  --color-accent: #1d5bbf; /* deep cobalt — links, actions, portfolio line */
-  --color-pos: #177245; /* print-grade green */
-  --color-neg: #b42332; /* print-grade red */
+  --color-bg: #edeff4; /* cool porcelain — harmonised with the indigo */
+  --color-panel: #ffffff; /* clean white sheet */
+  --color-panel-2: #e7eaf1; /* cool inset / track */
+  --color-line: rgb(23 30 54 / 0.12); /* cool hairline rule */
+  --color-line-2: rgb(23 30 54 / 0.26); /* strong rule */
+  --color-ink: #1a1f2e; /* cool near-black, faint blue cast */
+  --color-ink-2: #474e60; /* secondary */
+  --color-ink-3: #727a8c; /* muted meta */
+  --color-accent: #2b3570; /* deep ink-indigo — the current */
+  --color-accent-ink: #1f2650; /* darker accent for text on paper */
+  --color-pos: #16794a; /* print-grade green */
+  --color-neg: #c02236; /* print-grade red */
   --color-warn: #8a6116;
 
   --font-sans: "Geist Sans", ui-sans-serif, system-ui, sans-serif;
@@ -23,14 +31,28 @@
 
 html {
   color-scheme: light;
+  scroll-behavior: smooth;
 }
 
 body {
   @apply bg-bg text-ink font-sans antialiased;
 }
 
-/* Paper grain: fixed, pointer-events-none, multiplied into the paper.
-   One cheap compositor layer — no backdrop-filter anywhere. */
+/* ── Paper grain + a single faint cobalt wash so the page has a light
+   source instead of reading as flat white. Two cheap fixed layers, no
+   backdrop-filter anywhere. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: radial-gradient(
+    70% 55% at 88% -8%,
+    rgb(43 53 112 / 0.07) 0%,
+    transparent 60%
+  );
+}
 body::after {
   content: "";
   position: fixed;
@@ -47,6 +69,68 @@ body::after {
   font-variant-numeric: tabular-nums;
 }
 
+/* Knockout text sitting on the cobalt hero block */
+.on-accent {
+  color: #fbfaff;
+}
+
+/* The wordmark's flow: an accent "current" dot that pulses, plus an
+   underline that streams left→right on hover. */
+.current-dot {
+  animation: pulse-dot 2.6s ease-in-out infinite;
+}
+@keyframes pulse-dot {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .current-dot {
+    animation: none;
+  }
+}
+
+.flow-underline {
+  position: relative;
+}
+.flow-underline::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -3px;
+  height: 2px;
+  background: var(--color-accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.flow-underline:hover::after,
+.flow-underline:focus-visible::after {
+  transform: scaleX(1);
+}
+
+/* A path that draws itself once on mount — the login's rising current.
+   pathLength=1 normalises the dash math regardless of the real length. */
+.draw-in {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .draw-in {
+    animation: draw 2.6s cubic-bezier(0.22, 1, 0.36, 1) 0.25s forwards;
+  }
+  @keyframes draw {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+}
+
 /* Lot slider: accent fill up to --fill, hairline track beyond */
 input[type="range"].lot-slider {
   -webkit-appearance: none;
@@ -57,7 +141,7 @@ input[type="range"].lot-slider {
   background: linear-gradient(
     to right,
     var(--color-accent) var(--fill, 0%),
-    rgb(22 24 29 / 0.12) var(--fill, 0%)
+    rgb(23 30 54 / 0.14) var(--fill, 0%)
   );
   outline: none;
 }
@@ -69,7 +153,7 @@ input[type="range"].lot-slider::-webkit-slider-thumb {
   border-radius: 9999px;
   background: #ffffff;
   border: 2px solid var(--color-accent);
-  box-shadow: 0 1px 3px rgb(22 24 29 / 0.3);
+  box-shadow: 0 1px 3px rgb(23 30 54 / 0.3);
   cursor: pointer;
 }
 input[type="range"].lot-slider::-moz-range-thumb {
@@ -78,24 +162,23 @@ input[type="range"].lot-slider::-moz-range-thumb {
   border-radius: 9999px;
   background: #ffffff;
   border: 2px solid var(--color-accent);
-  box-shadow: 0 1px 3px rgb(22 24 29 / 0.3);
+  box-shadow: 0 1px 3px rgb(23 30 54 / 0.3);
   cursor: pointer;
 }
 input[type="range"].lot-slider:disabled {
   opacity: 0.4;
 }
 input[type="range"].lot-slider:focus-visible::-webkit-slider-thumb {
-  box-shadow: 0 0 0 3px rgb(29 91 191 / 0.35);
+  box-shadow: 0 0 0 3px rgb(43 53 112 / 0.35);
 }
 
-/* Staggered section entry: set --rise per section. Collapses to static
-   under reduced motion. */
+/* Staggered section entry: set --rise per section. */
 @media (prefers-reduced-motion: no-preference) {
   .rise {
     opacity: 0;
-    transform: translateY(14px);
-    animation: rise 0.65s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-    animation-delay: calc(var(--rise, 0) * 75ms);
+    transform: translateY(16px);
+    animation: rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    animation-delay: calc(var(--rise, 0) * 80ms);
   }
   @keyframes rise {
     to {
@@ -135,12 +218,12 @@ input[type="range"].lot-slider:focus-visible::-webkit-slider-thumb {
 
 /* Modal entry */
 .modal-enter {
-  animation: modal-in 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+  animation: modal-in 0.3s cubic-bezier(0.32, 0.72, 0, 1);
 }
 @keyframes modal-in {
   from {
     opacity: 0;
-    transform: translateY(8px) scale(0.985);
+    transform: translateY(10px) scale(0.98);
   }
   to {
     opacity: 1;

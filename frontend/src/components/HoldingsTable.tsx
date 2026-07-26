@@ -93,7 +93,7 @@ export function HoldingsTable({
         />
       ) : (
         <div className="overflow-x-auto pb-2">
-          <table className="w-full min-w-[820px] text-[13px]">
+          <table className="w-full min-w-[900px] text-[13px]">
             <thead>
               <tr className="border-b border-line text-left text-xs text-ink-3">
                 {COLUMNS.map((c) => (
@@ -117,6 +117,7 @@ export function HoldingsTable({
                     </button>
                   </th>
                 ))}
+                <th className="px-5 py-2 text-left text-xs font-medium">Weight</th>
                 <th className="px-5 py-2 text-right text-xs font-medium">As of</th>
                 <th className="px-5 py-2 text-right text-xs font-medium">
                   <span className="sr-only">Trade</span>
@@ -125,7 +126,12 @@ export function HoldingsTable({
             </thead>
             <tbody>
               {rows.map((h) => (
-                <Row key={h.ticker} holding={h} onTrade={onTrade} />
+                <Row
+                  key={h.ticker}
+                  holding={h}
+                  total={holdings?.totals.market_value ?? null}
+                  onTrade={onTrade}
+                />
               ))}
             </tbody>
           </table>
@@ -137,11 +143,17 @@ export function HoldingsTable({
 
 function Row({
   holding: h,
+  total,
   onTrade,
 }: {
   holding: Holding;
+  total: number | null;
   onTrade: (ticker: string, type: "BUY" | "SELL") => void;
 }) {
+  const weight =
+    h.market_value != null && total != null && total > 0
+      ? (h.market_value / total) * 100
+      : null;
   return (
     <tr className="border-b border-line/50 transition-colors last:border-0 hover:bg-ink/[0.03]">
       <td className="px-5 py-2.5">
@@ -169,6 +181,23 @@ function Row({
         <span className="block text-xs opacity-80">
           {h.unrealized_pnl_pct == null ? DASH : fmtPct(h.unrealized_pnl_pct, true)}
         </span>
+      </td>
+      <td className="px-5 py-2.5">
+        {weight == null ? (
+          <span className="text-xs text-ink-3">{DASH}</span>
+        ) : (
+          <div className="flex items-center gap-2">
+            <div className="h-1.5 w-16 overflow-hidden rounded-full bg-ink/[0.08]">
+              <div
+                className="h-full rounded-full bg-accent"
+                style={{ width: `${Math.min(100, weight)}%` }}
+              />
+            </div>
+            <span className="tnum w-8 text-right text-xs text-ink-3">
+              {weight.toFixed(0)}%
+            </span>
+          </div>
+        )}
       </td>
       <td className="px-5 py-2.5 text-right text-xs text-ink-3">
         {h.as_of

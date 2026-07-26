@@ -8,8 +8,8 @@ import {
 import { createPortal } from "react-dom";
 
 /* ------------------------------------------------------------------ */
-/* Surfaces — a white sheet for primary content, a thick ink rule      */
-/* opening each secondary section, like a printed report               */
+/* Surfaces — a warm paper sheet for primary content; each secondary    */
+/* section opens with a rule that starts bold cobalt and fades to ink   */
 /* ------------------------------------------------------------------ */
 
 export function Panel({
@@ -19,14 +19,15 @@ export function Panel({
 }: {
   children: ReactNode;
   className?: string;
-  /** raised = white sheet card; flat = ruled editorial section on paper */
+  /** raised = paper sheet card; flat = section opened by a current rule */
   tone?: "raised" | "flat";
 }) {
   const surface =
     tone === "raised"
       ? "rounded-xl bg-panel ring-1 ring-line " +
-        "shadow-[0_1px_2px_rgb(22_24_29/0.04),0_16px_40px_-28px_rgb(22_24_29/0.25)]"
-      : "rounded-none border-t-2 border-ink bg-transparent";
+        "shadow-[0_1px_2px_rgb(23_30_54/0.05),0_18px_44px_-28px_rgb(23_30_54/0.28)]"
+      : "rounded-none border-t-2 border-transparent bg-transparent " +
+        "[border-image:linear-gradient(90deg,#2b3570,rgb(23_30_54/0.3)_42%,rgb(23_30_54/0.14))_1]";
   return <section className={`${surface} ${className}`}>{children}</section>;
 }
 
@@ -55,11 +56,11 @@ export function PanelHeader({
 }
 
 /* ------------------------------------------------------------------ */
-/* Buttons — ink-filled primary, like a stamp                          */
+/* Buttons — the primary is a confident block of cobalt, knockout text  */
 /* ------------------------------------------------------------------ */
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: "primary" | "ghost" | "danger" | "text";
+  variant?: "primary" | "ghost" | "danger" | "dangerSolid" | "text";
   busy?: boolean;
 };
 
@@ -78,9 +79,14 @@ export function Button({
     "disabled:opacity-50 disabled:pointer-events-none whitespace-nowrap";
   const variants = {
     primary:
-      "bg-ink text-bg hover:bg-[#2b303a] shadow-[0_2px_6px_-2px_rgb(22_24_29/0.4)]",
-    ghost: "bg-transparent text-ink ring-1 ring-line-2 hover:bg-ink/5",
+      "bg-accent on-accent font-semibold hover:bg-[#232c5c] " +
+      "shadow-[0_1px_2px_rgb(23_30_54/0.2),0_10px_24px_-10px_rgb(43_53_112/0.5)]",
+    ghost:
+      "bg-transparent text-ink ring-1 ring-line-2 hover:bg-ink/[0.05]",
     danger: "bg-transparent text-neg ring-1 ring-neg/40 hover:bg-neg/10",
+    dangerSolid:
+      "bg-neg text-white font-semibold hover:bg-[#a51d2c] " +
+      "shadow-[0_1px_2px_rgb(23_30_54/0.2),0_10px_24px_-10px_rgb(192_34_54/0.5)]",
     text: "px-2 text-ink-2 hover:text-ink hover:bg-ink/5",
   };
   return (
@@ -112,7 +118,7 @@ export function Field({ label, hint, error, className = "", ...rest }: FieldProp
         className={
           "rounded-[6px] bg-panel px-3 py-2 text-sm text-ink ring-1 ring-line " +
           "placeholder:text-ink-3 outline-none transition-shadow " +
-          "focus:ring-2 focus:ring-accent/60 " +
+          "focus:ring-2 focus:ring-accent/55 " +
           className
         }
         {...rest}
@@ -146,7 +152,7 @@ export function Segmented<T extends string>({
             "rounded-[5px] px-3 py-1 text-xs font-medium outline-none transition-colors duration-200 " +
             "focus-visible:ring-2 focus-visible:ring-accent/70 " +
             (o.value === value
-              ? "bg-panel text-ink shadow-[0_1px_2px_rgb(22_24_29/0.12)] ring-1 ring-line"
+              ? "bg-panel text-ink shadow-[0_1px_2px_rgb(23_30_54/0.14)] ring-1 ring-line"
               : "text-ink-3 hover:text-ink-2")
           }
         >
@@ -221,13 +227,13 @@ export function Modal({
   // fixed overlay inside a panel (the .rise entry animation uses transform).
   return createPortal(
     <div
-      className="fixed inset-0 z-40 flex items-start justify-center overflow-y-auto bg-ink/25 p-4 pt-[10vh]"
+      className="fixed inset-0 z-40 flex items-start justify-center overflow-y-auto bg-ink/30 p-4 pt-[10vh]"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <div
-        className={`modal-enter w-full ${wide ? "max-w-lg" : "max-w-md"} rounded-xl bg-panel ring-1 ring-line shadow-[0_32px_80px_-24px_rgb(22_24_29/0.4)]`}
+        className={`modal-enter w-full ${wide ? "max-w-lg" : "max-w-md"} rounded-xl bg-panel ring-1 ring-line shadow-[0_40px_90px_-28px_rgb(23_30_54/0.42)]`}
         role="dialog"
         aria-modal="true"
         aria-label={title}
@@ -246,5 +252,50 @@ export function Modal({
       </div>
     </div>,
     document.body,
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Confirm dialog                                                      */
+/* ------------------------------------------------------------------ */
+
+export function ConfirmDialog({
+  title,
+  body,
+  confirmLabel,
+  onConfirm,
+  onClose,
+  busy = false,
+  error,
+  danger = false,
+}: {
+  title: string;
+  body: ReactNode;
+  confirmLabel: string;
+  onConfirm: () => void;
+  onClose: () => void;
+  busy?: boolean;
+  error?: string | null;
+  danger?: boolean;
+}) {
+  return (
+    <Modal title={title} onClose={onClose}>
+      <div className="flex flex-col gap-4">
+        <div className="text-[13px] leading-relaxed text-ink-2">{body}</div>
+        {error && <ErrorNote message={error} />}
+        <div className="flex justify-end gap-2 pt-1">
+          <Button variant="ghost" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button
+            variant={danger ? "dangerSolid" : "primary"}
+            onClick={onConfirm}
+            busy={busy}
+          >
+            {confirmLabel}
+          </Button>
+        </div>
+      </div>
+    </Modal>
   );
 }

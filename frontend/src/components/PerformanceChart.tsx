@@ -35,7 +35,7 @@ function ChartTooltip({
   const rows: Record<string, number> = {};
   for (const p of payload) rows[p.dataKey] = p.value;
   return (
-    <div className="rounded-[6px] bg-panel px-3 py-2 text-xs ring-1 ring-line-2 shadow-[0_12px_32px_-12px_rgb(22_24_29/0.35)]">
+    <div className="rounded-[8px] bg-panel px-3 py-2 text-xs ring-1 ring-line-2 shadow-[0_16px_40px_-14px_rgb(23_30_54/0.32)]">
       <p className="mb-1.5 font-medium text-ink-2">{fmtDateShort(label)}</p>
       <div className="flex flex-col gap-1">
         <p className="flex items-center gap-2">
@@ -125,27 +125,27 @@ export function PerformanceChart({
             <LineChart data={data} margin={{ top: 8, right: 12, left: 4, bottom: 0 }}>
               <CartesianGrid
                 vertical={false}
-                stroke="rgb(22 24 29 / 0.07)"
+                stroke="rgb(23 30 54 / 0.08)"
               />
               <XAxis
                 dataKey="date"
                 tickFormatter={fmtDateShort}
                 stroke="transparent"
-                tick={{ fill: "#6e7581", fontSize: 11 }}
+                tick={{ fill: "#727a8c", fontSize: 11 }}
                 tickLine={false}
                 minTickGap={48}
               />
               <YAxis
                 tickFormatter={(v: number) => fmtRpCompact(v)}
                 stroke="transparent"
-                tick={{ fill: "#6e7581", fontSize: 11 }}
+                tick={{ fill: "#727a8c", fontSize: 11 }}
                 tickLine={false}
                 width={78}
                 domain={["auto", "auto"]}
               />
               <Tooltip
                 content={<ChartTooltip />}
-                cursor={{ stroke: "rgb(22 24 29 / 0.3)", strokeWidth: 1 }}
+                cursor={{ stroke: "rgb(23 30 54 / 0.3)", strokeWidth: 1 }}
               />
               <Line
                 type="monotone"

@@ -18,7 +18,7 @@ function DonutTooltip({
   if (!active || !payload?.length) return null;
   const p = payload[0].payload;
   return (
-    <div className="rounded-[6px] bg-panel px-3 py-2 text-xs ring-1 ring-line-2 shadow-[0_12px_32px_-12px_rgb(22_24_29/0.35)]">
+    <div className="rounded-[8px] bg-panel px-3 py-2 text-xs ring-1 ring-line-2 shadow-[0_16px_40px_-14px_rgb(23_30_54/0.32)]">
       <p className="font-medium text-ink">{p.label}</p>
       <p className="tnum mt-0.5 font-mono text-ink-2">
         {fmtRp(p.value)} · {fmtPct(p.pct)}
@@ -36,7 +36,7 @@ export function AllocationDonut({
 }) {
   if (loading) {
     return (
-      <Panel tone="flat">
+      <Panel>
         <PanelHeader title="Allocation" />
         <div className="flex flex-col items-center gap-4 px-5 pb-5">
           <Skeleton className="h-44 w-44 rounded-full" />
@@ -52,7 +52,7 @@ export function AllocationDonut({
   const sectors = allocation?.by_sector ?? [];
   if (!allocation || sectors.length === 0) {
     return (
-      <Panel tone="flat">
+      <Panel>
         <PanelHeader title="Allocation" />
         <EmptyState
           title="Nothing to allocate yet"
@@ -81,7 +81,7 @@ export function AllocationDonut({
   }
 
   return (
-    <Panel tone="flat">
+    <Panel>
       <PanelHeader title="Allocation" />
       <div className="px-5 pb-5">
         <div className="relative mx-auto h-48 w-48">
@@ -94,7 +94,7 @@ export function AllocationDonut({
                 innerRadius="68%"
                 outerRadius="100%"
                 paddingAngle={2}
-                stroke="#f7f7f4"
+                stroke="#edeff4"
                 strokeWidth={2}
                 isAnimationActive={false}
               >

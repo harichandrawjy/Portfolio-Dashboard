@@ -57,39 +57,51 @@ export function TransactionsList({
         ) : (
           <ul className="divide-y divide-line/50">
             {transactions!.items.map((t) => (
-              <li key={t.id} className="flex items-center gap-3 py-2 text-[13px]">
+              <li
+                key={t.id}
+                className="flex items-center gap-3 py-2.5 text-[13px] transition-colors hover:bg-ink/[0.02]"
+              >
                 <span
-                  className={`w-10 shrink-0 text-xs font-semibold ${
-                    t.type === "BUY" ? "text-pos" : "text-neg"
+                  className={`inline-flex w-[42px] shrink-0 justify-center rounded-full py-0.5 text-[11px] font-semibold ring-1 ${
+                    t.type === "BUY"
+                      ? "bg-pos/10 text-pos ring-pos/25"
+                      : "bg-neg/10 text-neg ring-neg/25"
                   }`}
                 >
-                  {t.type}
+                  {t.type === "BUY" ? "Buy" : "Sell"}
                 </span>
-                <span className="font-mono text-sm font-semibold text-ink">
-                  {t.ticker}
+                <div className="flex min-w-0 items-baseline gap-2">
+                  <span className="font-mono text-sm font-semibold text-ink">
+                    {t.ticker}
+                  </span>
+                  <span className="tnum truncate text-ink-3">
+                    {fmtNum(t.lots)} lot{t.lots > 1 ? "s" : ""} ·{" "}
+                    {fmtRp(t.price_per_share)}
+                  </span>
+                </div>
+                <span className="tnum ml-auto shrink-0 font-mono text-ink">
+                  {fmtRp(t.shares * t.price_per_share)}
                 </span>
-                <span className="tnum text-ink-2">
-                  {fmtNum(t.lots)} lot{t.lots > 1 ? "s" : ""} ·{" "}
-                  {fmtRp(t.price_per_share)}
-                </span>
-                <span className="ml-auto text-xs text-ink-3">
+                <span className="tnum hidden w-[92px] shrink-0 text-right text-xs text-ink-3 sm:block">
                   {fmtDate(t.executed_at)}
                 </span>
-                <button
-                  onClick={() => setEditing(t)}
-                  className="rounded-[7px] p-1.5 text-ink-3 transition-colors hover:bg-ink/5 hover:text-ink"
-                  aria-label={`Edit ${t.type} ${t.ticker}`}
-                >
-                  <PencilSimple size={14} weight="light" />
-                </button>
-                <button
-                  onClick={() => remove(t.id)}
-                  disabled={deleting === t.id}
-                  className="rounded-[7px] p-1.5 text-ink-3 transition-colors hover:bg-neg/10 hover:text-neg disabled:opacity-40"
-                  aria-label={`Delete ${t.type} ${t.ticker}`}
-                >
-                  <Trash size={14} weight="light" />
-                </button>
+                <div className="flex shrink-0 items-center">
+                  <button
+                    onClick={() => setEditing(t)}
+                    className="rounded-[7px] p-1.5 text-ink-3 transition-colors hover:bg-ink/5 hover:text-ink"
+                    aria-label={`Edit ${t.type} ${t.ticker}`}
+                  >
+                    <PencilSimple size={14} weight="light" />
+                  </button>
+                  <button
+                    onClick={() => remove(t.id)}
+                    disabled={deleting === t.id}
+                    className="rounded-[7px] p-1.5 text-ink-3 transition-colors hover:bg-neg/10 hover:text-neg disabled:opacity-40"
+                    aria-label={`Delete ${t.type} ${t.ticker}`}
+                  >
+                    <Trash size={14} weight="light" />
+                  </button>
+                </div>
               </li>
             ))}
           </ul>
