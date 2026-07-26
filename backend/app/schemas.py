@@ -373,6 +373,16 @@ class FinancialsOut(BaseModel):
     derived: DerivedMetricsOut
 
 
+class CloseOnDateOut(BaseModel):
+    """Closing price for a back-dated transaction. `trade_date` is the bar
+    actually used, which may precede `requested` (weekends, holidays)."""
+
+    ticker: str
+    requested: date
+    trade_date: date | None
+    close: int | None
+
+
 class StockPricePoint(BaseModel):
     date: date
     open: int | None

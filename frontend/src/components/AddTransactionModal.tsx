@@ -10,7 +10,13 @@ import {
   type TxnType,
 } from "../api/client";
 import { useDebounced } from "../lib/hooks";
-import { digitsOnly, fmtNum, fmtRp, groupDigits } from "../lib/format";
+import {
+  digitsOnly,
+  fmtDateShort,
+  fmtNum,
+  fmtRp,
+  groupDigits,
+} from "../lib/format";
 import { Button, ErrorNote, Field, Modal } from "./ui";
 
 const SHARES_PER_LOT = 100;
@@ -20,6 +26,8 @@ const SHARES_PER_LOT = 100;
 // computed whole-rupiah fee — the percent is an entry convenience.
 const DEFAULT_BUY_FEE_PCT = "0.15";
 const DEFAULT_SELL_FEE_PCT = "0.25";
+
+const todayISO = () => new Date().toISOString().slice(0, 10);
 
 /** IDX price tick sizes by price band. */
 function tickFor(price: number): number {
@@ -233,6 +241,37 @@ export function AddTransactionModal({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Back-dating a trade should price it at that day's close, not today's.
+  // Today keeps using the live quote, which is fresher than the last bar.
+  useEffect(() => {
+    const symbol = ticker.trim().toUpperCase();
+    if (!tickerPicked || !symbol) return;
+    if (date >= todayISO()) return; // today -> quote-based prefill stands
+    if (userTypedPrice.current) return; // never overwrite a typed price
+
+    let cancelled = false;
+    api.securityCloseOn(symbol, date).then(
+      (r) => {
+        if (cancelled || userTypedPrice.current) return;
+        if (r.close == null) {
+          setPriceHint("No close stored for that date · enter the price");
+          return;
+        }
+        setPrice(String(r.close));
+        setPriceAutofilled(true);
+        setPriceHint(
+          r.trade_date === date
+            ? `Close on ${fmtDateShort(r.trade_date)} · edit freely`
+            : `No trading on ${fmtDateShort(date)}; close on ${fmtDateShort(r.trade_date!)} · edit freely`,
+        );
+      },
+      () => {},
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [ticker, tickerPicked, date]);
 
   /** BUY of a never-priced ticker: enqueue the lazy backfill and poll. */
   const fetchPriceInBackground = async (symbol: string) => {

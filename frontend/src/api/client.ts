@@ -501,4 +501,14 @@ export const api = {
 
   securityFinancials: (ticker: string) =>
     request<Financials>(`/securities/${encodeURIComponent(ticker)}/financials`),
+
+  /** Close on a date (or the last trading day before it) — prices
+   *  back-dated transactions. */
+  securityCloseOn: (ticker: string, on: string) =>
+    request<{
+      ticker: string;
+      requested: string;
+      trade_date: string | null;
+      close: number | null;
+    }>(`/securities/${encodeURIComponent(ticker)}/close?on=${on}`),
 };

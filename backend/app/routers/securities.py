@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from decimal import ROUND_HALF_UP, Decimal
 from zoneinfo import ZoneInfo
 
@@ -20,6 +20,7 @@ from app.models import (
 from app.performance import RANGE_DAYS, RangeKey
 from app.scheduler import enqueue_backfill
 from app.schemas import (
+    CloseOnDateOut,
     DerivedMetricsOut,
     EnsurePricesOut,
     FinancialsOut,
@@ -212,6 +213,39 @@ async def security_financials(
         annual=_periods(annual),
         quarterly=_periods(quarterly),
         derived=DerivedMetricsOut(**derived),
+    )
+
+
+@router.get("/securities/{ticker}/close", response_model=CloseOnDateOut)
+async def security_close_on(
+    ticker: str,
+    user: CurrentUser,
+    session: Session,
+    on: date = Query(description="trade date, YYYY-MM-DD"),
+) -> CloseOnDateOut:
+    """The close on `on`, or the last trading day before it.
+
+    Used to price a back-dated transaction. Falling back to the previous
+    bar matters because users pick weekends and IDX holidays, when no bar
+    exists; the response reports which date was actually used.
+    """
+    sec = await _get_stock(ticker, session)
+    bar = (
+        await session.execute(
+            select(PriceHistory.trade_date, PriceHistory.close)
+            .where(
+                PriceHistory.security_id == sec.id,
+                PriceHistory.trade_date <= on,
+            )
+            .order_by(PriceHistory.trade_date.desc())
+            .limit(1)
+        )
+    ).first()
+    return CloseOnDateOut(
+        ticker=sec.ticker,
+        requested=on,
+        trade_date=bar.trade_date if bar else None,
+        close=bar.close if bar else None,
     )
 
 

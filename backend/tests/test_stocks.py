@@ -155,6 +155,31 @@ async def test_prices_series_with_ihsg_overlay(client):
     assert points[-1]["ihsg"] == 6886
 
 
+async def test_close_on_date_for_backdated_transactions(client):
+    auth = await _login(client, "wibi@example.com")
+
+    # exact trading day (BBCA closed at 7100 on Mon 13 Jul)
+    r = await client.get("/securities/BBCA/close?on=2026-07-13", headers=auth)
+    assert r.status_code == 200
+    assert r.json() == {
+        "ticker": "BBCA", "requested": "2026-07-13",
+        "trade_date": "2026-07-13", "close": 7100,
+    }
+
+    # a weekend falls back to the previous trading day (Fri 10 Jul, 6950)
+    r = await client.get("/securities/BBCA/close?on=2026-07-12", headers=auth)
+    body = r.json()
+    assert body["trade_date"] == "2026-07-10" and body["close"] == 6950
+
+    # before any stored history -> no price, but still a clean 200
+    r = await client.get("/securities/BBCA/close?on=2020-01-01", headers=auth)
+    assert r.json()["close"] is None
+
+    assert (
+        await client.get("/securities/XXXX/close?on=2026-07-13", headers=auth)
+    ).status_code == 404
+
+
 async def test_detail_for_no_history_and_unknown(client):
     auth = await _login(client, "rani@example.com")
 
