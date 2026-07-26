@@ -1,6 +1,9 @@
 services:
   db:
     image: postgres:16
+    # come back after a crash, a Docker Desktop restart, or a reboot —
+    # the scheduler can only run while the containers are up
+    restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-app}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-app}
@@ -20,6 +23,10 @@ services:
   backend:
     build: ./backend
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    # uvicorn's file watcher can die on the Windows bind mount
+    # (WatchfilesRustInternalError); without this the whole container stays
+    # down and every scheduled sync silently stops
+    restart: unless-stopped
     environment:
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-app}@db:5432/${POSTGRES_DB:-portfolio}
       SECRET_KEY: ${SECRET_KEY:-dev-secret-change-me}

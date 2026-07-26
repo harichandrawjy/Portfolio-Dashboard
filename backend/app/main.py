@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from contextlib import asynccontextmanager
 
@@ -7,6 +8,7 @@ from app.config import get_settings
 from app.db import engine
 from app.routers import auth, health, performance, portfolios, securities
 from app.scheduler import create_scheduler
+from app.sync.catchup import run_catch_up_after_startup
 
 logging.basicConfig(level=logging.INFO)
 
@@ -15,7 +17,11 @@ logging.basicConfig(level=logging.INFO)
 async def lifespan(app: FastAPI):
     scheduler = create_scheduler()
     scheduler.start()
+    # Scheduled jobs only fire while we are running; this replays whatever
+    # was missed while the machine was off (see app/sync/catchup.py).
+    catch_up = asyncio.create_task(run_catch_up_after_startup())
     yield
+    catch_up.cancel()
     scheduler.shutdown(wait=False)
     await engine.dispose()
 

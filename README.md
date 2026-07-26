@@ -44,6 +44,13 @@ fresh:
 | Fundamentals | Sat 06:00 | Market cap, P/E, EPS, yield, book value + curated extended stats (weekly — this data barely moves) |
 | Statements | Sat 06:30 | Income statement, balance sheet, cash flow (≈4 annual, ≈5 quarters); solvency/efficiency metrics derived from them |
 | Lazy backfill | on demand | 5y of daily OHLCV the first time anyone touches a ticker, then its stats, fundamentals, and statements immediately after |
+| Startup catch-up | every boot | Replays what was missed while the machine was off: appends daily bars if they are behind the last published trading day, and refreshes quotes older than 30 minutes |
+
+Those jobs only fire while the backend is running, so both containers use
+`restart: unless-stopped` (a crashed watcher must not silently stop every
+sync) and the app runs a catch-up on startup — see `app/sync/catchup.py`.
+Nothing needs to be triggered by hand; the CLI commands remain available for
+forcing a refresh.
 
 Backend layout: `app/routers` (API), `app/sync` (all external data),
 `app/analytics.py` (pure functions), `app/performance.py` (series builder),
