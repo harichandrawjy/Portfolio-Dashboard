@@ -123,9 +123,13 @@ time-weighted returns so deposits never masquerade as gains (documented in
 `app/performance.py`). Sharpe uses Bank Indonesia's policy rate from
 config as the risk-free assumption.
 
-**Cash ledger (opt-in).** A portfolio can track buying power: deposits and
-withdrawals live in `cash_flows`, the balance is derived (never stored),
-buys are rejected once they exceed it, and sells credit it back. Analytics
+**Cash funds every buy.** Deposits and withdrawals live in `cash_flows` and
+the balance is derived, never stored: deposits − withdrawals − buy costs
+(incl. fees) + sell proceeds (net of fees). Every buy is checked against it,
+so a new portfolio must record a deposit before it can trade, exactly like
+funding a brokerage account; sells credit the balance back. Only trades on
+or after the first cash flow count, so funding a portfolio that already has
+history does not have its opening deposit drained by old buys. Analytics
 still measure invested capital only — idle cash is a budgeting device, not
 part of the performance series.
 

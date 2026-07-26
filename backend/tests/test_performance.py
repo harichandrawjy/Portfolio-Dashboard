@@ -35,6 +35,8 @@ from datetime import date
 
 import pytest
 
+from tests.helpers import fund
+
 pytestmark = pytest.mark.asyncio(loop_scope="session")
 
 TRADING_DAYS = [
@@ -102,6 +104,7 @@ async def test_performance_series_and_metrics(client):
     pid = (
         await client.post("/portfolios", json={"name": "Backtest"}, headers=auth)
     ).json()["id"]
+    await fund(client, auth, pid)
 
     for txn in (
         {"ticker": "AAAA", "type": "BUY", "lots": 1, "price_per_share": 1000,

@@ -32,6 +32,7 @@ from datetime import date
 import pytest
 
 from app.analytics import annualized_volatility, beta, daily_returns
+from tests.helpers import fund
 
 pytestmark = pytest.mark.asyncio(loop_scope="session")
 
@@ -175,6 +176,7 @@ async def test_position_panel_and_markers(client):
     pid = (
         await client.post("/portfolios", json={"name": "Stocks9"}, headers=auth)
     ).json()["id"]
+    await fund(client, auth, pid)
     r = await client.post(
         f"/portfolios/{pid}/transactions",
         json={
@@ -213,6 +215,7 @@ async def test_holdings_fall_back_to_last_close(client):
     pid = (
         await client.post("/portfolios", json={"name": "CloseFallback"}, headers=auth)
     ).json()["id"]
+    await fund(client, auth, pid)
     r = await client.post(
         f"/portfolios/{pid}/transactions",
         json={

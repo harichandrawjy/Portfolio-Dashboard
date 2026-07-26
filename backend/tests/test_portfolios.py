@@ -1,5 +1,7 @@
 import pytest
 
+from tests.helpers import fund
+
 pytestmark = pytest.mark.asyncio(loop_scope="session")
 
 PASSWORD = "password-123"
@@ -29,6 +31,7 @@ async def test_buy_sell_holdings_math(client):
     )
     assert r.status_code == 201
     pid = r.json()["id"]
+    await fund(client, auth, pid)
 
     # buy 5 lots @ 6000
     r = await _buy(client, auth, pid, "BBCA", 5, 6000, day="2026-07-01")
@@ -82,6 +85,7 @@ async def test_fees_included_in_avg_cost(client):
     auth = await _login(client, "fee@example.com")
     r = await client.post("/portfolios", json={"name": "Fees"}, headers=auth)
     pid = r.json()["id"]
+    await fund(client, auth, pid)
     # 1 lot @ 1000 with fee 5000: avg = (100*1000 + 5000) / 100 = 1050
     r = await _buy(client, auth, pid, "BBCA", 1, 1000, fee=5000)
     assert r.status_code == 201
@@ -93,6 +97,7 @@ async def test_oversell_rejected(client):
     auth = await _login(client, "budi2@example.com")
     r = await client.post("/portfolios", json={"name": "Trades"}, headers=auth)
     pid = r.json()["id"]
+    await fund(client, auth, pid)
 
     # nothing held yet
     r = await client.post(
@@ -150,6 +155,7 @@ async def test_first_use_ticker_enqueues_backfill(client, monkeypatch):
     auth = await _login(client, "citra@example.com")
     r = await client.post("/portfolios", json={"name": "Lazy"}, headers=auth)
     pid = r.json()["id"]
+    await fund(client, auth, pid)
 
     # TLKM has no price history -> must enqueue
     r = await _buy(client, auth, pid, "TLKM", 1, 2600)
@@ -167,6 +173,7 @@ async def test_edit_transaction(client):
     pid = (
         await client.post("/portfolios", json={"name": "Editable"}, headers=auth)
     ).json()["id"]
+    await fund(client, auth, pid)
 
     buy = await _buy(client, auth, pid, "BBCA", 5, 6000, day="2026-07-01")
     txn_id = buy.json()["id"]
@@ -197,6 +204,7 @@ async def test_edit_rejected_when_it_would_strand_sells(client):
     pid = (
         await client.post("/portfolios", json={"name": "EditGuard"}, headers=auth)
     ).json()["id"]
+    await fund(client, auth, pid)
 
     buy = await _buy(client, auth, pid, "BBCA", 5, 6000)
     buy_id = buy.json()["id"]
@@ -229,6 +237,7 @@ async def test_edit_requires_ownership(client):
     pid = (
         await client.post("/portfolios", json={"name": "Owned"}, headers=auth_a)
     ).json()["id"]
+    await fund(client, auth_a, pid)
     txn_id = (await _buy(client, auth_a, pid, "BBCA", 1, 6000)).json()["id"]
 
     r = await client.patch(
@@ -283,6 +292,7 @@ async def test_list_pagination_and_delete_integrity(client):
     auth = await _login(client, "eka@example.com")
     r = await client.post("/portfolios", json={"name": "Ledger"}, headers=auth)
     pid = r.json()["id"]
+    await fund(client, auth, pid)
 
     buy = await _buy(client, auth, pid, "BBCA", 2, 6000, day="2026-07-01")
     sell = await client.post(

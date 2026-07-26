@@ -5,6 +5,8 @@ behavior (buys never blocked). The first deposit turns tracking on.
 All numbers below are small and checkable by eye.
 """
 
+from datetime import date
+
 import pytest
 
 pytestmark = pytest.mark.asyncio(loop_scope="session")
@@ -31,7 +33,7 @@ async def _buy(client, auth, pid, lots, price, fee=0):
     )
 
 
-async def test_untracked_portfolio_never_blocks_buys(client):
+async def test_unfunded_portfolio_cannot_buy(client):
     auth = await _login(client, "wawan@example.com")
     pid = (
         await client.post("/portfolios", json={"name": "NoLedger"}, headers=auth)
@@ -40,23 +42,49 @@ async def test_untracked_portfolio_never_blocks_buys(client):
     r = await client.get(f"/portfolios/{pid}/cash", headers=auth)
     assert r.json() == {"balance": 0, "tracked": False, "flows": []}
 
-    # no deposits ever -> buys work exactly as before the ledger existed
-    assert (await _buy(client, auth, pid, 10, 6000, fee=5000)).status_code == 201
+    # nothing deposited -> a buy has no cash to spend
+    r = await _buy(client, auth, pid, 10, 6000, fee=5000)
+    assert r.status_code == 422
+    assert "Insufficient cash" in r.json()["detail"]
 
-    # and the untracked balance stays 0 (trades don't apply pre-ledger)
-    r = await client.get(f"/portfolios/{pid}/cash", headers=auth)
-    assert r.json()["balance"] == 0
+    # deposit, and the same buy goes through
+    await client.post(
+        f"/portfolios/{pid}/cash",
+        json={"type": "DEPOSIT", "amount": 10_000_000, "occurred_at": "2026-06-01"},
+        headers=auth,
+    )
+    assert (await _buy(client, auth, pid, 10, 6000, fee=5000)).status_code == 201
 
 
 async def test_trades_before_first_deposit_do_not_count(client):
+    """Funding a portfolio that already has history must not have its new
+    deposit drained by those older trades."""
+    from sqlalchemy import select
+
+    from app.db import SessionLocal
+    from app.models import Portfolio, Security, Transaction, User
+
     auth = await _login(client, "arif@example.com")
     pid = (
         await client.post("/portfolios", json={"name": "LateLedger"}, headers=auth)
     ).json()["id"]
 
-    # trade first (2026-07-01), opt into cash later (2026-07-05):
-    # the old buy must not drag the fresh deposit negative
-    assert (await _buy(client, auth, pid, 1, 6000)).status_code == 201
+    # Insert the pre-funding trade directly: the API would (correctly) now
+    # reject an unfunded buy, but portfolios imported from elsewhere can
+    # legitimately carry history that predates the cash ledger.
+    async with SessionLocal() as session:
+        async with session.begin():
+            sec_id = await session.scalar(
+                select(Security.id).where(Security.ticker == "BBCA")
+            )
+            session.add(
+                Transaction(
+                    portfolio_id=pid, security_id=sec_id, type="BUY",
+                    shares=100, price_per_share=6000, fee=0,
+                    executed_at=date(2026, 7, 1),
+                )
+            )
+
     r = await client.post(
         f"/portfolios/{pid}/cash",
         json={"type": "DEPOSIT", "amount": 500_000, "occurred_at": "2026-07-05"},

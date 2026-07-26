@@ -324,7 +324,7 @@ export function AddTransactionModal({
     !heldPosition;
 
   const buyMaxLots =
-    type === "BUY" && cashTracked && priceOk
+    type === "BUY" && priceOk
       ? Math.max(
           0,
           Math.floor(
@@ -341,7 +341,7 @@ export function AddTransactionModal({
       ? baseValue + (type === "BUY" ? (feeRp ?? 0) : -(feeRp ?? 0))
       : null;
   const insufficient =
-    type === "BUY" && cashTracked && total != null && total > cashBalance;
+    type === "BUY" && total != null && total > cashBalance;
 
   const lotsHint =
     type === "SELL" && heldPosition
@@ -489,11 +489,13 @@ export function AddTransactionModal({
           )}
         </div>
 
-        {/* buying power strip */}
-        {type === "BUY" && cashTracked && (
+        {/* buying power strip — a buy always spends cash */}
+        {type === "BUY" && portfolioState !== null && (
           <div className="flex items-baseline justify-between rounded-[6px] bg-ink/[0.03] px-3 py-2 ring-1 ring-line">
             <span className="text-[13px] text-ink-2">Cash available</span>
-            <span className="tnum font-mono text-sm font-semibold text-ink">
+            <span
+              className={`tnum font-mono text-sm font-semibold ${cashBalance > 0 ? "text-ink" : "text-neg"}`}
+            >
               {fmtRp(cashBalance)}
             </span>
           </div>
@@ -595,17 +597,16 @@ export function AddTransactionModal({
           </span>
         </div>
 
-        {insufficient && (
-          <ErrorNote
-            message={`Insufficient cash: Rp ${fmtNum(total! - cashBalance)} short. Deposit from the portfolio page or reduce the order.`}
-          />
-        )}
-        {type === "BUY" && !cashTracked && portfolioState !== null && (
-          <p className="text-xs text-ink-3">
-            No cash ledger yet. Use the Cash button on the portfolio page to
-            track buying power.
-          </p>
-        )}
+        {insufficient &&
+          (cashTracked ? (
+            <ErrorNote
+              message={`Insufficient cash: Rp ${fmtNum(total! - cashBalance)} short. Deposit more from the portfolio page, or reduce the order.`}
+            />
+          ) : (
+            <ErrorNote
+              message="This portfolio has no cash yet. Use the Cash button on the portfolio page to deposit before buying."
+            />
+          ))}
 
         {error && <ErrorNote message={error} />}
 

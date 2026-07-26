@@ -108,14 +108,16 @@ export function SummaryCards({
             <dd className="tnum mt-1 text-xs text-ink-3">locked in by sells</dd>
           </div>
         )}
-        {totals?.cash_tracked && (
+        {totals != null && (
           <div>
             <dt className="text-[13px] text-ink-3">Cash</dt>
             <dd className="tnum mt-1 font-mono text-xl font-semibold text-ink">
               {fmtRp(totals.cash_balance)}
             </dd>
             <dd className="tnum mt-1 text-xs text-ink-3">
-              deposits minus trades
+              {totals.cash_tracked
+                ? "deposits minus trades"
+                : "deposit before buying"}
             </dd>
           </div>
         )}

@@ -16,6 +16,8 @@ Allocation fixture (quotes chosen for eyeball-checkable weights):
 
 import pytest
 
+from tests.helpers import fund
+
 pytestmark = pytest.mark.asyncio(loop_scope="session")
 
 
@@ -71,6 +73,7 @@ async def test_allocation_math_and_flags(client):
     pid = (
         await client.post("/portfolios", json={"name": "Alloc"}, headers=auth)
     ).json()["id"]
+    await fund(client, auth, pid)
 
     for ticker in ("CCCC", "DDDD", "EEEE", "FFFF"):
         r = await client.post(

@@ -65,11 +65,15 @@ async def _cash_state(
     """(balance, tracked). Balance = deposits - withdrawals - buy costs
     (incl. fees) + sell proceeds (net of fees).
 
-    Only trades ON OR AFTER the first cash-flow date count: opting into
-    the ledger mid-life must not let old buys drag the balance negative.
-    Backdating the opening deposit before the first trade includes the
-    full history (the demo seed does this). tracked=False means the
-    portfolio never opted in (original, unblocked behavior)."""
+    Only trades ON OR AFTER the first cash-flow date count: funding a
+    portfolio that already has history must not let old buys drag the new
+    deposit negative. Backdating the opening deposit before the first trade
+    includes the full history (the demo seed does this).
+
+    Buys are always checked against this balance, so an unfunded portfolio
+    (balance 0) must record a deposit before it can buy. `tracked` reports
+    whether any cash flow exists at all, which the UI uses to explain an
+    empty balance rather than to relax the rule."""
     row = (
         await session.execute(
             sa_text(
@@ -225,15 +229,17 @@ async def add_transaction(
     shares = payload.lots * SHARES_PER_LOT
 
     if payload.type == "BUY":
-        # Portfolios that opted into the cash ledger cannot spend cash
-        # they don't have. Untracked portfolios keep the original behavior.
-        balance, tracked = await _cash_state(session, portfolio.id)
+        # A buy always spends cash: you cannot buy what you cannot fund.
+        # An unfunded portfolio has a zero balance, so its first buy is
+        # rejected until a deposit is recorded.
+        balance, _ = await _cash_state(session, portfolio.id)
         cost = shares * payload.price_per_share + payload.fee
-        if tracked and cost > balance:
+        if cost > balance:
             raise HTTPException(
                 status.HTTP_422_UNPROCESSABLE_CONTENT,
                 f"Insufficient cash: this buy costs Rp {cost:,} but only "
-                f"Rp {balance:,} is available. Deposit more or reduce the order.",
+                f"Rp {balance:,} is available. Deposit cash first, "
+                "or reduce the order.",
             )
 
     if payload.type == "SELL":
@@ -386,8 +392,8 @@ async def update_transaction(
             f"{net // SHARES_PER_LOT} lots. Adjust the sells for this ticker first.",
         )
 
-    balance, tracked = await _cash_state(session, portfolio.id)
-    if tracked and balance < 0:
+    balance, _ = await _cash_state(session, portfolio.id)
+    if balance < 0:
         await session.rollback()
         raise HTTPException(
             status.HTTP_422_UNPROCESSABLE_CONTENT,
@@ -538,8 +544,8 @@ async def delete_cash_flow(
     # is the supported way to opt back out of the cash ledger.
     await session.delete(flow)
     await session.flush()
-    balance, tracked = await _cash_state(session, portfolio.id)
-    if tracked and balance < 0:
+    balance, _ = await _cash_state(session, portfolio.id)
+    if balance < 0:
         await session.rollback()
         raise HTTPException(
             status.HTTP_422_UNPROCESSABLE_CONTENT,
