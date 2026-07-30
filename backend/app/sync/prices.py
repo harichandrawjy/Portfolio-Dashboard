@@ -132,6 +132,64 @@ def _to_idr(value) -> int | None:
     return round(float(value))
 
 
+# IDX auto-rejection caps a single session's move at roughly 20-35%, so an
+# overnight close-to-close ratio outside this band cannot be a real price
+# move. Kept deliberately wide (a ~2:1 action or larger) so ordinary
+# volatility is never mistaken for a corporate action; smaller unflagged
+# actions are left alone rather than risk corrupting good data.
+SPLIT_RATIO_UP = 1.8
+SPLIT_RATIO_DOWN = 0.55
+
+
+def adjust_corporate_actions(rows: list[dict]) -> list[dict]:
+    """Back-adjust prices across corporate actions Yahoo did not flag.
+
+    Yahoo carries no split/rights record for some IDX issuers (PACK, for
+    one), leaving a raw discontinuity — pre-action prices sitting an order
+    of magnitude above post-action ones, which renders as a cliff on the
+    chart and a fictitious loss in any return computed across it.
+
+    Bars before each detected action are rescaled onto the current basis,
+    exactly what an adjustment factor would do; volume moves inversely,
+    since a split multiplies share count. `rows` is oldest first.
+    """
+    if len(rows) < 2:
+        return rows
+
+    factors = [1.0] * len(rows)
+    cumulative = 1.0
+    for i in range(len(rows) - 1, 0, -1):
+        prev_close = rows[i - 1]["close"]
+        close = rows[i]["close"]
+        if prev_close and close:
+            ratio = close / prev_close
+            if ratio >= SPLIT_RATIO_UP or ratio <= SPLIT_RATIO_DOWN:
+                cumulative *= ratio
+                logger.info(
+                    "corporate action detected on %s: close %s -> %s "
+                    "(x%.4f); back-adjusting earlier bars",
+                    rows[i]["trade_date"], prev_close, close, ratio,
+                )
+        factors[i - 1] = cumulative
+
+    if cumulative == 1.0:
+        return rows
+
+    adjusted = []
+    for row, factor in zip(rows, factors):
+        if factor == 1.0:
+            adjusted.append(row)
+            continue
+        out = dict(row)
+        for field in ("open", "high", "low", "close"):
+            if out[field] is not None:
+                out[field] = max(1, round(out[field] * factor))
+        if out["volume"] is not None and factor:
+            out["volume"] = round(out["volume"] / factor)
+        adjusted.append(out)
+    return adjusted
+
+
 def _df_to_rows(df: pd.DataFrame) -> list[dict]:
     rows = []
     for idx, r in df.iterrows():
@@ -206,7 +264,9 @@ async def backfill_ticker(ticker: str, years: int = 5) -> BackfillResult:
         )
 
     df = await asyncio.to_thread(_download_history, sec.yahoo_symbol, f"{years}y")
-    rows = _df_to_rows(df)
+    # Full-history fetch is the only place the whole series is in hand, so
+    # it is where unflagged corporate actions can be back-adjusted.
+    rows = adjust_corporate_actions(_df_to_rows(df))
     if not rows:
         logger.error(
             "%s (%s) returned no usable history from Yahoo — NOT activated for price sync",
@@ -260,6 +320,25 @@ async def backfill_many(tickers: list[str], years: int = 5) -> list[BackfillResu
     return results
 
 
+async def _needs_readjustment(security_id, rows: list[dict]) -> bool:
+    """True when freshly fetched bars disagree with what is stored for the
+    same dates — the signature of a corporate action applied upstream after
+    our history was built."""
+    async with SessionLocal() as session:
+        for row in rows:
+            stored = await session.scalar(
+                select(PriceHistory.close).where(
+                    PriceHistory.security_id == security_id,
+                    PriceHistory.trade_date == row["trade_date"],
+                )
+            )
+            if stored and row["close"]:
+                ratio = row["close"] / stored
+                if ratio >= SPLIT_RATIO_UP or ratio <= SPLIT_RATIO_DOWN:
+                    return True
+    return False
+
+
 async def sync_daily() -> SyncRunResult:
     """Append recent daily bars for every ticker that already has history,
     plus ^JKSE always. A 5-day window self-heals short outages/holidays."""
@@ -305,6 +384,17 @@ async def sync_daily() -> SyncRunResult:
                     sec.ticker, sec.yahoo_symbol,
                 )
                 result.failed.append(sec.ticker)
+            elif await _needs_readjustment(sec.id, rows):
+                # A corporate action landed since the last full fetch, so the
+                # stored history is on the old basis. Re-backfill to rebuild
+                # the whole series adjusted.
+                logger.info(
+                    "%s repriced against stored history — re-running the "
+                    "full backfill to re-adjust",
+                    sec.ticker,
+                )
+                await backfill_ticker(sec.ticker)
+                result.synced += 1
             else:
                 await _upsert_history(sec.id, rows)
                 result.synced += 1

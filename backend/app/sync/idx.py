@@ -92,6 +92,10 @@ async def fetch_universe() -> list[dict]:
             )
 
         sector_by_code: dict[str, str] = {}
+        # The stock-list endpoint truncates Name to 30 characters ("Abadi
+        # Nusantara Hijau Investam"); the profiles endpoint carries the full
+        # legal name, so prefer it whenever the profiles call succeeds.
+        name_by_code: dict[str, str] = {}
         try:
             profile_payload = await _get_json(
                 client,
@@ -100,11 +104,19 @@ async def fetch_universe() -> list[dict]:
             )
             for p in profile_payload.get("data") or []:
                 code = (p.get("KodeEmiten") or "").strip()
+                if not code:
+                    continue
                 sector = (p.get("Sektor") or "").strip()
-                if code and sector:
+                if sector:
                     sector_by_code[code] = sector
+                full_name = (p.get("NamaEmiten") or "").strip()
+                if full_name:
+                    name_by_code[code] = full_name
         except IdxFetchError:
-            logger.warning("IDX profiles fetch failed — syncing universe without sector updates")
+            logger.warning(
+                "IDX profiles fetch failed — syncing universe without sector "
+                "updates and with truncated names"
+            )
 
         rows = []
         for s in stocks:
@@ -115,7 +127,7 @@ async def fetch_universe() -> list[dict]:
             rows.append(
                 {
                     "ticker": ticker,
-                    "name": name,
+                    "name": name_by_code.get(ticker, name),
                     "sector": sector_by_code.get(ticker),
                     "board": (s.get("ListingBoard") or "").strip() or None,
                 }
