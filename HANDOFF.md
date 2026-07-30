@@ -49,7 +49,7 @@ backend/
                             statements, universe, catchup, __main__ (CLI)
     data/idx_universe.csv   963-ticker offline fallback snapshot
   alembic/versions/         0001..0006
-  tests/                    11 test files, 74 tests
+  tests/                    12 test files, 79 tests
 frontend/
   src/api/client.ts         THE single typed API surface (no fetch elsewhere)
   src/colors.ts             dataviz-validated chart palette
@@ -139,8 +139,12 @@ with cached stats · weekly fundamentals · CI + README + one-command demo seed.
 - Global masthead search with `/` shortcut + recent tickers
 - Two UI redesigns → current light "Arus / Broadsheet" system
 - Automatic refresh: restart policy + startup catch-up
+- **Data-quality fixes**: full company names (IDX's stock-list endpoint
+  truncates at 30 chars; the profiles endpoint has the real one — 905 of 963
+  names corrected), and back-adjustment of corporate actions Yahoo never
+  recorded (`adjust_corporate_actions` in `sync/prices.py`)
 
-**Test suite: 74 passing.** `docker compose exec backend pytest`
+**Test suite: 79 passing.** `docker compose exec backend pytest`
 
 ## Not done / known gaps
 
@@ -158,6 +162,25 @@ with cached stats · weekly fundamentals · CI + README + one-command demo seed.
   rollup and never answered.
 - Edit-transaction modal deliberately does NOT auto-reprice on date change
   (it holds recorded data, unlike the add modal).
+- **Small unflagged corporate actions still slip through.** Yahoo records
+  stock *splits* (RAJA has two, and yfinance applies them) but had no event
+  at all for PACK's action, leaving a raw 3280 → 272 cliff. Our detector
+  catches ratios outside a deliberately wide 0.55–1.8 band — safe because IDX
+  auto-rejection caps a session at ~20–35% — so a ~1.5:1 action would be
+  missed. Widening the band risks mistaking small-cap volatility for an
+  action and corrupting good prices. To re-audit after adding tickers:
+
+  ```sql
+  WITH g AS (SELECT s.ticker, ph.trade_date, ph.close,
+    LAG(ph.close) OVER (PARTITION BY ph.security_id ORDER BY ph.trade_date) AS prev
+    FROM price_history ph JOIN securities s ON s.id = ph.security_id
+    WHERE s.kind = 'stock')
+  SELECT ticker, trade_date, prev, close, round(close::numeric/prev, 4) AS ratio
+  FROM g WHERE prev > 0 AND (close::numeric/prev >= 1.8
+                          OR close::numeric/prev <= 0.55);
+  ```
+  Fix any hit with `python -m app.sync backfill --ticker XXXX`. Last audit:
+  clean across all 37 tracked tickers / 42.690 bars.
 - IDX holidays are not modelled anywhere (harmless: syncs no-op).
 - Cross-file test dependencies exist (e.g. `test_stocks.py` alone fails
   because `AAAA` is seeded by `test_performance.py`). Run the whole suite.
@@ -187,3 +210,9 @@ cd frontend && npm install && npm run dev              # :5173
   `transform` (the `.rise` entry animation) traps `position: fixed`.
 - IDX endpoints sit behind Cloudflare and intermittently 403; the fetcher's
   retry/backoff gets through.
+- **Only ~37 of 963 tickers have price history, and that is correct** — lazy
+  backfill (decision 6). Do not "fix" it by backfilling the universe.
+- **TradingView Lightweight Charts is a renderer, not a data feed.** If a
+  chart looks wrong, the bars in Postgres are wrong; the library only draws
+  what it is given. (The embed widget would use TradingView's own data and
+  bypass the whole pipeline — that is why it was not used.)
