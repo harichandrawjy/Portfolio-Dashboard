@@ -9,11 +9,13 @@
 # of the whole stack that would drift.
 services:
   db:
-    # `ports` cannot be un-published by an override, so the base file's
-    # "5432:5432" would still expose the database to the internet. Binding to
-    # loopback is the override that actually closes it: the backend reaches
-    # Postgres over the compose network, and nothing outside the host can.
-    ports:
+    # `!override` REPLACES the base file's ports instead of appending to them.
+    # This is the whole reason the tag is here: Compose merges list fields, so
+    # a plain `ports:` block leaves the base file's "5432:5432" in place and
+    # the database ends up published on every interface — the loopback entry
+    # sits alongside it rather than replacing it. Verified by reading
+    # `docker compose config`, which showed published=['5432','5432'].
+    ports: !override
       - "127.0.0.1:5432:5432"
     environment:
       # `:?` makes COMPOSE ITSELF refuse to start when the variable is unset,
@@ -30,21 +32,27 @@ services:
     command: >
       sh -c "alembic upgrade head &&
              uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 1"
-    # Replaces the base file's source bind mount. Compose merges volume lists
-    # by appending, so this cannot remove it — see DEPLOY.md for why the
-    # deploy uses `--build` and why the base mount is harmless once the image
-    # contains the same code at the same path.
-    volumes: []
+    # `!reset` drops the base file's `./backend:/app` bind mount. A plain
+    # `volumes: []` does NOT — Compose appends, so the host directory would
+    # stay mounted over the image and the container would run whatever happens
+    # to be on the server's disk rather than what was built.
+    volumes: !reset []
     environment:
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
       SECRET_KEY: ${SECRET_KEY:?generate one with `openssl rand -hex 32`}
+      # Turns on the app-side secret checks in config.py. Belt and braces with
+      # the `:?` above: that stops a MISSING key, this stops the published
+      # development one being set deliberately.
+      APP_ENV: production
       # The scheduler is written against Asia/Jakarta wall-clock time (bars
       # 18:30, quotes 09:00-16:00). python:3.12-slim has no tzdata, so without
       # this ZoneInfo resolution differs from a dev machine.
       TZ: Asia/Jakarta
       WATCHFILES_FORCE_POLLING: "false"
-    # Only Caddy talks to the API; the port is not published to the host.
-    ports: []
+    # Only Caddy talks to the API. Again `!reset` rather than `[]`: without it
+    # the base file's "8000:8000" survives the merge and the API answers
+    # directly on the host, bypassing Caddy and therefore TLS entirely.
+    ports: !reset []
     expose:
       - "8000"
 

@@ -91,18 +91,33 @@ curl -fsS https://$DOMAIN/api/health && echo OK
 
 ## Why the override file, not a second stack
 
-`docker-compose.prod.yml` is applied *on top of* the base file. Compose merges
-them, and the merge has two sharp edges worth knowing:
+`docker-compose.prod.yml` is applied *on top of* the base file, and the merge
+has one sharp edge that matters more than anything else here:
 
-- **`ports` cannot be un-published by an override.** The base file publishes
-  Postgres on `5432`, which on a public box would be the whole database on the
-  internet. The override re-declares it as `127.0.0.1:5432:5432` — rebinding to
-  loopback is what actually closes it.
-- **`volumes` lists are appended, not replaced.** The base file bind-mounts
-  `./backend:/app` for hot reload. That mount survives the override, which is
-  why the deploy uses `--build`: the image contains the same code at the same
-  path, so the mount is a no-op rather than a stale-source hazard. Keep the
-  repo on the box in sync with what you build.
+**Compose APPENDS list fields — it does not replace them.** `ports:` and
+`volumes:` in an override are added to the base file's, not substituted for
+them. Writing `ports: []` does nothing at all. Left unhandled that produced
+three separate holes, every one of them silent:
+
+- Postgres published on **every interface** — the base file's `5432:5432`
+  survived alongside the loopback entry, putting the database on the internet
+- the API published on `8000` directly, **bypassing Caddy and therefore TLS**
+- the dev bind mount still shadowing `/app`, so the container ran whatever was
+  on the server's disk instead of what was built
+
+The fix is the `!override` and `!reset` tags (Compose 2.24+), which replace
+instead of merging. They are load-bearing — remove one and the corresponding
+hole comes back with no error and no warning.
+
+**Verify the merge rather than trusting it.** `config` prints the fully
+resolved stack, and this is the fastest way to catch a regression:
+
+```bash
+docker compose --env-file .env.prod -f docker-compose.yml -f docker-compose.prod.yml config
+```
+
+Expect: `db` published exactly once and bound to `127.0.0.1`, `backend` with no
+published ports and no bind mount, `caddy` on 80 and 443.
 
 ## Operating it
 
