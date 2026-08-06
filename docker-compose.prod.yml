@@ -57,16 +57,23 @@ services:
       - "8000"
 
   caddy:
-    image: caddy:2-alpine
+    # Built, not pulled: frontend/Dockerfile compiles the SPA and copies it
+    # into the Caddy image. `dist/` is gitignored, so a bind mount would serve
+    # an empty directory on a fresh clone — a blank site with nothing in any
+    # log to explain it. Building here means the server needs only Docker.
+    build:
+      context: ./frontend
+      args:
+        # Compile-time for Vite, so they belong to the build, not the runtime.
+        VITE_DEMO_EMAIL: ${VITE_DEMO_EMAIL:-}
+        VITE_DEMO_PASSWORD: ${VITE_DEMO_PASSWORD:-}
     restart: unless-stopped
     ports:
       - "80:80"
       - "443:443"
     volumes:
+      # Config stays mounted so it can be edited without rebuilding the image.
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      # The built frontend. `npm run build` output, copied to the server —
-      # there is no Node on the box and no reason for one.
-      - ./frontend/dist:/srv:ro
       - caddy_data:/data
       - caddy_config:/config
     environment:

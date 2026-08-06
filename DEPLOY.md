@@ -49,33 +49,26 @@ Fill in `SECRET_KEY`, `POSTGRES_PASSWORD` and `DOMAIN`. The compose file uses
 `${VAR:?...}`, so a missing value stops the deploy with a readable error rather
 than falling back to the development defaults.
 
-**3. Build the frontend**
-
-There is no Node on the server and no reason for one — build wherever you
-develop, then copy `frontend/dist` to the box (or build in CI and copy the
-artifact). The demo credentials are compile-time, so they must be present for
-that build:
-
-```bash
-cd frontend
-VITE_DEMO_EMAIL=demo@arus.id VITE_DEMO_PASSWORD=... npm run build
-```
-
-Leave both unset to ship without the demo button entirely. They end up in the
-JS bundle either way, so the demo account must be a throwaway.
-
-**4. Start**
+**3. Start**
 
 ```bash
 docker compose --env-file .env.prod \
   -f docker-compose.yml -f docker-compose.prod.yml up -d --build
 ```
 
+That one command builds the frontend too — `frontend/Dockerfile` compiles the
+SPA and bakes it into the Caddy image, so the server needs nothing but Docker.
+No Node, and nothing to copy across.
+
 Migrations run automatically — the backend's command is
 `alembic upgrade head && uvicorn ...`, so the schema is current before the API
 serves a single request.
 
-**5. Seed the demo (optional)**
+The demo credentials in `.env.prod` are read at **build** time by Vite, so
+changing them needs a rebuild (`up -d --build`), not just a restart. Leave both
+blank to ship without the demo button.
+
+**4. Seed the demo (optional)**
 
 ```bash
 docker compose --env-file .env.prod \
@@ -83,7 +76,7 @@ docker compose --env-file .env.prod \
   exec backend python -m app.seed_demo
 ```
 
-**6. Check it**
+**5. Check it**
 
 ```bash
 curl -fsS https://$DOMAIN/api/health && echo OK
