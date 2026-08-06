@@ -1,0 +1,9 @@
+# The repo is developed on Windows with core.autocrlf=true and deployed to
+# Linux. Git normalises text on commit either way, but these files are read by
+# programs that treat a stray CR as content rather than whitespace — a CRLF
+# Caddyfile or entrypoint script fails in ways whose error message never
+# mentions line endings. Pin them.
+*.sh            text eol=lf
+Caddyfile       text eol=lf
+Dockerfile      text eol=lf
+*.yml           text eol=lf
