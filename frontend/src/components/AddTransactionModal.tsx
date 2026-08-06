@@ -1,5 +1,5 @@
 import { MagnifyingGlass, Minus, Plus } from "@phosphor-icons/react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 
 import {
   api,
@@ -17,7 +17,7 @@ import {
   fmtRp,
   groupDigits,
 } from "../lib/format";
-import { Button, ErrorNote, Field, Modal } from "./ui";
+import { BinaryToggle, Button, ErrorNote, Field, Modal, useToast } from "./ui";
 
 const SHARES_PER_LOT = 100;
 
@@ -66,40 +66,49 @@ function Stepper({
   /** render with id-ID thousands dots; onChange still emits raw digits */
   grouped?: boolean;
 }) {
+  const id = useId();
+  const hintId = `${id}-hint`;
   const num = parseInt(value, 10);
   const current = Number.isFinite(num) ? num : 0;
   const bump = (dir: 1 | -1) =>
     onChange(String(Math.max(min, step(current, dir))));
   return (
     <div className="flex flex-col gap-2">
-      <span className="text-[13px] font-medium text-ink-2">{label}</span>
-      <div className="flex items-stretch overflow-hidden rounded-[6px] bg-panel ring-1 ring-line">
+      <label htmlFor={id} className="w-wide text-[11px] font-bold uppercase tracking-[0.12em] text-ink-2">
+        {label}
+      </label>
+      {/* The ring belongs to the group: drawn on the input it would be clipped
+          by this container's overflow-hidden, leaving focus invisible. */}
+      <div className="flex items-stretch overflow-hidden bg-panel-2 ring-1 ring-transparent focus-within:bg-panel focus-within:ring-2 focus-within:ring-accent">
         <button
-          type="button"
-          onClick={() => bump(-1)}
+          type="button" onClick={() => bump(-1)}
           aria-label={`Decrease ${label}`}
-          className="px-3 text-ink-2 outline-none transition-colors hover:bg-ink/5 focus-visible:bg-ink/5"
+          className="px-3 text-ink-2 outline-none transition-colors hover:bg-panel-2 focus-visible:bg-panel-3 focus-visible:text-ink"
         >
           <Minus size={13} weight="bold" />
         </button>
         <input
-          inputMode="numeric"
+          id={id}
+          inputMode="numeric" aria-describedby={hint ? hintId : undefined}
           value={grouped ? groupDigits(value) : value}
           onChange={(e) =>
             onChange(grouped ? digitsOnly(e.target.value) : e.target.value)
           }
-          className="w-full border-x border-line bg-panel py-2 text-center font-mono text-sm text-ink outline-none focus:ring-2 focus:ring-accent/60"
+          className="w-full border-x border-line bg-transparent py-2 text-center text-[13px] text-ink outline-none"
         />
         <button
-          type="button"
-          onClick={() => bump(1)}
+          type="button" onClick={() => bump(1)}
           aria-label={`Increase ${label}`}
-          className="px-3 text-ink-2 outline-none transition-colors hover:bg-ink/5 focus-visible:bg-ink/5"
+          className="px-3 text-ink-2 outline-none transition-colors hover:bg-panel-2 focus-visible:bg-panel-3 focus-visible:text-ink"
         >
           <Plus size={13} weight="bold" />
         </button>
       </div>
-      {hint && <span className="text-xs text-ink-3">{hint}</span>}
+      {hint && (
+        <span id={hintId} className="text-xs text-ink-3">
+          {hint}
+        </span>
+      )}
     </div>
   );
 }
@@ -132,11 +141,24 @@ export function AddTransactionModal({
   const [note, setNote] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const toast = useToast();
 
   // ---- holdings + cash (sellable things & buying power) ------------
   const [portfolioState, setPortfolioState] = useState<Holdings | null>(null);
+  // A failed lookup is not the same as an empty wallet — keep them apart so a
+  // network blip cannot masquerade as "this portfolio has no cash".
+  const [stateError, setStateError] = useState<string | null>(null);
   useEffect(() => {
-    api.holdings(portfolioId).then(setPortfolioState, () => setPortfolioState(null));
+    api.holdings(portfolioId).then(
+      (h) => {
+        setPortfolioState(h);
+        setStateError(null);
+      },
+      (e: Error) => {
+        setPortfolioState(null);
+        setStateError(e.message);
+      },
+    );
   }, [portfolioId]);
   const held: Holding[] | null = portfolioState?.holdings ?? null;
   const cashTracked = portfolioState?.totals.cash_tracked ?? false;
@@ -145,8 +167,11 @@ export function AddTransactionModal({
   // ---- autocomplete ------------------------------------------------
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [open, setOpen] = useState(false);
+  const [activeIdx, setActiveIdx] = useState(-1);
   const debouncedQuery = useDebounced(ticker, 250);
   const boxRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
+  const listId = useId();
 
   // BUY: universe search on the backend
   useEffect(() => {
@@ -308,11 +333,47 @@ export function AddTransactionModal({
     }
   };
 
+  // Keep the highlighted option in view as the arrow keys walk the list.
+  useEffect(() => {
+    if (activeIdx < 0 || !listRef.current) return;
+    listRef.current
+      .querySelector<HTMLElement>(`[data-idx="${activeIdx}"]`)
+      ?.scrollIntoView({ block: "nearest" });
+  }, [activeIdx]);
+
   const onPriceEdit = (v: string) => {
     setPrice(v);
     setPriceAutofilled(false);
     setPriceHint(null);
     userTypedPrice.current = true;
+  };
+
+  /** Arrow keys walk the list, Enter takes the highlight, Escape closes the
+   *  list before the dialog — without this the ticker step is mouse-only. */
+  const onTickerKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      if (!open) {
+        setOpen(true);
+        return;
+      }
+      if (suggestions.length === 0) return;
+      const dir = e.key === "ArrowDown" ? 1 : -1;
+      setActiveIdx((i) => (i + dir + suggestions.length) % suggestions.length);
+      return;
+    }
+    if (e.key === "Enter" && open && suggestions[activeIdx]) {
+      e.preventDefault();
+      pickSuggestion(suggestions[activeIdx]);
+      return;
+    }
+    if (e.key === "Escape" && open) {
+      // keep Escape local to the list; the dialog owns it once this is closed
+      e.stopPropagation();
+      e.nativeEvent.stopImmediatePropagation();
+      setOpen(false);
+      setActiveIdx(-1);
+    }
   };
 
   const pickSuggestion = (s: Suggestion) => {
@@ -363,7 +424,7 @@ export function AddTransactionModal({
     !heldPosition;
 
   const buyMaxLots =
-    type === "BUY" && priceOk
+    type === "BUY" && priceOk && stateError === null
       ? Math.max(
           0,
           Math.floor(
@@ -379,8 +440,9 @@ export function AddTransactionModal({
     baseValue != null
       ? baseValue + (type === "BUY" ? (feeRp ?? 0) : -(feeRp ?? 0))
       : null;
+  // Unknown buying power must not block the order; the server revalidates.
   const insufficient =
-    type === "BUY" && total != null && total > cashBalance;
+    type === "BUY" && stateError === null && total != null && total > cashBalance;
 
   const lotsHint =
     type === "SELL" && heldPosition
@@ -411,6 +473,11 @@ export function AddTransactionModal({
     try {
       await api.addTransaction(portfolioId, txn);
       onSaved();
+      toast(
+        `${type === "BUY" ? "Bought" : "Sold"} ${fmtNum(lotsNum)} lot${
+          lotsNum > 1 ? "s" : ""
+        } of ${txn.ticker} at ${fmtRp(priceNum)}.`,
+      );
       onClose();
     } catch (e) {
       setError((e as Error).message);
@@ -422,118 +489,142 @@ export function AddTransactionModal({
   return (
     <Modal title="Add transaction" onClose={onClose} wide>
       <div className="flex flex-col gap-4">
-        {/* BUY / SELL toggle */}
-        <div className="grid grid-cols-2 gap-2">
-          {(["BUY", "SELL"] as const).map((t) => (
-            <button
-              key={t}
-              onClick={() => setType(t)}
-              className={
-                "rounded-[6px] py-2 text-sm font-semibold ring-1 transition-all duration-200 active:scale-[0.98] " +
-                (type === t
-                  ? t === "BUY"
-                    ? "bg-pos/10 text-pos ring-pos/50"
-                    : "bg-neg/10 text-neg ring-neg/50"
-                  : "bg-panel text-ink-3 ring-line hover:text-ink-2")
-              }
-            >
-              {t === "BUY" ? "Buy" : "Sell"}
-            </button>
-          ))}
-        </div>
+        {/* Side and ticker are one decision, read left to right. The ticker
+            takes the wider track — company names need the room. */}
+        <div className="grid gap-4 sm:grid-cols-[13rem_minmax(0,1fr)]">
+          <div className="flex flex-col gap-2">
+            <span className="w-wide text-[11px] font-bold uppercase tracking-[0.12em] text-ink-2">Side</span>
+            {/* the broker convention, and the one place this system spends
+                green/red on something unsigned — recording a sell as a buy
+                is the expensive mistake this control exists to prevent */}
+            <BinaryToggle
+              label="Side" value={type}
+              onChange={setType}
+              options={[
+                { value: "BUY", label: "Buy", tone: "pos" },
+                { value: "SELL", label: "Sell", tone: "neg" },
+              ]}
+            />
+          </div>
 
-        {/* Ticker: universe search when buying, own holdings when selling */}
-        <div ref={boxRef} className="relative">
-          <label className="flex flex-col gap-2">
-            <span className="text-[13px] font-medium text-ink-2">
-              {type === "SELL" ? "Ticker (from this portfolio)" : "Ticker"}
-            </span>
-            <div className="relative">
-              <MagnifyingGlass
-                size={15}
-                weight="light"
-                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-3"
-              />
-              <input
-                value={ticker}
-                onChange={(e) => {
-                  setTicker(e.target.value.toUpperCase());
-                  setTickerPicked(false);
-                  if (type === "SELL") setOpen(true);
-                }}
-                onFocus={() => {
-                  if (type === "SELL" || suggestions.length > 0) setOpen(true);
-                }}
-                placeholder={
-                  type === "SELL"
-                    ? "Pick a holding to sell"
-                    : "BBCA, TLKM, or a company name"
-                }
-                autoFocus
-                className="w-full rounded-[6px] bg-panel py-2 pl-9 pr-3 font-mono text-sm text-ink ring-1 ring-line placeholder:font-sans placeholder:text-ink-3 outline-none focus:ring-2 focus:ring-accent/60"
-              />
-            </div>
-            {sellingUnheld && (
-              <span className="text-xs text-warn">
-                {ticker.trim().toUpperCase()} is not held in this portfolio.
+          {/* Ticker: universe search when buying, own holdings when selling */}
+          <div ref={boxRef} className="relative">
+            <label className="flex flex-col gap-2">
+              <span className="w-wide text-[11px] font-bold uppercase tracking-[0.12em] text-ink-2">
+                {type === "SELL" ? "Ticker (from this portfolio)" : "Ticker"}
               </span>
-            )}
-          </label>
-
-          {open && (
-            <ul className="absolute z-10 mt-1 max-h-56 w-full overflow-y-auto rounded-[8px] bg-panel py-1 ring-1 ring-line-2 shadow-[0_24px_48px_-16px_rgb(23_30_54/0.32)]">
-              {type === "SELL" && held !== null && held.length === 0 ? (
-                <li className="px-3 py-2 text-[13px] text-ink-3">
-                  Nothing held in this portfolio yet.
-                </li>
-              ) : suggestions.length === 0 ? (
-                type === "SELL" && (
-                  <li className="px-3 py-2 text-[13px] text-ink-3">
-                    No holding matches "{ticker.trim()}".
-                  </li>
-                )
-              ) : (
-                suggestions.map((s) => (
-                  <li key={s.ticker}>
-                    <button
-                      onClick={() => pickSuggestion(s)}
-                      className="flex w-full items-baseline gap-3 px-3 py-2 text-left transition-colors hover:bg-ink/5"
-                    >
-                      <span className="font-mono text-sm font-semibold text-ink">
-                        {s.ticker}
-                      </span>
-                      <span className="truncate text-xs text-ink-3">
-                        {s.name}
-                      </span>
-                      <span className="ml-auto shrink-0">
-                        {s.heldLots != null ? (
-                          <span className="tnum font-mono text-xs text-ink-2">
-                            {fmtNum(s.heldLots)} lots
-                          </span>
-                        ) : s.last_price != null ? (
-                          <span className="tnum font-mono text-xs text-ink-2">
-                            {fmtRp(s.last_price)}
-                          </span>
-                        ) : (
-                          <span className="text-[11px] text-ink-3">
-                            {s.sector ?? ""}
-                          </span>
-                        )}
-                      </span>
-                    </button>
-                  </li>
-                ))
+              <div className="relative">
+                <MagnifyingGlass
+                  size={15}
+                  weight="light" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-3"
+                />
+                <input
+                  value={ticker}
+                  onChange={(e) => {
+                    setTicker(e.target.value.toUpperCase());
+                    setTickerPicked(false);
+                    setActiveIdx(-1);
+                    if (type === "SELL") setOpen(true);
+                  }}
+                  onFocus={() => {
+                    if (type === "SELL" || suggestions.length > 0) setOpen(true);
+                  }}
+                  onKeyDown={onTickerKeyDown}
+                  placeholder={
+                    type === "SELL"
+                      ? "Pick a holding to sell"
+                      : "BBCA, TLKM, or a company name"
+                  }
+                  autoFocus
+                  role="combobox" aria-expanded={open}
+                  aria-controls={listId}
+                  aria-autocomplete="list" aria-activedescendant={
+                    open && activeIdx >= 0 ? `${listId}-${activeIdx}` : undefined
+                  }
+                  className="w-full bg-panel-2 py-2.5 pl-9 pr-3 text-[13px] text-ink ring-1 ring-transparent placeholder:text-ink-3 outline-none transition-shadow focus:bg-panel focus:ring-2 focus:ring-accent"
+                />
+              </div>
+              {sellingUnheld && (
+                <span className="text-xs text-warn">
+                  {ticker.trim().toUpperCase()} is not held in this portfolio.
+                </span>
               )}
-            </ul>
-          )}
+            </label>
+
+            {open && (
+              <ul
+                ref={listRef}
+                id={listId}
+                role="listbox" aria-label="Ticker suggestions" className="absolute z-10 mt-1 max-h-56 w-full overflow-y-auto bg-panel py-1 ring-1 ring-ink"
+              >
+                {type === "SELL" && held !== null && held.length === 0 ? (
+                  <li className="px-3 py-2 text-[13px] text-ink-3">
+                    Nothing held in this portfolio yet.
+                  </li>
+                ) : suggestions.length === 0 ? (
+                  type === "SELL" && (
+                    <li className="px-3 py-2 text-[13px] text-ink-3">
+                      No holding matches "{ticker.trim()}".
+                    </li>
+                  )
+                ) : (
+                  suggestions.map((s, i) => (
+                    <li
+                      key={s.ticker}
+                      id={`${listId}-${i}`}
+                      data-idx={i}
+                      role="option" aria-selected={i === activeIdx}
+                    >
+                      <button
+                        type="button" tabIndex={-1}
+                        onMouseEnter={() => setActiveIdx(i)}
+                        onClick={() => pickSuggestion(s)}
+                        className={`flex w-full items-baseline gap-3 px-3 py-2 text-left transition-colors ${
+                          i === activeIdx ? "bg-panel-2" : ""
+                        }`}
+                      >
+                        <span className="text-[13px] font-semibold text-ink">
+                          {s.ticker}
+                        </span>
+                        <span className="truncate text-xs text-ink-3">
+                          {s.name}
+                        </span>
+                        <span className="ml-auto shrink-0">
+                          {s.heldLots != null ? (
+                            <span className="tnum text-xs text-ink-2">
+                              {fmtNum(s.heldLots)} lots
+                            </span>
+                          ) : s.last_price != null ? (
+                            <span className="tnum text-xs text-ink-2">
+                              {fmtRp(s.last_price)}
+                            </span>
+                          ) : (
+                            <span className="text-[11px] text-ink-3">
+                              {s.sector ?? ""}
+                            </span>
+                          )}
+                        </span>
+                      </button>
+                    </li>
+                  ))
+                )}
+              </ul>
+            )}
+          </div>
         </div>
 
         {/* buying power strip — a buy always spends cash */}
+        {type === "BUY" && stateError !== null && (
+          <p className="bg-warn/10 px-3 py-2 text-xs text-warn ring-1 ring-warn/25">
+            Couldn't check this portfolio's cash balance. You can still record
+            the trade — the server validates it against the ledger.
+          </p>
+        )}
         {type === "BUY" && portfolioState !== null && (
-          <div className="flex items-baseline justify-between rounded-[6px] bg-ink/[0.03] px-3 py-2 ring-1 ring-line">
+          <div className="flex items-baseline justify-between bg-panel-2 px-3 py-2">
             <span className="text-[13px] text-ink-2">Cash available</span>
             <span
-              className={`tnum font-mono text-sm font-semibold ${cashBalance > 0 ? "text-ink" : "text-neg"}`}
+              className={`tnum text-[13px] font-semibold ${cashBalance > 0 ? "text-ink" : "text-neg"}`}
             >
               {fmtRp(cashBalance)}
             </span>
@@ -542,8 +633,7 @@ export function AddTransactionModal({
 
         <div className="grid grid-cols-2 gap-4">
           <Stepper
-            label="Price per share (Rp)"
-            value={price}
+            label="Price per share (Rp)" value={price}
             onChange={onPriceEdit}
             step={(cur, dir) =>
               dir > 0 ? cur + tickFor(cur) : cur - tickFor(Math.max(0, cur - 1))
@@ -553,8 +643,7 @@ export function AddTransactionModal({
             grouped
           />
           <Stepper
-            label="Lots"
-            value={lots}
+            label="Lots" value={lots}
             onChange={setLots}
             step={(cur, dir) => cur + dir}
             min={1}
@@ -566,9 +655,7 @@ export function AddTransactionModal({
         {sliderMax != null && (
           <div className="flex items-center gap-3">
             <input
-              type="range"
-              className="lot-slider"
-              min={1}
+              type="range" className="lot-slider" min={1}
               max={Math.max(1, sliderMax)}
               step={1}
               disabled={sliderMax < 1}
@@ -584,7 +671,7 @@ export function AddTransactionModal({
               }
               aria-label="Lots"
             />
-            <span className="tnum shrink-0 font-mono text-xs text-ink-3">
+            <span className="tnum shrink-0 text-xs text-ink-3">
               max {fmtNum(sliderMax)}
             </span>
           </div>
@@ -592,9 +679,7 @@ export function AddTransactionModal({
 
         <div className="grid grid-cols-2 gap-4">
           <Field
-            label="Fee (%)"
-            type="number"
-            min={0}
+            label="Fee (%)" type="number" min={0}
             max={10}
             step={0.01}
             value={feePct}
@@ -609,37 +694,22 @@ export function AddTransactionModal({
             }
           />
           <Field
-            label="Date"
-            type="date"
-            value={date}
+            label="Date" type="date" value={date}
             max={new Date().toISOString().slice(0, 10)}
             onChange={(e) => setDate(e.target.value)}
           />
         </div>
 
         <Field
-          label="Note (optional)"
-          value={note}
+          label="Note (optional)" value={note}
           onChange={(e) => setNote(e.target.value)}
           placeholder="Why this trade?"
         />
 
-        {/* order total */}
-        <div className="flex items-baseline justify-between border-t border-line pt-3">
-          <span className="text-[13px] text-ink-2">
-            {type === "BUY" ? "Total cost, incl. fee" : "Est. proceeds, after fee"}
-          </span>
-          <span
-            className={`tnum font-mono text-xl font-semibold ${insufficient ? "text-neg" : "text-ink"}`}
-          >
-            {total == null ? "—" : fmtRp(total)}
-          </span>
-        </div>
-
         {insufficient &&
           (cashTracked ? (
             <ErrorNote
-              message={`Insufficient cash: Rp ${fmtNum(total! - cashBalance)} short. Deposit more from the portfolio page, or reduce the order.`}
+              message={`Insufficient cash: ${fmtRp(total! - cashBalance)} short. Deposit more from the portfolio page, or reduce the order.`}
             />
           ) : (
             <ErrorNote
@@ -649,13 +719,34 @@ export function AddTransactionModal({
 
         {error && <ErrorNote message={error} />}
 
-        <div className="flex justify-end gap-2 pt-1">
-          <Button variant="ghost" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button onClick={submit} busy={busy} disabled={insufficient}>
-            {type === "BUY" ? "Record buy" : "Record sell"}
-          </Button>
+        {/* the figure and the control that commits it, on one line — the
+            total was previously a row above the buttons and below the fold */}
+        <div className="flex flex-wrap items-end justify-between gap-4 border-t border-line pt-4">
+          <div>
+            <p className="w-wide text-[10px] font-bold uppercase tracking-[0.14em] text-ink-3">
+              {type === "BUY" ? "Total cost, incl. fee" : "Est. proceeds, after fee"}
+            </p>
+            <p
+              className={`tnum w-condensed mt-2 text-[30px] font-extrabold leading-none tracking-[-0.02em] ${insufficient ? "text-neg" : "text-ink"}`}
+            >
+              {total == null ? "—" : fmtRp(total)}
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="ghost" onClick={onClose}>
+              Cancel
+            </Button>
+            {/* the commit button restates the side, so the mode is carried by
+                the control that acts on it and not only by the toggle above */}
+            <Button
+              variant={type === "BUY" ? "buy" : "sell"}
+              onClick={submit}
+              busy={busy}
+              disabled={insufficient}
+            >
+              {type === "BUY" ? "Record buy" : "Record sell"}
+            </Button>
+          </div>
         </div>
       </div>
     </Modal>

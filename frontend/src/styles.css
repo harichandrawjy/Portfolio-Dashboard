@@ -1,32 +1,96 @@
 @import "tailwindcss";
 
 /* ══════════════════════════════════════════════════════════════════
-   ARUS — "Broadsheet"
-   A bold financial broadsheet on cool porcelain, not a quiet ledger.
-   Confident oversized editorial type, and ONE deep ink-indigo used
-   without apology — in full color blocks, not timid links. Arus is
-   Indonesian for current / flow: a flowing accent motif runs through
-   the masthead and login. Semantic token names stay stable so
-   components retheme wholesale.
+   RASTER — Swiss modernist grid
+   ("Rastersysteme" — the grid systems of Müller-Brockmann and Ruder.)
+
+   One neutral grotesk at extreme size contrast. Structure carried by
+   black rules and a numbered modular grid, never by cards or shadow.
+   The single indigo is deployed as a flat poster-scale FIELD, not as
+   a tint or a link colour. Nothing is rounded, nothing floats,
+   nothing is textured.
+
+   Semantic token names are unchanged from the previous system so the
+   whole app rethemes wholesale.
    ══════════════════════════════════════════════════════════════════ */
 @theme {
-  --color-bg: #edeff4; /* cool porcelain — harmonised with the indigo */
-  --color-panel: #ffffff; /* clean white sheet */
-  --color-panel-2: #e7eaf1; /* cool inset / track */
-  --color-line: rgb(23 30 54 / 0.12); /* cool hairline rule */
-  --color-line-2: rgb(23 30 54 / 0.26); /* strong rule */
-  --color-ink: #1a1f2e; /* cool near-black, faint blue cast */
-  --color-ink-2: #474e60; /* secondary */
-  --color-ink-3: #727a8c; /* muted meta */
-  --color-accent: #2b3570; /* deep ink-indigo — the current */
-  --color-accent-ink: #1f2650; /* darker accent for text on paper */
-  --color-pos: #16794a; /* print-grade green */
-  --color-neg: #c02236; /* print-grade red */
-  --color-warn: #8a6116;
+  /* ── Ground and fills ─────────────────────────────────────────
+     The ground is paper white. Regions are not raised sheets; they
+     are areas of the same sheet bounded by rules. `panel-2` is the
+     only fill, used for wells, tracks and zebra banding. */
+  --color-bg: #ffffff;
+  --color-panel: #ffffff;
+  --color-panel-2: #eef0f4;
+  --color-panel-3: #e0e3e9; /* deeper well — chart plots, insets */
 
-  --font-sans: "Geist Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-serif: "Playfair Display", Georgia, "Times New Roman", serif;
-  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", monospace;
+  /* ── Rules ────────────────────────────────────────────────────
+     Two weights only. `line` divides rows inside a block; `line-2`
+     is the near-black structural rule that opens a section and
+     draws the edge of a control. Swiss rules are seen, not hinted. */
+  --color-line: rgb(10 12 16 / 0.15);
+  --color-line-2: rgb(10 12 16 / 0.9);
+
+  /* ── Ink ──────────────────────────────────────────────────────
+     A true near-black, far darker than the previous system's slate.
+     The contrast between ink and paper is what carries the poster. */
+  --color-ink: #0a0c10;
+  --color-ink-2: #3a4150;
+  --color-ink-3: #5c6373; /* quiet floor — clears 4.5:1 on white */
+
+  /* ── The one colour ───────────────────────────────────────────
+     Deep sea. It replaced a muted ink-indigo (#2b3570) that read as
+     corporate navy — the exact register this project has rejected
+     twice. The cyan chroma is what keeps it oceanic rather than
+     corporate: a desaturated dark blue falls straight back into navy,
+     so if this is ever retuned, keep the chroma and move the
+     lightness. It also earns the product's name — arus is current.
+
+     Verified by perceptual distance, not hue angle: ΔE2000 34 from the
+     gain green and 45 from the loss red, so a filled block of it can
+     never be misread as data. 8.98:1 on white, which governs BOTH
+     knockout type on the field and accent type on paper — contrast is
+     symmetric, so one figure covers both uses. */
+  --color-accent: #084d77;
+  --color-accent-hover: #063a5b; /* pressed fill under accent surfaces */
+  --color-accent-ink: #084d77; /* clears 4.5:1 on paper unaided */
+  --color-on-accent: #ffffff;
+
+  /* ── Signal — the sign of a financial value…
+     …and ONE sanctioned exception: the buy/sell side control. See
+     "The Order-Entry Exception" in DESIGN.md. Scoped to the order
+     modals only, where no signed figure is on screen to compete. */
+  --color-pos: #126b46;
+  --color-pos-hover: #0d5537; /* pressed fill under a solid buy button */
+  --color-neg: #bc1f33;
+  --color-neg-hover: #9d1929;
+  --color-warn: #7d5710;
+
+  /* ── One family ───────────────────────────────────────────────
+     Archivo is a grotesque with both a weight and a WIDTH axis, so
+     display type can be drawn wide or condensed without bringing in
+     a second typeface. `serif` and `mono` deliberately resolve to
+     the same family: the old three-voice system is gone, and any
+     `font-serif` / `font-mono` left in a component renders correctly
+     rather than silently falling back to Times or Courier. */
+  --font-sans: "Archivo Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Archivo Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Archivo Variable", ui-sans-serif, system-ui, sans-serif;
+
+  /* ── Square. All of it. ───────────────────────────────────────
+     Zeroing the radius scale means `rounded`, `rounded-md`, `rounded-xl`
+     and friends are all flat, so a stray utility cannot reintroduce a
+     corner. Genuinely circular marks use `rounded-full` explicitly. */
+  --radius-xs: 0px;
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --radius-2xl: 0px;
+  --radius-3xl: 0px;
+
+  /* Swiss motion is mechanical: quick, precise, no bounce. */
+  --default-transition-duration: 160ms;
+  --default-transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
 }
 
 html {
@@ -36,149 +100,104 @@ html {
 
 body {
   @apply bg-bg text-ink font-sans antialiased;
+  /* The grotesk is the whole voice, so it is worth setting properly:
+     kerning on, and the width axis pinned to normal by default. */
+  font-variation-settings: "wdth" 100;
+  font-kerning: normal;
 }
 
-/* ── Paper grain + a single faint cobalt wash so the page has a light
-   source instead of reading as flat white. Two cheap fixed layers, no
-   backdrop-filter anywhere. */
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background-image: radial-gradient(
-    70% 55% at 88% -8%,
-    rgb(43 53 112 / 0.07) 0%,
-    transparent 60%
-  );
-}
-body::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: 60;
-  pointer-events: none;
-  opacity: 0.05;
-  mix-blend-mode: multiply;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
-}
+/* The page ground is plain white and stays that way. A faint column
+   raster was tried here and removed: at the alpha that kept it behind
+   the type it computed to #eef3f5 — 1.119:1 against white — which is
+   below what a 1px rule needs to register on a normal display. The
+   page instead gets its presence from the colophon field that ends it
+   (see Colophon in ui.tsx), which is a flat accent surface rather than
+   a texture, so the flat rule still holds.
 
-/* Numeric alignment for tables and stats */
+   The previous system's paper grain and corner wash stay deleted for
+   the same reason they always were: they simulated a material, which
+   this system does not do. */
+
+/* ── Numerals ──────────────────────────────────────────────────────
+   Non-negotiable and mechanical: every figure occupies identical
+   digit widths so a column of rupiah aligns down the page and a
+   changing quote does not shift its neighbours. Archivo carries a
+   real `tnum` feature, which is why one family can replace the
+   previous mono without losing the instrument quality. */
 .tnum {
   font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
 }
 
-/* Knockout text sitting on the cobalt hero block */
-.on-accent {
-  color: #fbfaff;
+/* ── Width axis ────────────────────────────────────────────────────
+   The signature typographic move. Display figures and headlines are
+   drawn slightly condensed and very heavy, so a large number reads as
+   a printed mark rather than as big body text. Labels run wide and
+   letterspaced, the way a Swiss caption sits under a plate. */
+.w-condensed {
+  font-variation-settings: "wdth" 86;
+}
+.w-wide {
+  font-variation-settings: "wdth" 112;
 }
 
-/* The wordmark's flow: an accent "current" dot that pulses, plus an
-   underline that streams left→right on hover. */
-.current-dot {
-  animation: pulse-dot 2.6s ease-in-out infinite;
-}
-@keyframes pulse-dot {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.45;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .current-dot {
-    animation: none;
-  }
+/* ── Sequence numbers ──────────────────────────────────────────────
+   Every major section is numbered. The number is set in the accent,
+   tabular so 01/02/10 occupy one width, and it is decorative only —
+   it carries no meaning a screen reader needs, so callers mark it
+   aria-hidden. */
+.seq {
+  font-variant-numeric: tabular-nums;
+  font-variation-settings: "wdth" 112;
+  letter-spacing: 0.06em;
 }
 
-.flow-underline {
-  position: relative;
-}
-.flow-underline::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -3px;
-  height: 2px;
-  background: var(--color-accent);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-}
-.flow-underline:hover::after,
-.flow-underline:focus-visible::after {
-  transform: scaleX(1);
+/* ══════════════════════════════════════════════════════════════════
+   MOTION
+
+   This is a working instrument, opened many times a day, so routine
+   motion is feedback — never choreography the user waits through. The
+   scale below is the contract; reach for a token, not a new number.
+
+     feedback 120ms · state 180ms · enter 260ms
+     exit     150ms · overlay 220ms · focal 750ms (login only)
+
+   Exit is always faster than entrance. `--ease-out` is the default for
+   anything arriving or leaving; `--ease-move` is for something
+   travelling between two known positions. There is no ease-in in this
+   system: it delays the exact moment the user is watching.
+   ══════════════════════════════════════════════════════════════════ */
+:root {
+  --motion-feedback: 120ms;
+  --motion-state: 180ms;
+  --motion-enter: 260ms;
+  --motion-exit: 150ms;
+  --motion-overlay: 220ms;
+  --motion-focal: 750ms;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-move: cubic-bezier(0.77, 0, 0.175, 1);
 }
 
-/* A path that draws itself once on mount — the login's rising current.
-   pathLength=1 normalises the dash math regardless of the real length. */
-.draw-in {
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-}
-@media (prefers-reduced-motion: no-preference) {
-  .draw-in {
-    animation: draw 2.6s cubic-bezier(0.22, 1, 0.36, 1) 0.25s forwards;
-  }
-  @keyframes draw {
-    to {
-      stroke-dashoffset: 0;
-    }
-  }
-}
+/* ── Section entry ─────────────────────────────────────────────────
+   Opacity and transform ONLY. This previously also animated
+   `clip-path`, which meant repainting the full area of blocks up to
+   ~1100px tall (the holdings table, the ledger) on every navigation.
 
-/* Lot slider: accent fill up to --fill, hairline track beyond */
-input[type="range"].lot-slider {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 100%;
-  height: 4px;
-  border-radius: 9999px;
-  background: linear-gradient(
-    to right,
-    var(--color-accent) var(--fill, 0%),
-    rgb(23 30 54 / 0.14) var(--fill, 0%)
-  );
-  outline: none;
-}
-input[type="range"].lot-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 16px;
-  height: 16px;
-  border-radius: 9999px;
-  background: #ffffff;
-  border: 2px solid var(--color-accent);
-  box-shadow: 0 1px 3px rgb(23 30 54 / 0.3);
-  cursor: pointer;
-}
-input[type="range"].lot-slider::-moz-range-thumb {
-  width: 16px;
-  height: 16px;
-  border-radius: 9999px;
-  background: #ffffff;
-  border: 2px solid var(--color-accent);
-  box-shadow: 0 1px 3px rgb(23 30 54 / 0.3);
-  cursor: pointer;
-}
-input[type="range"].lot-slider:disabled {
-  opacity: 0.4;
-}
-input[type="range"].lot-slider:focus-visible::-webkit-slider-thumb {
-  box-shadow: 0 0 0 3px rgb(43 53 112 / 0.35);
-}
+   The stagger is CAPPED. It used to be `--rise * 60ms` uncapped, so a
+   page's entry got longer the more data you had — six portfolios cost
+   970ms before the last card settled, which penalised exactly the
+   users with the most to read. Capped at index 3, the last element now
+   lands at 120 + 260 = 380ms regardless of how many there are.
 
-/* Staggered section entry: set --rise per section. */
+   NOTE: this animates `transform`, which makes the element a
+   containing block for `position: fixed`. That is why every modal
+   renders through the portal in `ui.tsx` rather than in place. */
 @media (prefers-reduced-motion: no-preference) {
   .rise {
     opacity: 0;
-    transform: translateY(16px);
-    animation: rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-    animation-delay: calc(var(--rise, 0) * 80ms);
+    transform: translateY(-6px);
+    animation: rise var(--motion-enter) var(--ease-out) forwards;
+    animation-delay: calc(min(var(--rise, 0), 3) * 40ms);
   }
   @keyframes rise {
     to {
@@ -188,50 +207,283 @@ input[type="range"].lot-slider:focus-visible::-webkit-slider-thumb {
   }
 }
 
-/* Skeleton shimmer, disabled under reduced motion */
-.skeleton {
-  @apply rounded-[6px] bg-ink/[0.06] relative overflow-hidden;
-}
-.skeleton::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  transform: translateX(-100%);
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgb(255 255 255 / 0.6),
-    transparent
-  );
-  animation: shimmer 1.6s cubic-bezier(0.32, 0.72, 0, 1) infinite;
-}
-@keyframes shimmer {
-  100% {
-    transform: translateX(100%);
+/* ── A rule that draws itself ──────────────────────────────────────
+   A structural rule scaling in from the left states the grid rather
+   than decorating it. Routine, so it runs at enter speed — 700ms was
+   a focal-entrance duration being spent on every page load. */
+@media (prefers-reduced-motion: no-preference) {
+  .rule-draw {
+    transform-origin: left;
+    animation: rule-draw 0.3s var(--ease-out) both;
+    animation-delay: calc(min(var(--rise, 0), 3) * 40ms);
   }
-}
-@media (prefers-reduced-motion: reduce) {
-  .skeleton::after {
-    animation: none;
+  @keyframes rule-draw {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
   }
 }
 
-/* Modal entry */
+/* ── Field wipe ────────────────────────────────────────────────────
+   A flat colour field uncovering left-to-right, like ink laid by a
+   press. TWO speeds, and the distinction is frequency, not taste:
+
+   `.field-wipe`  — the login brand field. Seen once per session, so it
+                    is allowed to be a focal moment at 750ms.
+   `.field-wipe-quick` — the portfolio hero. Seen every single time a
+                    portfolio is opened, so it gets enter speed. The
+                    same 750ms here was three quarters of a second of
+                    waiting on the most-visited screen in the app. */
+@media (prefers-reduced-motion: no-preference) {
+  .field-wipe {
+    animation: field-wipe var(--motion-focal) cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .field-wipe-quick {
+    animation: field-wipe 0.32s var(--ease-out) both;
+  }
+  @keyframes field-wipe {
+    from {
+      clip-path: inset(0 100% 0 0);
+    }
+    to {
+      clip-path: inset(0 0 0 0);
+    }
+  }
+}
+
+/* ── Press feedback ────────────────────────────────────────────────
+   Two layers, deliberately separable.
+
+   COLOUR is the base and always applies: it is the system's own hard
+   state flip, it survives `prefers-reduced-motion`, and on a touch
+   screen — where there is no hover — it is the only thing that can
+   acknowledge a press at all.
+
+   SCALE is the enhancement, and it is gated on motion preference.
+   0.97 is a depression, not a bounce: no overshoot, no elastic curve,
+   nothing that contradicts "mechanical, precise". 120ms is feedback
+   speed — long feedback reads as latency.
+
+   This applies to controls that COMMIT something (buttons). Selection
+   controls — Segmented, BinaryToggle — are excluded on purpose: their
+   selected state changing IS the feedback, and they get toggled
+   rapidly enough that a squish on every tap becomes noise. */
+.press {
+  transition:
+    background-color var(--motion-state) var(--ease-out),
+    color var(--motion-state) var(--ease-out);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .press {
+    transition:
+      background-color var(--motion-state) var(--ease-out),
+      color var(--motion-state) var(--ease-out),
+      transform var(--motion-feedback) var(--ease-out);
+  }
+  .press:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+}
+
+/* ── Underline that streams in ─────────────────────────────────────
+   Kept for the wordmark, but square and structural rather than a soft
+   accent line. */
+.flow-underline {
+  position: relative;
+}
+.flow-underline::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -4px;
+  height: 3px;
+  background: var(--color-accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--motion-state) var(--ease-out);
+}
+
+/* Focus is a keyboard path and must always work. Hover is gated to real
+   pointers: on a touch screen a tap leaves the hover state stuck on,
+   so the underline would draw itself and then just sit there. */
+.flow-underline:focus-visible::after {
+  transform: scaleX(1);
+}
+@media (hover: hover) and (pointer: fine) {
+  .flow-underline:hover::after {
+    transform: scaleX(1);
+  }
+}
+
+/* The only motion in the system that was not reduced-motion gated. */
+@media (prefers-reduced-motion: reduce) {
+  .flow-underline::after {
+    transition: none;
+  }
+}
+
+/* ── Holdings table pinned column ──────────────────────────────────
+   The ticker column is sticky so figures stay identified while they
+   scroll. An opaque cell cannot inherit the row's hover tint, so it
+   repaints the same composite itself — otherwise the pinned column
+   stays paper-white against a tinted row and the seam shows. */
+.holdings-row:hover .holdings-pin {
+  background-color: var(--color-panel-2);
+}
+
+/* ── Lot slider ────────────────────────────────────────────────────
+   Square track, square thumb — the one control that had to be rebuilt
+   rather than rethemed, since a pill thumb is the wrong shape here. */
+input[type="range"].lot-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 0;
+  background: linear-gradient(
+    to right,
+    var(--color-accent) var(--fill, 0%),
+    var(--color-panel-2) var(--fill, 0%)
+  );
+  outline: none;
+}
+input[type="range"].lot-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 4px;
+  height: 20px;
+  border-radius: 0;
+  background: var(--color-ink);
+  cursor: pointer;
+}
+input[type="range"].lot-slider::-moz-range-thumb {
+  width: 4px;
+  height: 20px;
+  border: none;
+  border-radius: 0;
+  background: var(--color-ink);
+  cursor: pointer;
+}
+input[type="range"].lot-slider:disabled {
+  opacity: 0.4;
+}
+input[type="range"].lot-slider:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 3px rgb(8 77 119 / 0.45);
+}
+input[type="range"].lot-slider:focus-visible::-moz-range-thumb {
+  box-shadow: 0 0 0 3px rgb(8 77 119 / 0.45);
+}
+
+/* ── Skeleton ──────────────────────────────────────────────────────
+   A flat grey block that pulses. No shimmer sweep: a moving highlight
+   implies a light source this system does not have. */
+.skeleton {
+  @apply bg-panel-2 relative overflow-hidden;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .skeleton {
+    animation: skeleton-pulse 1.4s cubic-bezier(0.2, 0, 0, 1) infinite;
+  }
+  @keyframes skeleton-pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.55;
+    }
+  }
+}
+
+/* ── Modal + toast, both directions ────────────────────────────────
+   Both arrive on a short vertical translate with no scale: a dialog in
+   this system is a sheet placed down, not something that zooms.
+
+   They now LEAVE as well as arrive. Previously both simply unmounted,
+   so a dialog that eased in over 220ms vanished in a single frame —
+   the most jarring state change in the app. Exit runs at 150ms, faster
+   than the entrance, because a dismissal should feel answered rather
+   than replayed. `ui.tsx` holds the element mounted for exactly that
+   long; if you change one duration, change the other. */
 .modal-enter {
-  animation: modal-in 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+  animation: modal-in var(--motion-overlay) var(--ease-out);
 }
 @keyframes modal-in {
   from {
     opacity: 0;
-    transform: translateY(10px) scale(0.98);
+    transform: translateY(-8px);
   }
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: none;
   }
 }
+.modal-exit {
+  animation: modal-out var(--motion-exit) var(--ease-out) both;
+}
+@keyframes modal-out {
+  to {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+/* The scrim carries its own fade. A 50% black plane appearing and
+   disappearing instantly reads as a flash even when the sheet inside
+   it is animating politely. */
+.overlay-enter {
+  animation: overlay-in var(--motion-overlay) var(--ease-out);
+}
+@keyframes overlay-in {
+  from {
+    opacity: 0;
+  }
+}
+.overlay-exit {
+  animation: overlay-out var(--motion-exit) var(--ease-out) both;
+}
+@keyframes overlay-out {
+  to {
+    opacity: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .modal-enter {
+  .modal-enter,
+  .modal-exit,
+  .overlay-enter,
+  .overlay-exit {
     animation: none;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .toast-enter {
+    animation: toast-in var(--motion-overlay) var(--ease-out) both;
+  }
+  @keyframes toast-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  /* Leaves the way it came, faster. A toast that pops out of existence
+     after easing in reads as a glitch rather than a dismissal. */
+  .toast-exit {
+    animation: toast-out var(--motion-exit) var(--ease-out) both;
+  }
+  @keyframes toast-out {
+    to {
+      opacity: 0;
+      transform: translateY(10px);
+    }
   }
 }

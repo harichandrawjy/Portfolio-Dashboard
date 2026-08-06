@@ -22,12 +22,12 @@ async def _login(client, email):
     return {"Authorization": f"Bearer {r.json()['access_token']}"}
 
 
-async def _buy(client, auth, pid, lots, price, fee=0):
+async def _buy(client, auth, pid, lots, price, fee=0, executed_at="2026-07-01"):
     return await client.post(
         f"/portfolios/{pid}/transactions",
         json={
             "ticker": "BBCA", "type": "BUY", "lots": lots,
-            "price_per_share": price, "fee": fee, "executed_at": "2026-07-01",
+            "price_per_share": price, "fee": fee, "executed_at": executed_at,
         },
         headers=auth,
     )
@@ -40,7 +40,13 @@ async def test_unfunded_portfolio_cannot_buy(client):
     ).json()["id"]
 
     r = await client.get(f"/portfolios/{pid}/cash", headers=auth)
-    assert r.json() == {"balance": 0, "tracked": False, "flows": []}
+    assert r.json() == {
+        "balance": 0,
+        "tracked": False,
+        "flows": [],
+        "uncounted_trades": 0,
+        "first_flow_date": None,
+    }
 
     # nothing deposited -> a buy has no cash to spend
     r = await _buy(client, auth, pid, 10, 6000, fee=5000)
@@ -214,6 +220,164 @@ async def test_delete_cash_flow_with_balance_guard(client):
     assert r.status_code == 404
 
 
+async def test_trades_before_the_first_flow_are_reported_as_uncounted(client):
+    """A trade dated before the funding never reduces the balance, so the
+    portfolio reports cash it has already spent. The API no longer lets one be
+    created (see test_buy_cannot_predate_the_first_cash_flow), but imported
+    history can still carry them, so the summary has to say how many it
+    skipped or the number is silently wrong."""
+    from sqlalchemy import select
+
+    from app.db import SessionLocal
+    from app.models import Security, Transaction
+
+    auth = await _login(client, "eka@example.com")
+    pid = (
+        await client.post("/portfolios", json={"name": "Backdated"}, headers=auth)
+    ).json()["id"]
+
+    await client.post(
+        f"/portfolios/{pid}/cash",
+        json={"type": "DEPOSIT", "amount": 10_000_000, "occurred_at": "2026-08-01"},
+        headers=auth,
+    )
+
+    # Inserted directly: this is what an imported portfolio looks like. The
+    # API rejects the same thing, which is the point of the sibling test.
+    async with SessionLocal() as session:
+        async with session.begin():
+            sec_id = await session.scalar(
+                select(Security.id).where(Security.ticker == "BBCA")
+            )
+            session.add(
+                Transaction(
+                    portfolio_id=pid, security_id=sec_id, type="BUY",
+                    shares=1_000, price_per_share=6_000, fee=0,
+                    executed_at=date(2026, 7, 15),
+                )
+            )
+
+    cash = (await client.get(f"/portfolios/{pid}/cash", headers=auth)).json()
+    assert cash["balance"] == 10_000_000  # the backdated buy did not spend it
+    assert cash["uncounted_trades"] == 1
+    assert cash["first_flow_date"] == "2026-08-01"
+
+    # a trade on the funding date onwards does count, and is not flagged
+    assert (
+        await _buy(client, auth, pid, 1, 6_000, executed_at="2026-08-02")
+    ).status_code == 201
+    cash = (await client.get(f"/portfolios/{pid}/cash", headers=auth)).json()
+    assert cash["balance"] == 10_000_000 - 600_000
+    assert cash["uncounted_trades"] == 1
+
+
+async def test_buy_cannot_predate_the_first_cash_flow(client):
+    """The hole this closes: a buy dated before the funding is excluded from
+    the derived balance, so its cost is never subtracted and the guards — which
+    use that same balance — cannot see the overspend. Both the create and the
+    edit path have to refuse the date, because on the create path the buy was
+    genuinely affordable at the moment it was checked."""
+    auth = await _login(client, "fajar@example.com")
+    pid = (
+        await client.post("/portfolios", json={"name": "NoFreeLunch"}, headers=auth)
+    ).json()["id"]
+
+    await client.post(
+        f"/portfolios/{pid}/cash",
+        json={"type": "DEPOSIT", "amount": 94_000_000, "occurred_at": "2026-08-01"},
+        headers=auth,
+    )
+
+    # CREATE: affordable against the 94jt balance, but dated before it existed.
+    # This used to be accepted and left the full deposit still spendable.
+    r = await _buy(client, auth, pid, 150, 5_600, fee=12_600, executed_at="2026-03-04")
+    assert r.status_code == 422
+    assert "before the first cash flow" in r.json()["detail"]
+    assert "2026-08-01" in r.json()["detail"]
+
+    cash = (await client.get(f"/portfolios/{pid}/cash", headers=auth)).json()
+    assert cash["balance"] == 94_000_000
+    assert cash["uncounted_trades"] == 0
+
+    # EDIT: record it legitimately, then try to move it behind the funding.
+    r = await _buy(client, auth, pid, 150, 5_600, fee=12_600, executed_at="2026-08-02")
+    assert r.status_code == 201
+    txn_id = r.json()["id"]
+    spent = 150 * 100 * 5_600 + 12_600
+
+    r = await client.patch(
+        f"/portfolios/{pid}/transactions/{txn_id}",
+        json={
+            "ticker": "BBCA", "type": "BUY", "lots": 150,
+            "price_per_share": 5_600, "fee": 12_600, "executed_at": "2026-03-04",
+        },
+        headers=auth,
+    )
+    assert r.status_code == 422
+    assert "before the first cash flow" in r.json()["detail"]
+
+    # the trade kept its original date, and the cost is still accounted for
+    cash = (await client.get(f"/portfolios/{pid}/cash", headers=auth)).json()
+    assert cash["balance"] == 94_000_000 - spent
+    assert cash["uncounted_trades"] == 0
+
+    # moving it to a date on or after the funding is still allowed
+    r = await client.patch(
+        f"/portfolios/{pid}/transactions/{txn_id}",
+        json={
+            "ticker": "BBCA", "type": "BUY", "lots": 150,
+            "price_per_share": 5_600, "fee": 12_600, "executed_at": "2026-08-01",
+        },
+        headers=auth,
+    )
+    assert r.status_code == 200
+
+
+async def test_sell_may_still_predate_the_first_cash_flow(client):
+    """Only BUY is restricted. A sell releases cash rather than spending it,
+    and blocking it would strand portfolios whose imported history already
+    sits behind the ledger's start."""
+    from sqlalchemy import select
+
+    from app.db import SessionLocal
+    from app.models import Security, Transaction
+
+    auth = await _login(client, "gita@example.com")
+    pid = (
+        await client.post("/portfolios", json={"name": "OldHistory"}, headers=auth)
+    ).json()["id"]
+
+    # imported holding that predates the ledger
+    async with SessionLocal() as session:
+        async with session.begin():
+            sec_id = await session.scalar(
+                select(Security.id).where(Security.ticker == "BBCA")
+            )
+            session.add(
+                Transaction(
+                    portfolio_id=pid, security_id=sec_id, type="BUY",
+                    shares=1_000, price_per_share=6_000, fee=0,
+                    executed_at=date(2026, 6, 1),
+                )
+            )
+
+    await client.post(
+        f"/portfolios/{pid}/cash",
+        json={"type": "DEPOSIT", "amount": 1_000_000, "occurred_at": "2026-08-01"},
+        headers=auth,
+    )
+
+    r = await client.post(
+        f"/portfolios/{pid}/transactions",
+        json={
+            "ticker": "BBCA", "type": "SELL", "lots": 5,
+            "price_per_share": 6_500, "fee": 0, "executed_at": "2026-07-01",
+        },
+        headers=auth,
+    )
+    assert r.status_code == 201
+
+
 async def test_deleting_the_only_flow_opts_out_of_tracking(client):
     auth = await _login(client, "cindy@example.com")
     pid = (
@@ -231,7 +395,13 @@ async def test_deleting_the_only_flow_opts_out_of_tracking(client):
     r = await client.delete(f"/portfolios/{pid}/cash/{dep_id}", headers=auth)
     assert r.status_code == 204
     r = await client.get(f"/portfolios/{pid}/cash", headers=auth)
-    assert r.json() == {"balance": 0, "tracked": False, "flows": []}
+    assert r.json() == {
+        "balance": 0,
+        "tracked": False,
+        "flows": [],
+        "uncounted_trades": 0,
+        "first_flow_date": None,
+    }
 
 
 async def test_cash_validation(client):

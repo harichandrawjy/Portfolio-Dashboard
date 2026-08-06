@@ -127,9 +127,13 @@ export interface Holdings {
     market_value: number | null;
     unrealized_pnl: number | null;
     realized_pnl: number;
+    /** cost of shares already sold; cost_basis covers open positions only */
+    realized_cost_basis: number;
     unpriced_holdings: number;
     cash_balance: number;
     cash_tracked: boolean;
+    /** trades predating the first cash flow, which cash_balance ignores */
+    cash_uncounted_trades: number;
   };
 }
 
@@ -145,6 +149,9 @@ export interface CashSummary {
   balance: number;
   tracked: boolean;
   flows: CashFlowEntry[];
+  /** trades dated before first_flow_date, which the balance does not count */
+  uncounted_trades: number;
+  first_flow_date: string | null;
 }
 
 export type RangeKey = "1mo" | "6mo" | "1y" | "all";
@@ -347,10 +354,24 @@ export interface StockPricePoint {
   ihsg: number | null;
 }
 
+/** Today's session so far, from the quote cache — not a settled bar.
+ *  Kept out of `points` on purpose: everything consuming `points` treats them
+ *  as published closes. Null once the real bar is published that evening. */
+export interface ProvisionalBar {
+  date: string;
+  open: number | null;
+  high: number | null;
+  low: number | null;
+  close: number;
+  volume: number | null;
+  as_of: string;
+}
+
 export interface StockPrices {
   ticker: string;
   range: string;
   points: StockPricePoint[];
+  provisional: ProvisionalBar | null;
 }
 
 export interface PositionRow {
@@ -415,6 +436,21 @@ export const api = {
     request<Portfolio>("/portfolios", {
       method: "POST",
       body: { name, description: description || null },
+    }),
+
+  /** Rename a portfolio or change its description.
+   *
+   *  Sends an EMPTY STRING for a cleared description, never null. The handler
+   *  applies `if payload.description is not None`, so a null is read as
+   *  "field omitted, leave it alone" — sending null to clear would silently
+   *  keep the old text. An empty string is falsy everywhere it is rendered,
+   *  so it reads as absent in the UI.
+   *
+   *  A duplicate name returns 409 with a readable message. */
+  updatePortfolio: (id: string, name: string, description: string) =>
+    request<Portfolio>(`/portfolios/${id}`, {
+      method: "PATCH",
+      body: { name, description },
     }),
 
   deletePortfolio: (id: string) =>

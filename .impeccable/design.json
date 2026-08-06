@@ -1,0 +1,522 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-04T03:38:22.395Z",
+  "title": "Design System: Raster",
+  "extensions": {
+    "colorMeta": {
+      "accent": {
+        "role": "primary",
+        "displayName": "Deep Indigo",
+        "canonical": "oklch(35.4% 0.102 272.9)",
+        "tonalRamp": [
+          "oklch(15.0% 0.102 272.9)",
+          "oklch(26.4% 0.102 272.9)",
+          "oklch(37.9% 0.102 272.9)",
+          "oklch(49.3% 0.102 272.9)",
+          "oklch(60.7% 0.102 272.9)",
+          "oklch(72.1% 0.102 272.9)",
+          "oklch(83.6% 0.102 272.9)",
+          "oklch(95.0% 0.102 272.9)"
+        ]
+      },
+      "accent-hover": {
+        "role": "primary",
+        "displayName": "Deep Indigo Pressed",
+        "canonical": "oklch(27.8% 0.082 273.2)",
+        "tonalRamp": [
+          "oklch(15.0% 0.082 273.2)",
+          "oklch(26.4% 0.082 273.2)",
+          "oklch(37.9% 0.082 273.2)",
+          "oklch(49.3% 0.082 273.2)",
+          "oklch(60.7% 0.082 273.2)",
+          "oklch(72.1% 0.082 273.2)",
+          "oklch(83.6% 0.082 273.2)",
+          "oklch(95.0% 0.082 273.2)"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "oklch(15.4% 0.009 264.3)",
+        "tonalRamp": [
+          "oklch(15.0% 0.009 264.3)",
+          "oklch(26.4% 0.009 264.3)",
+          "oklch(37.9% 0.009 264.3)",
+          "oklch(49.3% 0.009 264.3)",
+          "oklch(60.7% 0.009 264.3)",
+          "oklch(72.1% 0.009 264.3)",
+          "oklch(83.6% 0.009 264.3)",
+          "oklch(95.0% 0.009 264.3)"
+        ]
+      },
+      "ink-2": {
+        "role": "neutral",
+        "displayName": "Secondary Ink",
+        "canonical": "oklch(37.5% 0.027 265.4)",
+        "tonalRamp": [
+          "oklch(15.0% 0.027 265.4)",
+          "oklch(26.4% 0.027 265.4)",
+          "oklch(37.9% 0.027 265.4)",
+          "oklch(49.3% 0.027 265.4)",
+          "oklch(60.7% 0.027 265.4)",
+          "oklch(72.1% 0.027 265.4)",
+          "oklch(83.6% 0.027 265.4)",
+          "oklch(95.0% 0.027 265.4)"
+        ]
+      },
+      "ink-3": {
+        "role": "neutral",
+        "displayName": "Muted Ink",
+        "canonical": "oklch(49.9% 0.027 266.7)",
+        "tonalRamp": [
+          "oklch(15.0% 0.027 266.7)",
+          "oklch(26.4% 0.027 266.7)",
+          "oklch(37.9% 0.027 266.7)",
+          "oklch(49.3% 0.027 266.7)",
+          "oklch(60.7% 0.027 266.7)",
+          "oklch(72.1% 0.027 266.7)",
+          "oklch(83.6% 0.027 266.7)",
+          "oklch(95.0% 0.027 266.7)"
+        ]
+      },
+      "bg": {
+        "role": "neutral",
+        "displayName": "Paper",
+        "canonical": "oklch(100.0% 0.000 89.9)",
+        "tonalRamp": [
+          "oklch(15.0% 0.000 89.9)",
+          "oklch(26.4% 0.000 89.9)",
+          "oklch(37.9% 0.000 89.9)",
+          "oklch(49.3% 0.000 89.9)",
+          "oklch(60.7% 0.000 89.9)",
+          "oklch(72.1% 0.000 89.9)",
+          "oklch(83.6% 0.000 89.9)",
+          "oklch(95.0% 0.000 89.9)"
+        ]
+      },
+      "panel-2": {
+        "role": "neutral",
+        "displayName": "Fill",
+        "canonical": "oklch(95.5% 0.006 264.5)",
+        "tonalRamp": [
+          "oklch(15.0% 0.006 264.5)",
+          "oklch(26.4% 0.006 264.5)",
+          "oklch(37.9% 0.006 264.5)",
+          "oklch(49.3% 0.006 264.5)",
+          "oklch(60.7% 0.006 264.5)",
+          "oklch(72.1% 0.006 264.5)",
+          "oklch(83.6% 0.006 264.5)",
+          "oklch(95.0% 0.006 264.5)"
+        ]
+      },
+      "panel-3": {
+        "role": "neutral",
+        "displayName": "Deep Fill",
+        "canonical": "oklch(91.5% 0.009 264.5)",
+        "tonalRamp": [
+          "oklch(15.0% 0.009 264.5)",
+          "oklch(26.4% 0.009 264.5)",
+          "oklch(37.9% 0.009 264.5)",
+          "oklch(49.3% 0.009 264.5)",
+          "oklch(60.7% 0.009 264.5)",
+          "oklch(72.1% 0.009 264.5)",
+          "oklch(83.6% 0.009 264.5)",
+          "oklch(95.0% 0.009 264.5)"
+        ]
+      },
+      "pos": {
+        "role": "secondary",
+        "displayName": "Print Green",
+        "canonical": "oklch(46.8% 0.100 159.6)",
+        "tonalRamp": [
+          "oklch(15.0% 0.100 159.6)",
+          "oklch(26.4% 0.100 159.6)",
+          "oklch(37.9% 0.100 159.6)",
+          "oklch(49.3% 0.100 159.6)",
+          "oklch(60.7% 0.100 159.6)",
+          "oklch(72.1% 0.100 159.6)",
+          "oklch(83.6% 0.100 159.6)",
+          "oklch(95.0% 0.100 159.6)"
+        ]
+      },
+      "neg": {
+        "role": "secondary",
+        "displayName": "Print Red",
+        "canonical": "oklch(51.6% 0.189 21.4)",
+        "tonalRamp": [
+          "oklch(15.0% 0.189 21.4)",
+          "oklch(26.4% 0.189 21.4)",
+          "oklch(37.9% 0.189 21.4)",
+          "oklch(49.3% 0.189 21.4)",
+          "oklch(60.7% 0.189 21.4)",
+          "oklch(72.1% 0.189 21.4)",
+          "oklch(83.6% 0.189 21.4)",
+          "oklch(95.0% 0.189 21.4)"
+        ]
+      },
+      "warn": {
+        "role": "secondary",
+        "displayName": "Print Amber",
+        "canonical": "oklch(48.6% 0.095 77.1)",
+        "tonalRamp": [
+          "oklch(15.0% 0.095 77.1)",
+          "oklch(26.4% 0.095 77.1)",
+          "oklch(37.9% 0.095 77.1)",
+          "oklch(49.3% 0.095 77.1)",
+          "oklch(60.7% 0.095 77.1)",
+          "oklch(72.1% 0.095 77.1)",
+          "oklch(83.6% 0.095 77.1)",
+          "oklch(95.0% 0.095 77.1)"
+        ]
+      },
+      "chart-teal": {
+        "role": "tertiary",
+        "displayName": "Chart Teal",
+        "canonical": "oklch(49.4% 0.075 188.9)",
+        "tonalRamp": [
+          "oklch(15.0% 0.075 188.9)",
+          "oklch(26.4% 0.075 188.9)",
+          "oklch(37.9% 0.075 188.9)",
+          "oklch(49.3% 0.075 188.9)",
+          "oklch(60.7% 0.075 188.9)",
+          "oklch(72.1% 0.075 188.9)",
+          "oklch(83.6% 0.075 188.9)",
+          "oklch(95.0% 0.075 188.9)"
+        ]
+      },
+      "chart-cornflower": {
+        "role": "tertiary",
+        "displayName": "Chart Cornflower",
+        "canonical": "oklch(55.2% 0.103 254.6)",
+        "tonalRamp": [
+          "oklch(15.0% 0.103 254.6)",
+          "oklch(26.4% 0.103 254.6)",
+          "oklch(37.9% 0.103 254.6)",
+          "oklch(49.3% 0.103 254.6)",
+          "oklch(60.7% 0.103 254.6)",
+          "oklch(72.1% 0.103 254.6)",
+          "oklch(83.6% 0.103 254.6)",
+          "oklch(95.0% 0.103 254.6)"
+        ]
+      },
+      "chart-periwinkle": {
+        "role": "tertiary",
+        "displayName": "Chart Periwinkle",
+        "canonical": "oklch(50.8% 0.106 288.8)",
+        "tonalRamp": [
+          "oklch(15.0% 0.106 288.8)",
+          "oklch(26.4% 0.106 288.8)",
+          "oklch(37.9% 0.106 288.8)",
+          "oklch(49.3% 0.106 288.8)",
+          "oklch(60.7% 0.106 288.8)",
+          "oklch(72.1% 0.106 288.8)",
+          "oklch(83.6% 0.106 288.8)",
+          "oklch(95.0% 0.106 288.8)"
+        ]
+      },
+      "chart-neutral": {
+        "role": "tertiary",
+        "displayName": "Chart Neutral",
+        "canonical": "oklch(58.9% 0.024 265.6)",
+        "tonalRamp": [
+          "oklch(15.0% 0.024 265.6)",
+          "oklch(26.4% 0.024 265.6)",
+          "oklch(37.9% 0.024 265.6)",
+          "oklch(49.3% 0.024 265.6)",
+          "oklch(60.7% 0.024 265.6)",
+          "oklch(72.1% 0.024 265.6)",
+          "oklch(83.6% 0.024 265.6)",
+          "oklch(95.0% 0.024 265.6)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "The login statement. Condensed, heaviest, uppercase."
+      },
+      "figure": {
+        "displayName": "Figure",
+        "purpose": "The page's poster number — aggregate net worth. One per surface."
+      },
+      "hero-figure": {
+        "displayName": "Hero Figure",
+        "purpose": "The number knocked out of an accent field."
+      },
+      "nameplate": {
+        "displayName": "Nameplate",
+        "purpose": "A page's title — portfolio name, ticker symbol."
+      },
+      "form-heading": {
+        "displayName": "Form Heading",
+        "purpose": "The login form's heading."
+      },
+      "card-figure": {
+        "displayName": "Card Figure",
+        "purpose": "The headline number on a card in a grid, and a dialog's committing total."
+      },
+      "stat": {
+        "displayName": "Stat",
+        "purpose": "Figures in a definition grid."
+      },
+      "stat-sm": {
+        "displayName": "Stat (small)",
+        "purpose": "Secondary figures in a definition row."
+      },
+      "wordmark": {
+        "displayName": "Wordmark",
+        "purpose": "'ARUS' plus its accent square. Never anything that is not the name."
+      },
+      "brand-stat": {
+        "displayName": "Brand Stat",
+        "purpose": "The three figures on the login brand field."
+      },
+      "lede": {
+        "displayName": "Lede",
+        "purpose": "The standfirst paragraph under a display statement."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Interface copy, hints, descriptions."
+      },
+      "data": {
+        "displayName": "Data",
+        "purpose": "Table cells and inline figures."
+      },
+      "caption": {
+        "displayName": "Caption",
+        "purpose": "Section and panel titles. Wide, uppercase, letterspaced."
+      },
+      "control": {
+        "displayName": "Control",
+        "purpose": "Button labels and field labels."
+      },
+      "meta": {
+        "displayName": "Meta",
+        "purpose": "Timestamps, counts, secondary metadata."
+      },
+      "micro": {
+        "displayName": "Micro",
+        "purpose": "Column heads and eyebrow labels. The floor of the scale."
+      }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "name": "ease-standard",
+        "value": "cubic-bezier(0.2, 0, 0, 1)",
+        "purpose": "Default easing for every state change; 160ms. Mechanical, no bounce."
+      },
+      {
+        "name": "ease-entry",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Entry gestures — rise, rule-draw, field-wipe."
+      },
+      {
+        "name": "rise",
+        "value": "550ms; clip-path inset(0 0 100% 0) -> inset(0); 60ms stagger via --rise",
+        "purpose": "A section revealed downward behind a hard edge. A wipe, not a float."
+      },
+      {
+        "name": "rule-draw",
+        "value": "700ms; scaleX(0) -> scaleX(1) from left",
+        "purpose": "A structural rule stating the grid."
+      },
+      {
+        "name": "field-wipe",
+        "value": "750ms; clip-path inset(0 100% 0 0) -> inset(0)",
+        "purpose": "A flat colour field uncovering left-to-right, like ink laid by a press."
+      },
+      {
+        "name": "modal-in",
+        "value": "220ms; translateY(-8px) -> none, no scale",
+        "purpose": "A dialog is a sheet placed down, not something that zooms."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "lg",
+        "value": "1024px"
+      },
+      {
+        "name": "measure",
+        "value": "1200px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "A flat field of accent with knockout white. The committing action.",
+      "html": "<button class=\"ds-btn-primary\">Add transaction</button>",
+      "css": ".ds-btn-primary{font-family: \"Archivo Variable\", ui-sans-serif, system-ui, sans-serif;background:var(--color-accent,#2b3570);color:var(--color-on-accent,#fff);border:none;border-radius:0;padding:10px 16px;font-size:11px;font-weight:700;line-height:1;text-transform:uppercase;letter-spacing:.12em;cursor:pointer;transition:background .16s cubic-bezier(.2,0,0,1)}.ds-btn-primary:hover{background:var(--color-accent-hover,#1c2350)}.ds-btn-primary:focus-visible{outline:2px solid var(--color-accent,#2b3570);outline-offset:2px}"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "A near-black hairline that inverts to solid ink on hover — the system's standard interactive answer.",
+      "html": "<button class=\"ds-btn-ghost\">Cancel</button>",
+      "css": ".ds-btn-ghost{font-family: \"Archivo Variable\", ui-sans-serif, system-ui, sans-serif;background:transparent;color:var(--color-ink,#0a0c10);border:none;box-shadow:inset 0 0 0 1px rgb(10 12 16 / .9);border-radius:0;padding:10px 16px;font-size:11px;font-weight:700;line-height:1;text-transform:uppercase;letter-spacing:.12em;cursor:pointer;transition:background .16s cubic-bezier(.2,0,0,1),color .16s cubic-bezier(.2,0,0,1)}.ds-btn-ghost:hover{background:var(--color-ink,#0a0c10);color:var(--color-bg,#fff)}.ds-btn-ghost:focus-visible{outline:2px solid var(--color-accent,#2b3570);outline-offset:2px}"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input-field",
+      "description": "A filled grey square with no resting border; it draws an edge only when focused.",
+      "html": "<label class=\"ds-field\"><span class=\"ds-field-label\">Name</span><input class=\"ds-field-input\" placeholder=\"Long-term IDX\"></label>",
+      "css": ".ds-field{font-family: \"Archivo Variable\", ui-sans-serif, system-ui, sans-serif;display:flex;flex-direction:column;gap:8px}.ds-field-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;font-variation-settings:\"wdth\" 112;color:var(--color-ink-2,#3a4150)}.ds-field-input{font-family: \"Archivo Variable\", ui-sans-serif, system-ui, sans-serif;background:var(--color-panel-2,#eef0f4);color:var(--color-ink,#0a0c10);border:none;border-radius:0;padding:10px 12px;font-size:13px;outline:none;transition:background .16s,box-shadow .16s}.ds-field-input::placeholder{color:var(--color-ink-3,#5c6373)}.ds-field-input:focus{background:var(--color-bg,#fff);box-shadow:inset 0 0 0 2px var(--color-accent,#2b3570)}"
+    },
+    {
+      "name": "Masthead Nameplate",
+      "kind": "nav",
+      "refersTo": "wordmark",
+      "description": "The wordmark set wide and uppercase in the heaviest cut, closed by a solid accent square, over a heavy black rule.",
+      "html": "<header class=\"ds-masthead\"><span class=\"ds-wordmark\">Arus<i class=\"ds-wordmark-dot\"></i></span></header>",
+      "css": ".ds-masthead{font-family: \"Archivo Variable\", ui-sans-serif, system-ui, sans-serif;display:flex;align-items:center;height:64px;padding:0 16px;background:var(--color-bg,#fff);border-bottom:2px solid var(--color-ink,#0a0c10)}.ds-wordmark{display:inline-flex;align-items:baseline;gap:6px;font-size:19px;font-weight:800;line-height:1;text-transform:uppercase;letter-spacing:.16em;font-variation-settings:\"wdth\" 112;color:var(--color-ink,#0a0c10)}.ds-wordmark-dot{display:block;width:8px;height:8px;background:var(--color-accent,#2b3570)}"
+    },
+    {
+      "name": "Section Head",
+      "kind": "custom",
+      "refersTo": "panel-raised",
+      "description": "The system's main structural device: a two-digit sequence number in accent, a wide uppercase title, and a rule across the full measure.",
+      "html": "<div class=\"ds-sectionhead\"><h2 class=\"ds-sectionhead-title\"><span class=\"ds-seq\">01</span><span class=\"ds-sectionhead-label\">Net worth</span></h2><div class=\"ds-sectionhead-rule\"></div></div>",
+      "css": ".ds-sectionhead{font-family: \"Archivo Variable\", ui-sans-serif, system-ui, sans-serif;}.ds-sectionhead-title{display:flex;align-items:baseline;gap:12px;margin:0;font-size:12px;font-weight:700;line-height:1;text-transform:uppercase;letter-spacing:.14em;color:var(--color-ink,#0a0c10)}.ds-seq{color:var(--color-accent,#2b3570);font-variant-numeric:tabular-nums;font-variation-settings:\"wdth\" 112;letter-spacing:.06em}.ds-sectionhead-label{font-variation-settings:\"wdth\" 112}.ds-sectionhead-rule{margin-top:8px;height:1px;width:100%;background:rgb(10 12 16 / .9)}"
+    },
+    {
+      "name": "Hero Field",
+      "kind": "custom",
+      "refersTo": "hero-field",
+      "description": "The signature component: the page's headline number knocked out of a flat indigo field. The one place per page the accent takes a whole surface.",
+      "html": "<div class=\"ds-herofield\"><p class=\"ds-herofield-label\">Total value</p><div><p class=\"ds-herofield-figure\">Rp 27.882.500</p><p class=\"ds-herofield-note\">as of 4 Agu, 10.05 WIB</p></div></div>",
+      "css": ".ds-herofield{font-family: \"Archivo Variable\", ui-sans-serif, system-ui, sans-serif;display:flex;flex-direction:column;justify-content:space-between;gap:32px;background:var(--color-accent,#2b3570);color:var(--color-on-accent,#fff);padding:24px;border-radius:0;min-height:168px}.ds-herofield-label{margin:0;font-size:10px;font-weight:700;line-height:1;text-transform:uppercase;letter-spacing:.16em;font-variation-settings:\"wdth\" 112;color:rgb(255 255 255 / .75)}.ds-herofield-figure{margin:0;font-size:48px;font-weight:800;line-height:.88;letter-spacing:-.03em;font-variation-settings:\"wdth\" 86;font-variant-numeric:tabular-nums}.ds-herofield-note{margin:12px 0 0;font-size:11px;color:rgb(255 255 255 / .75);font-variant-numeric:tabular-nums}"
+    },
+    {
+      "name": "Segmented Control",
+      "kind": "chip",
+      "refersTo": "segmented-item-active",
+      "description": "A fill-toned track whose selected segment inverts to solid ink. No sliding pill, no shadow.",
+      "html": "<div class=\"ds-segmented\"><button class=\"ds-segmented-item is-active\">1M</button><button class=\"ds-segmented-item\">6M</button><button class=\"ds-segmented-item\">1Y</button><button class=\"ds-segmented-item\">All</button></div>",
+      "css": ".ds-segmented{font-family: \"Archivo Variable\", ui-sans-serif, system-ui, sans-serif;display:inline-flex;background:var(--color-panel-2,#eef0f4);padding:2px}.ds-segmented-item{font-family: \"Archivo Variable\", ui-sans-serif, system-ui, sans-serif;background:transparent;border:none;border-radius:0;padding:6px 12px;font-size:11px;font-weight:700;line-height:1;text-transform:uppercase;letter-spacing:.1em;color:var(--color-ink-3,#5c6373);cursor:pointer;transition:background .16s,color .16s}.ds-segmented-item:hover{color:var(--color-ink,#0a0c10)}.ds-segmented-item.is-active{background:var(--color-ink,#0a0c10);color:var(--color-bg,#fff)}.ds-segmented-item:focus-visible{outline:2px solid var(--color-accent,#2b3570)}"
+    },
+    {
+      "name": "Data Table Row",
+      "kind": "card",
+      "refersTo": "panel-raised",
+      "description": "The densest surface: micro uppercase column heads on a heavy rule, hairline row separators, tabular right-aligned figures, and a square weight meter.",
+      "html": "<table class=\"ds-table\"><thead><tr><th>Ticker</th><th class=\"ds-num\">Value</th><th class=\"ds-num\">P&amp;L</th><th>Weight</th></tr></thead><tbody><tr><td><span class=\"ds-ticker\">ASII</span><span class=\"ds-coname\">Astra International Tbk</span></td><td class=\"ds-num\">Rp 10.150.000</td><td class=\"ds-num ds-pos\">+Rp 530.000</td><td><span class=\"ds-meter\"><i style=\"width:36%\"></i></span></td></tr></tbody></table>",
+      "css": ".ds-table{font-family: \"Archivo Variable\", ui-sans-serif, system-ui, sans-serif;width:100%;border-collapse:collapse;font-size:13px;color:var(--color-ink,#0a0c10)}.ds-table th{border-bottom:2px solid var(--color-ink,#0a0c10);padding:10px 12px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;font-variation-settings:\"wdth\" 112;color:var(--color-ink-3,#5c6373)}.ds-table td{border-bottom:1px solid rgb(10 12 16 / .15);padding:10px 12px}.ds-table tbody tr:hover{background:var(--color-panel-2,#eef0f4)}.ds-num{text-align:right;font-variant-numeric:tabular-nums}.ds-ticker{display:block;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;font-variation-settings:\"wdth\" 112}.ds-coname{display:block;font-size:11px;color:var(--color-ink-3,#5c6373)}.ds-pos{color:var(--color-pos,#126b46);font-weight:700}.ds-meter{display:inline-block;width:64px;height:8px;background:var(--color-panel-2,#eef0f4)}.ds-meter i{display:block;height:100%;background:var(--color-accent,#2b3570)}"
+    },
+    {
+      "name": "Error Note",
+      "kind": "custom",
+      "refersTo": "input-field",
+      "description": "A red rule down the left edge over a faint red wash. Red here is an alert, not a signed value.",
+      "html": "<div class=\"ds-errornote\" role=\"alert\">This portfolio has no cash yet.</div>",
+      "css": ".ds-errornote{font-family: \"Archivo Variable\", ui-sans-serif, system-ui, sans-serif;border-left:3px solid var(--color-neg,#bc1f33);background:rgb(188 31 51 / .07);color:var(--color-neg,#bc1f33);padding:8px 12px;font-size:13px;font-weight:500;border-radius:0}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Rastersysteme",
+    "overview": "Raster takes the Swiss International Typographic Style at its word and\napplies it to a financial instrument. There is one grotesk, drawn at extreme\nsize contrast on both a weight and a *width* axis. There are no cards, no\nshadows, no gradients, no texture, and no rounded corners. Structure is\ncarried entirely by black rules and a numbered modular grid: every major\nsection announces itself with a two-digit sequence number, a wide\nletterspaced caption, and a rule drawn across the full measure.\n\nThe single indigo is never a tint and never a link colour. It is either\nabsent, or it is the whole surface — a flat poster-scale field with knockout\ntype. The page's hierarchy comes from the size jump between a 10px caption\nand a 92px figure, not from boxes, elevation, or colour variety.\n\nUnderneath the poster the register is analytical and dense. Every figure is\ntabular so columns align down the page, tables sort in place, hairlines do\nthe dividing, and controls answer in 160ms without ceremony.",
+    "keyCharacteristics": [
+      "One typeface, two axes — weight 100–900 and width 62–125%",
+      "Numbered sections (`01`, `02`, `03`) as the primary structural device",
+      "Black rules instead of cards; nothing is raised or shadowed",
+      "One accent, deployed only as a full flat field",
+      "Square everything — the radius scale is zeroed",
+      "Tabular figures everywhere a number appears",
+      "Print-grade green and red reserved strictly for signed values"
+    ],
+    "rules": [
+      {
+        "name": "The Full Field Rule",
+        "body": "The accent is either a full-strength filled surface or it is absent. It never appears as a 10% tint, a pastel band, or a link colour. Its rarity and its saturation are the same decision.",
+        "section": "colors"
+      },
+      {
+        "name": "The Print-Grade Sign Rule",
+        "body": "Green and red carry exactly one meaning: the sign of a financial value. They never indicate status, category, brand, or action. Buy and Sell buttons are neutral — a sell is not a loss.",
+        "section": "colors"
+      },
+      {
+        "name": "The No Fainter Rule",
+        "body": "`{colors.ink-3}` is the quiet floor. Never dim a text token with an opacity modifier to make it quieter; reach for the next token down, and if there isn't one, the text is already as quiet as it goes. Opacity on ink is for rules and fills, not for type.",
+        "section": "colors"
+      },
+      {
+        "name": "The Rules Carry It Rule",
+        "body": "A region is defined by the rule above it, never by a background tone, a border box, or a shadow. If removing the rule makes the region vanish, the region is wrong — strengthen the rule.",
+        "section": "colors"
+      },
+      {
+        "name": "The Tabular Figure Rule",
+        "body": "Every number carries `tabular-nums` via the `.tnum` class. Digits must occupy identical widths so a column of rupiah aligns down the page and a changing quote does not shift its neighbours. This is mechanical, not stylistic, and it is not negotiable. Archivo's `tnum` feature was verified in-browser before the family was adopted — any replacement family must be verified the same way.",
+        "section": "typography"
+      },
+      {
+        "name": "The One Family Rule",
+        "body": "There is no second typeface and no third voice. A new surface that wants contrast reaches for the width axis, the weight axis, or the size ramp — never for another font.",
+        "section": "typography"
+      },
+      {
+        "name": "The Uppercase Register",
+        "body": "All labels, captions, controls and column heads are uppercase and letterspaced. Sentence case is reserved for body copy, hints, and data.",
+        "section": "typography"
+      },
+      {
+        "name": "The One Measure Rule",
+        "body": "Every page lives in the same `1200px` column with the same `16px` gutter. New surfaces do not introduce their own width.",
+        "section": "layout"
+      },
+      {
+        "name": "The Numbered Section Rule",
+        "body": "A major section opens with `SectionHead` — a two-digit sequence number in accent, a wide uppercase title, and a rule drawn across the measure. Panels inside a page use `PanelHeader` with the same sequence device. Numbers are decorative and are marked `aria-hidden`.",
+        "section": "layout"
+      },
+      {
+        "name": "The Flat Rule",
+        "body": "If a surface needs to separate from its neighbour, rule it or invert it. Never reach for a shadow; the system has no shadow vocabulary to reach for.",
+        "section": "elevation-depth"
+      },
+      {
+        "name": "The Zero Radius Rule",
+        "body": "Nothing in this system is rounded except a genuinely circular mark. There is no second radius register to choose from.",
+        "section": "shapes"
+      },
+      {
+        "name": "The Square Chip Rule",
+        "body": "A status label, count, or badge is a square block or plain text. Pills belong to the previous system.",
+        "section": "shapes"
+      }
+    ],
+    "dos": [
+      "**Do** use the accent as a full flat field or not at all (The Full Field Rule).",
+      "**Do** open every major section with a numbered `SectionHead`.",
+      "**Do** set every number with `.tnum`, no exceptions.",
+      "**Do** rule regions instead of boxing them; use the hairline bed",
+      "**Do** reach for the width axis (`.w-condensed`, `.w-wide`) for contrast.",
+      "**Do** keep all pages inside the single `1200px` measure.",
+      "**Do** reserve green and red for the sign of a financial value.",
+      "**Do** keep every text colour at 4.5:1 or better; `ink-3` is the floor.",
+      "**Do** gate every animation behind `prefers-reduced-motion` and give focus a",
+      "**Do** verify `tnum` in-browser before ever changing the typeface."
+    ],
+    "donts": [
+      "**Don't** add a dark theme. The system is light-only, `color-scheme: light`",
+      "**Don't** use a shadow, a gradient, a blur, `backdrop-filter`, or a texture.",
+      "**Don't** round anything. `rounded-full` is only for a genuinely circular mark.",
+      "**Don't** introduce a second typeface, a third radius, or a new container width.",
+      "**Don't** tint the accent into a pastel background or use it as a body link",
+      "**Don't** put green or red on anything unsigned — no green success chips, no",
+      "**Don't** let the benchmark or an \"Other\" slice take a series colour; both are",
+      "**Don't** render a modal outside the `ui.tsx` portal — an ancestor `transform`"
+    ]
+  }
+}

@@ -1,6 +1,13 @@
 import type { Financials, StatementPeriod } from "../api/client";
-import { DASH, fmtNumCompact, fmtRpCompact } from "../lib/format";
-import { EmptyState, Panel, PanelHeader, Skeleton } from "./ui";
+import { DASH, fmtDec, fmtNumCompact, fmtRpCompact } from "../lib/format";
+import {
+  EmptyState,
+  ErrorNote,
+  Panel,
+  PanelHeader,
+  Skeleton,
+  WhatIsThis,
+} from "./ui";
 
 const periodLabel = new Intl.DateTimeFormat("id-ID", {
   month: "short",
@@ -11,14 +18,27 @@ const periodLabel = new Intl.DateTimeFormat("id-ID", {
 export function FinancialsPanel({
   financials: f,
   loading,
+  error,
 }: {
   financials: Financials | null;
   loading: boolean;
+  error?: string | null;
 }) {
+  if (error) {
+    return (
+      <Panel tone="flat">
+        <PanelHeader seq="05" title="Financials" />
+        <div className="px-5 pb-5">
+          <ErrorNote message={error} />
+        </div>
+      </Panel>
+    );
+  }
+
   if (loading) {
     return (
       <Panel tone="flat">
-        <PanelHeader title="Financials" />
+        <PanelHeader seq="05" title="Financials" />
         <div className="space-y-2 px-5 pb-5">
           <Skeleton className="h-4 w-2/3" />
           <Skeleton className="h-24 w-full" />
@@ -30,10 +50,9 @@ export function FinancialsPanel({
   if (!f || (f.annual.length === 0 && f.quarterly.length === 0)) {
     return (
       <Panel tone="flat">
-        <PanelHeader title="Financials" />
+        <PanelHeader seq="05" title="Financials" />
         <EmptyState
-          title="No statements yet"
-          body="Financial statements fetch on a ticker's first visit and refresh weekly. Yahoo carries none for some small caps."
+          title="No statements yet" body="Financial statements fetch on a ticker's first visit and refresh weekly. Yahoo carries none for some small caps."
         />
       </Panel>
     );
@@ -52,7 +71,7 @@ export function FinancialsPanel({
     return cur && cur !== "IDR" ? `${cur} ${s}` : `Rp ${s}`;
   };
   const num = (v: number | null | undefined, suffix = "") =>
-    v == null ? DASH : v.toFixed(2) + suffix;
+    v == null ? DASH : fmtDec(v) + suffix;
   const days = (v: number | null | undefined) =>
     v == null ? DASH : `${v.toLocaleString("id-ID")} days`;
 
@@ -113,15 +132,20 @@ export function FinancialsPanel({
           {title}
           {cur && cur !== "IDR" && ` (${cur})`}
         </p>
-        <div className="overflow-x-auto">
+        {/* contain:paint keeps this wide table's overflow inside the scroller;
+            without it the page itself scrolls sideways on a phone */}
+        <div className="overflow-x-auto [contain:paint]">
           <table className="w-full min-w-[560px] text-[13px]">
             <thead>
-              <tr className="border-b border-line text-xs text-ink-3">
-                <th className="py-1.5 pr-4 text-left font-medium"> </th>
+              {/* the heavy rule under the heads matches the holdings table */}
+              <tr className="w-wide border-b-2 border-ink text-[10px] font-bold uppercase tracking-[0.12em] text-ink-3">
+                <th scope="col" className="py-2 pr-4 text-left">
+                  <span className="sr-only">Metric</span>
+                </th>
                 {periods.map((p) => (
                   <th
                     key={p.period_end}
-                    className="tnum py-1.5 pl-4 text-right font-mono font-medium"
+                    scope="col" className="tnum py-2 pl-4 text-right"
                   >
                     {periodLabel.format(new Date(p.period_end))}
                   </th>
@@ -130,14 +154,18 @@ export function FinancialsPanel({
             </thead>
             <tbody>
               {tableRows.map(([label, key, isEps]) => (
-                <tr key={key} className="border-b border-line/50 last:border-0">
-                  <td className="py-1.5 pr-4 text-ink-3">{label}</td>
+                <tr key={key} className="border-b border-line last:border-0">
+                  <th
+                    scope="row" className="py-2 pr-4 text-left font-normal text-ink-3"
+                  >
+                    {label}
+                  </th>
                   {periods.map((p) => {
                     const v = p.items[key];
                     return (
                       <td
                         key={p.period_end}
-                        className={`tnum py-1.5 pl-4 text-right font-mono ${
+                        className={`tnum py-1.5 pl-4 text-right ${
                           v != null && v < 0 ? "text-neg" : "text-ink"
                         }`}
                       >
@@ -156,7 +184,7 @@ export function FinancialsPanel({
 
   return (
     <Panel tone="flat">
-      <PanelHeader title="Financials" />
+      <PanelHeader seq="05" title="Financials" />
       <div className="px-5 pb-5">
         <div className="grid grid-cols-1 gap-x-10 gap-y-6 sm:grid-cols-2 lg:grid-cols-3">
           {groups.map((g) => (
@@ -169,7 +197,7 @@ export function FinancialsPanel({
                     className="flex items-baseline justify-between gap-4"
                   >
                     <dt className="text-ink-3">{label}</dt>
-                    <dd className="tnum font-mono text-ink">{value}</dd>
+                    <dd className="tnum text-ink">{value}</dd>
                   </div>
                 ))}
               </dl>
@@ -180,7 +208,20 @@ export function FinancialsPanel({
         {renderTable("Quarterly", f.quarterly)}
         {renderTable("Annual", f.annual)}
 
-        <p className="mt-5 text-xs text-ink-3">
+        <div className="mt-5">
+          <WhatIsThis label="solvency scores">
+            <strong className="font-medium text-ink">Altman Z''</strong> is a
+            bankruptcy-risk score for emerging markets: above about 5,85 is
+            considered safe, below about 3,75 is distressed.{" "}
+            <strong className="font-medium text-ink">Piotroski F-Score</strong>{" "}
+            counts how many of nine accounting health checks a company passes —
+            8–9 is strong, 0–2 is weak.{" "}
+            <strong className="font-medium text-ink">Interest coverage</strong>{" "}
+            is how many times over profit covers the interest bill.
+          </WhatIsThis>
+        </div>
+
+        <p className="mt-3 text-xs text-ink-3">
           Statements from Yahoo (≈4 annual periods, ≈5 quarters), refreshed
           weekly. Derived metrics computed from these statements; free cash
           flow uses the OCF − capex convention.

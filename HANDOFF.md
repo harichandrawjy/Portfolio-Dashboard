@@ -49,7 +49,7 @@ backend/
                             statements, universe, catchup, __main__ (CLI)
     data/idx_universe.csv   963-ticker offline fallback snapshot
   alembic/versions/         0001..0006
-  tests/                    12 test files, 79 tests
+  tests/                    12 test files, 82 tests
 frontend/
   src/api/client.ts         THE single typed API surface (no fetch elsewhere)
   src/colors.ts             dataviz-validated chart palette
@@ -93,9 +93,27 @@ Do not casually undo these — each was deliberate.
    balance, so a new portfolio must deposit before trading. Only trades on or
    after the first cash flow count, so funding a portfolio that already has
    history is not drained by old buys.
-10. **Frontend design must not read as a generic AI dashboard.** Light-only
-    ("Arus / Broadsheet": cool porcelain + ink-indigo). The user rejected dark
-    fintech twice. See the memory file before touching styling.
+
+   **A BUY may not be dated before the first cash flow** (`_reject_buy_before_
+   funding`, enforced on both create and edit). That exclusion above is what
+   made the rule enforceable-looking but not enforced: the affordability
+   guards compute the balance with the *same* exclusion, so a buy dated behind
+   the funding was left out of the very sum meant to catch it and cost
+   nothing. Two ways in, both now closed — deposit 94jt then buy 84jt dated
+   earlier (accepted, balance still reported 94jt), or record an affordable
+   buy and edit its date backwards (the `balance < 0` guard stops seeing the
+   cost). SELL is deliberately unrestricted: it releases cash, and blocking it
+   would strand imported history. Reads still tolerate pre-ledger trades and
+   report them via `uncounted_trades`, so existing portfolios do not lurch
+   negative — the rule is enforced on write only.
+10. **Frontend design must not read as a generic AI dashboard.** Light-only.
+    The current system is **"Raster"** — Swiss modernist: one grotesk
+    (Archivo Variable, weight + width axes), black rules and numbered
+    sections instead of cards, zero radius, zero shadow, and a single deep-sea blue
+    used only as a full flat field. `DESIGN.md` is the contract; the
+    `impeccable` hook validates literal font sizes against its type ramp.
+    The user rejected dark fintech twice — do not propose it. See the memory
+    file before touching styling.
 
 ## Scheduled jobs (Asia/Jakarta)
 
@@ -137,14 +155,17 @@ with cached stats · weekly fundamentals · CI + README + one-command demo seed.
   **Tier-2 financial statements** with derived solvency/efficiency metrics,
   Altman Z'', Piotroski F
 - Global masthead search with `/` shortcut + recent tickers
-- Two UI redesigns → current light "Arus / Broadsheet" system
+- Three UI redesigns → current light **"Raster"** (Swiss modernist) system.
+  The rewrite replaced the three-font Playfair/Geist/JetBrains voice with a
+  single variable grotesk; `tnum` support was verified in-browser first,
+  because tabular figures are load-bearing for the money columns
 - Automatic refresh: restart policy + startup catch-up
 - **Data-quality fixes**: full company names (IDX's stock-list endpoint
   truncates at 30 chars; the profiles endpoint has the real one — 905 of 963
   names corrected), and back-adjustment of corporate actions Yahoo never
   recorded (`adjust_corporate_actions` in `sync/prices.py`)
 
-**Test suite: 79 passing.** `docker compose exec backend pytest`
+**Test suite: 82 passing.** `docker compose exec backend pytest`
 
 ## Not done / known gaps
 

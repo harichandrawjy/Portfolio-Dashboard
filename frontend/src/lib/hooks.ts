@@ -4,6 +4,9 @@ interface AsyncState<T> {
   data: T | null;
   loading: boolean;
   error: string | null;
+  /** HTTP status when the rejection carried one, so callers can tell a 404
+   *  ("no such thing") from a 500 or a dropped connection. */
+  status: number | null;
 }
 
 /**
@@ -15,19 +18,27 @@ export function useAsync<T>(fn: () => Promise<T>, deps: unknown[]) {
     data: null,
     loading: true,
     error: null,
+    status: null,
   });
   const runId = useRef(0);
 
   const run = useCallback(() => {
     const id = ++runId.current;
-    setState((s) => ({ ...s, loading: true, error: null }));
+    setState((s) => ({ ...s, loading: true, error: null, status: null }));
     fn().then(
       (data) => {
-        if (runId.current === id) setState({ data, loading: false, error: null });
+        if (runId.current === id)
+          setState({ data, loading: false, error: null, status: null });
       },
       (err: Error) => {
-        if (runId.current === id)
-          setState({ data: null, loading: false, error: err.message });
+        if (runId.current !== id) return;
+        const s = (err as { status?: unknown }).status;
+        setState({
+          data: null,
+          loading: false,
+          error: err.message,
+          status: typeof s === "number" ? s : null,
+        });
       },
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps

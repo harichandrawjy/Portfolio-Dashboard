@@ -20,14 +20,11 @@ from sqlalchemy import func, select
 
 from app.db import SessionLocal
 from app.models import LatestQuote, PriceHistory
+from app.sync import BAR_PUBLISHED_HOUR_WIB
 
 logger = logging.getLogger(__name__)
 
 JAKARTA = ZoneInfo("Asia/Jakarta")
-
-# IDX closes 16:00 WIB; Yahoo publishes the daily bar somewhat after, so a
-# given weekday's bar is only "expected" once the evening has arrived.
-BAR_PUBLISHED_HOUR_WIB = 18
 # Don't re-hit Yahoo for quotes on every dev hot-reload.
 QUOTE_STALE_AFTER = timedelta(minutes=30)
 # Let the app start serving before hitting the network.

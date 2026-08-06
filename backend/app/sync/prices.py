@@ -19,7 +19,8 @@ import logging
 import random
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import date, datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 from decimal import Decimal
 
 import pandas as pd
@@ -30,7 +31,10 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from app.db import SessionLocal
 from app.models import LatestQuote, PriceHistory, Security
+from app.sync import BAR_PUBLISHED_HOUR_WIB
 from app.sync.universe import BENCHMARK
+
+JAKARTA = ZoneInfo("Asia/Jakarta")
 
 logger = logging.getLogger(__name__)
 
@@ -85,11 +89,33 @@ def _download_history(symbol: str, period: str) -> pd.DataFrame:
     raise YahooError(f"history fetch for {symbol} failed after {RETRY_ATTEMPTS} attempts") from last_exc
 
 
-def _download_quote(symbol: str) -> tuple[int, Decimal | None, datetime]:
-    """Return (price, change_pct vs previous close, provider 'as of' time)."""
+@dataclass(slots=True)
+class QuoteSnapshot:
+    """The latest price plus the session's bar so far.
+
+    The OHLC is carried because the download already contains it — the frame
+    below IS today's bar — and the chart needs a provisional candle for a
+    session that `price_history` will not accept until it closes. It is
+    display-only: nothing derived reads it.
+    """
+
+    price: int
+    change_pct: Decimal | None
+    as_of: datetime
+    trade_date: date | None
+    open: int | None
+    high: int | None
+    low: int | None
+    volume: int | None
+
+
+def _download_quote(symbol: str) -> QuoteSnapshot:
+    """Return the latest price and the in-progress bar behind it."""
     ticker = yf.Ticker(symbol)
     hist = _retryable_quote_history(ticker, symbol)
     price = float(hist["Close"].iloc[-1])
+    bar = hist.iloc[-1]
+    bar_date = hist.index[-1].date()
 
     meta = ticker.history_metadata or {}
     prev = meta.get("chartPreviousClose") or meta.get("previousClose")
@@ -102,7 +128,22 @@ def _download_quote(symbol: str) -> tuple[int, Decimal | None, datetime]:
         as_of = datetime.fromtimestamp(market_time, tz=timezone.utc)
     else:
         as_of = datetime.now(tz=timezone.utc)
-    return round(price), change_pct, as_of
+
+    def _px(field: str) -> int | None:
+        v = bar.get(field)
+        return None if v is None or pd.isna(v) else _to_idr(v)
+
+    vol = bar.get("Volume")
+    return QuoteSnapshot(
+        price=round(price),
+        change_pct=change_pct,
+        as_of=as_of,
+        trade_date=bar_date,
+        open=_px("Open"),
+        high=_px("High"),
+        low=_px("Low"),
+        volume=None if vol is None or pd.isna(vol) else int(vol),
+    )
 
 
 def _retryable_quote_history(ticker: yf.Ticker, symbol: str) -> pd.DataFrame:
@@ -190,16 +231,41 @@ def adjust_corporate_actions(rows: list[dict]) -> list[dict]:
     return adjusted
 
 
-def _df_to_rows(df: pd.DataFrame) -> list[dict]:
+def _last_final_trade_date(now: datetime | None = None) -> date:
+    """The newest date whose bar may be stored.
+
+    Yahoo returns the CURRENT session as an ordinary row, with `Close` holding
+    the last trade so far. Storing it makes a live price look like a settled
+    close, and nothing later guarantees a correction: the 18:30 job only runs
+    if the machine happens to be awake, and the startup catch-up compares
+    dates, so a partial bar for today makes it conclude today is already done.
+
+    Real case: KETR's 2026-08-04 bar was written mid-session at 565 and kept
+    that value, while the true close was 615 — the chart showed a candle the
+    market never printed.
+    """
+    wib = (now or datetime.now(tz=JAKARTA)).astimezone(JAKARTA)
+    if wib.hour >= BAR_PUBLISHED_HOUR_WIB:
+        return wib.date()
+    return wib.date() - timedelta(days=1)
+
+
+def _df_to_rows(df: pd.DataFrame, now: datetime | None = None) -> list[dict]:
+    cutoff = _last_final_trade_date(now)
     rows = []
     for idx, r in df.iterrows():
+        trade_date = idx.date()
+        if trade_date > cutoff:
+            # the session is still open (or too fresh to trust) — skip it and
+            # let the evening run store the real bar
+            continue
         close = r.get("Close")
         if close is None or pd.isna(close):
             continue  # gap day for an illiquid small cap — store nothing
         volume = r.get("Volume")
         rows.append(
             {
-                "trade_date": idx.date(),
+                "trade_date": trade_date,
                 "open": _to_idr(r.get("Open")),
                 "high": _to_idr(r.get("High")),
                 "low": _to_idr(r.get("Low")),
@@ -302,6 +368,24 @@ async def backfill_ticker(ticker: str, years: int = 5) -> BackfillResult:
     except Exception:
         logger.warning(
             "first-use statements fetch failed for %s — weekly job will retry",
+            sec.ticker,
+        )
+
+    # And a quote, or a first visit has no live price and no candle for today.
+    #
+    # The scheduled quote job deliberately covers only HELD tickers plus the
+    # benchmark — polling the whole 963-ticker universe every 15 minutes is not
+    # viable. A ticker nobody holds therefore never gets a `latest_quotes` row
+    # from it, and both the header price and the provisional bar are derived
+    # from that row. Without this the symptom is oddly specific: today's candle
+    # appears for stocks somebody owns and is missing for anything just looked
+    # up. Non-fatal like the rest — stored history is still worth serving.
+    try:
+        await sync_quotes([sec.ticker])
+    except Exception:
+        logger.warning(
+            "first-use quote fetch failed for %s — the page falls back to the "
+            "last close until the next quote sync",
             sec.ticker,
         )
     return BackfillResult(sec.ticker, sec.yahoo_symbol, len(rows), resolved=True)
@@ -452,17 +536,20 @@ async def sync_quotes(tickers_override: list[str] | None = None) -> SyncRunResul
         if i:
             await asyncio.sleep(REQUEST_PAUSE)
         try:
-            price, change_pct, as_of = await asyncio.to_thread(
-                _download_quote, sec.yahoo_symbol
-            )
+            snap = await asyncio.to_thread(_download_quote, sec.yahoo_symbol)
             async with SessionLocal() as session:
                 async with session.begin():
                     stmt = pg_insert(LatestQuote).values(
                         security_id=sec.id,
-                        price=price,
-                        change_pct=change_pct,
-                        as_of=as_of,
+                        price=snap.price,
+                        change_pct=snap.change_pct,
+                        as_of=snap.as_of,
                         fetched_at=func.now(),
+                        trade_date=snap.trade_date,
+                        open=snap.open,
+                        high=snap.high,
+                        low=snap.low,
+                        volume=snap.volume,
                     )
                     stmt = stmt.on_conflict_do_update(
                         index_elements=["security_id"],
@@ -471,6 +558,11 @@ async def sync_quotes(tickers_override: list[str] | None = None) -> SyncRunResul
                             "change_pct": stmt.excluded.change_pct,
                             "as_of": stmt.excluded.as_of,
                             "fetched_at": stmt.excluded.fetched_at,
+                            "trade_date": stmt.excluded.trade_date,
+                            "open": stmt.excluded.open,
+                            "high": stmt.excluded.high,
+                            "low": stmt.excluded.low,
+                            "volume": stmt.excluded.volume,
                         },
                     )
                     await session.execute(stmt)

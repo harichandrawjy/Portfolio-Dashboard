@@ -119,10 +119,16 @@ class HoldingsTotals(BaseModel):
     # realized across ALL of the portfolio's sells, incl. fully-closed
     # positions that no longer appear in the holdings rows
     realized_pnl: int
+    # cost basis of every share already sold. cost_basis covers open positions
+    # only, so the two together are the capital actually committed to
+    # positions — the honest denominator for a total-return percentage.
+    realized_cost_basis: int
     unpriced_holdings: int  # how many holdings had no quote
     # cash ledger (0 / false until the portfolio's first deposit)
     cash_balance: int
     cash_tracked: bool
+    # trades predating the first cash flow, which cash_balance ignores
+    cash_uncounted_trades: int
 
 
 class HoldingsOut(BaseModel):
@@ -156,6 +162,10 @@ class CashSummaryOut(BaseModel):
     balance: int
     tracked: bool  # false until the first deposit/withdrawal
     flows: list[CashFlowOut]  # newest first, capped
+    # trades dated before `first_flow_date` do not affect `balance`; the UI
+    # says so rather than presenting cash those trades already spent
+    uncounted_trades: int
+    first_flow_date: date | None
 
 
 # ---------------------------------------------------------------------------
@@ -393,10 +403,30 @@ class StockPricePoint(BaseModel):
     ihsg: int | None  # IHSG rebased to the stock's first close in range
 
 
+class ProvisionalBar(BaseModel):
+    """Today's session so far, from the quote cache — NOT a settled bar.
+
+    Deliberately a separate field rather than the last element of `points`:
+    everything that consumes `points` treats them as published closes, and one
+    unfinished bar hiding among them is exactly the bug that froze a live price
+    onto the chart. Present only while a session is genuinely in progress, so
+    it disappears once the real bar is published that evening.
+    """
+
+    date: date
+    open: int | None
+    high: int | None
+    low: int | None
+    close: int
+    volume: int | None
+    as_of: datetime
+
+
 class StockPricesOut(BaseModel):
     ticker: str
     range: str
     points: list[StockPricePoint]
+    provisional: ProvisionalBar | None = None
 
 
 class PositionRow(BaseModel):

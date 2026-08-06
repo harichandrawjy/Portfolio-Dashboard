@@ -248,3 +248,11 @@ class LatestQuote(Base):
     fetched_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True), server_default=text("now()")
     )
+    # Today's bar so far. Kept here rather than in `price_history` because an
+    # unfinished session must never enter the historical series — this row is
+    # overwritten on every refresh and read only for display.
+    trade_date: Mapped[date | None] = mapped_column(Date)
+    open: Mapped[int | None] = mapped_column(BigInteger)
+    high: Mapped[int | None] = mapped_column(BigInteger)
+    low: Mapped[int | None] = mapped_column(BigInteger)
+    volume: Mapped[int | None] = mapped_column(BigInteger)

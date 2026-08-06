@@ -1,7 +1,10 @@
 # Environment / secrets
+# `.env.*` catches the real files; each TEMPLATE has to be un-ignored by name,
+# or it silently never gets committed and the next person has nothing to copy.
 .env
 .env.*
 !.env.example
+!.env.prod.example
 
 # Python
 __pycache__/
@@ -26,3 +29,18 @@ Thumbs.db
 
 # Docker
 docker-compose.override.yml
+
+# Agent skills — installed content, not source.
+#
+# Treated like node_modules: `skills-lock.json` at the root is the manifest and
+# IS committed, so the set is reproducible; the skills themselves are not. Two
+# reasons. They are third-party (emilkowalski/skills, Leonxlnx/taste-skill), so
+# committing them into a public repo redistributes someone else's work. And
+# `.claude/skills` is partly symlinks into `.agents/skills` — links that break
+# the moment the target moves, which is exactly how a previous set ended up
+# tracked-but-missing.
+#
+# `.claude/launch.json` lives outside skills/ and stays tracked: it is the
+# dev-server config the preview tooling reads.
+.agents/
+.claude/skills/

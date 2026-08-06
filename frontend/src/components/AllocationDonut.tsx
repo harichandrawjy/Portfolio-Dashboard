@@ -4,9 +4,11 @@ import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import type { Allocation } from "../api/client";
 import { CHART_NEUTRAL, sectorColor } from "../colors";
 import { fmtPct, fmtRp } from "../lib/format";
-import { EmptyState, Panel, PanelHeader, Skeleton } from "./ui";
+import { EmptyState, ErrorNote, Panel, PanelHeader, Skeleton } from "./ui";
 
-const MAX_SLICES = 7;
+// A donut stops being readable past about five arcs; the rest fold into
+// "Other" in chart-neutral rather than becoming slivers.
+const MAX_SLICES = 5;
 
 function DonutTooltip({
   active,
@@ -18,9 +20,9 @@ function DonutTooltip({
   if (!active || !payload?.length) return null;
   const p = payload[0].payload;
   return (
-    <div className="rounded-[8px] bg-panel px-3 py-2 text-xs ring-1 ring-line-2 shadow-[0_16px_40px_-14px_rgb(23_30_54/0.32)]">
+    <div className="bg-panel px-3 py-2 text-[11px] ring-1 ring-ink">
       <p className="font-medium text-ink">{p.label}</p>
-      <p className="tnum mt-0.5 font-mono text-ink-2">
+      <p className="tnum mt-0.5 text-ink-2">
         {fmtRp(p.value)} · {fmtPct(p.pct)}
       </p>
     </div>
@@ -30,14 +32,27 @@ function DonutTooltip({
 export function AllocationDonut({
   allocation,
   loading,
+  error,
 }: {
   allocation: Allocation | null;
   loading: boolean;
+  error?: string | null;
 }) {
+  if (error) {
+    return (
+      <Panel>
+        <PanelHeader seq="02" title="Allocation" />
+        <div className="px-5 pb-5">
+          <ErrorNote message={error} />
+        </div>
+      </Panel>
+    );
+  }
+
   if (loading) {
     return (
       <Panel>
-        <PanelHeader title="Allocation" />
+        <PanelHeader seq="02" title="Allocation" />
         <div className="flex flex-col items-center gap-4 px-5 pb-5">
           <Skeleton className="h-44 w-44 rounded-full" />
           <div className="w-full space-y-2">
@@ -53,10 +68,9 @@ export function AllocationDonut({
   if (!allocation || sectors.length === 0) {
     return (
       <Panel>
-        <PanelHeader title="Allocation" />
+        <PanelHeader seq="02" title="Allocation" />
         <EmptyState
-          title="Nothing to allocate yet"
-          body="The sector breakdown appears once this portfolio holds priced positions."
+          title="Nothing to allocate yet" body="The sector breakdown appears once this portfolio holds priced positions."
         />
       </Panel>
     );
@@ -82,20 +96,16 @@ export function AllocationDonut({
 
   return (
     <Panel>
-      <PanelHeader title="Allocation" />
+      <PanelHeader seq="02" title="Allocation" />
       <div className="px-5 pb-5">
         <div className="relative mx-auto h-48 w-48">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
                 data={slices}
-                dataKey="value"
-                nameKey="label"
-                innerRadius="68%"
-                outerRadius="100%"
-                paddingAngle={2}
-                stroke="#edeff4"
-                strokeWidth={2}
+                dataKey="value" nameKey="label" innerRadius="68%" outerRadius="100%" paddingAngle={2}
+                // the donut sits on a paper panel, not on the porcelain page
+                stroke="#ffffff" strokeWidth={2}
                 isAnimationActive={false}
               >
                 {slices.map((s) => (
@@ -107,7 +117,7 @@ export function AllocationDonut({
           </ResponsiveContainer>
           <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
             <span className="text-[11px] text-ink-3">Total</span>
-            <span className="tnum font-mono text-[13px] font-semibold text-ink">
+            <span className="tnum text-[13px] font-semibold text-ink">
               {fmtRp(allocation.total_market_value)}
             </span>
           </div>
@@ -117,11 +127,10 @@ export function AllocationDonut({
           {slices.map((s) => (
             <li key={s.label} className="flex items-center gap-2 text-[13px]">
               <span
-                className="h-2 w-2 shrink-0 rounded-full"
-                style={{ background: s.color }}
+                className="h-2 w-2 shrink-0" style={{ background: s.color }}
               />
               <span className="truncate text-ink-2">{s.label}</span>
-              <span className="tnum ml-auto font-mono text-ink">
+              <span className="tnum ml-auto text-ink">
                 {fmtPct(s.pct)}
               </span>
             </li>
@@ -129,11 +138,13 @@ export function AllocationDonut({
         </ul>
 
         {allocation.flags.length > 0 && (
-          <div className="mt-4 space-y-2">
+          // announced when allocation refreshes — a coloured note alone is
+          // invisible to a screen reader
+          <div role="status" className="mt-4 space-y-2">
             {allocation.flags.map((f, i) => (
               <p
                 key={i}
-                className="flex items-start gap-2 rounded-[8px] bg-warn/10 px-3 py-2 text-xs text-warn ring-1 ring-warn/25"
+                className="flex items-start gap-2 bg-warn/10 px-3 py-2 text-xs text-warn ring-1 ring-warn/25"
               >
                 <Warning size={14} weight="light" className="mt-[1px] shrink-0" />
                 <span>

@@ -1,6 +1,6 @@
 ﻿import logging
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 from decimal import ROUND_HALF_UP, Decimal
 from itertools import groupby
 from zoneinfo import ZoneInfo
@@ -20,7 +20,7 @@ from app.models import (
     Transaction,
     User,
 )
-from app.pnl import realized_pnl
+from app.pnl import realized_pnl_and_cost
 from app.scheduler import enqueue_backfill
 from app.schemas import (
     CashFlowIn,
@@ -101,6 +101,80 @@ async def _cash_state(
         )
     ).one()
     return int(row.balance), bool(row.tracked)
+
+
+async def _reject_buy_before_funding(
+    session: AsyncSession, portfolio_id: uuid.UUID, executed_at: date
+) -> None:
+    """Refuse a BUY dated before the ledger starts.
+
+    This closes a hole that the affordability guards cannot see. `_cash_state`
+    deliberately excludes trades dated before the first cash flow, and the
+    guards on both the create and the edit path compute affordability with
+    that *same* function — so a buy dated before the funding is left out of
+    the very sum meant to catch it. Its cost is never subtracted from
+    anything. Concretely, before this check:
+
+      * deposit 94jt on 1 Aug, then buy 84jt dated 4 Mar -> accepted, and the
+        balance still reported the full 94jt after the purchase;
+      * or record an affordable buy and simply EDIT its date to before the
+        funding -> the `balance < 0` guard sees a balance that no longer
+        includes the cost, so it passes.
+
+    Rejecting the date rather than tightening the balance maths is what fixes
+    both: the second case was never an overspend by the numbers the guard had.
+
+    Only BUY is restricted. A sell releases cash rather than spending it, and
+    once buys cannot predate the funding a holding cannot either, so a sell in
+    that window is unreachable for new data — while portfolios that already
+    carry imported history stay editable.
+    """
+    first_flow = await session.scalar(
+        sa_text("SELECT MIN(occurred_at) FROM cash_flows WHERE portfolio_id = :p"),
+        {"p": portfolio_id},
+    )
+    if first_flow is not None and executed_at < first_flow:
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_CONTENT,
+            f"This buy is dated {executed_at.isoformat()}, before the first "
+            f"cash flow on {first_flow.isoformat()}. Cash has to exist before "
+            "it can be spent — back-date the opening deposit to "
+            f"{executed_at.isoformat()} or earlier, or move the trade.",
+        )
+
+
+async def _uncounted_trades(
+    session: AsyncSession, portfolio_id: uuid.UUID
+) -> tuple[int, date | None]:
+    """(how many trades the balance ignores, the first cash-flow date).
+
+    `_cash_state` only counts trades on or after the first cash flow. That is
+    deliberate, but it is invisible: a portfolio whose buys predate its funding
+    reports cash that those very buys have already spent. Surfacing the count
+    lets the UI say so instead of quietly overstating what is available.
+
+    Returns (0, None) when there are no cash flows at all — the UI already has
+    a dedicated "deposit before buying" state for that.
+    """
+    row = (
+        await session.execute(
+            sa_text(
+                """
+                SELECT
+                  (SELECT MIN(cf.occurred_at) FROM cash_flows cf
+                   WHERE cf.portfolio_id = :p) AS first_flow,
+                  COALESCE((SELECT COUNT(*) FROM transactions t
+                            WHERE t.portfolio_id = :p
+                              AND t.executed_at < (SELECT MIN(cf2.occurred_at)
+                                                   FROM cash_flows cf2
+                                                   WHERE cf2.portfolio_id = :p)
+                           ), 0) AS uncounted
+                """
+            ),
+            {"p": portfolio_id},
+        )
+    ).one()
+    return int(row.uncounted), row.first_flow
 
 
 def _txn_out(txn: Transaction, ticker: str) -> TransactionOut:
@@ -229,6 +303,11 @@ async def add_transaction(
     shares = payload.lots * SHARES_PER_LOT
 
     if payload.type == "BUY":
+        # Order matters: the date rule first, because a buy dated before the
+        # funding is invisible to the balance check below and would otherwise
+        # sail through whenever the deposit happens to be large enough.
+        await _reject_buy_before_funding(session, portfolio.id, payload.executed_at)
+
         # A buy always spends cash: you cannot buy what you cannot fund.
         # An unfunded portfolio has a zero balance, so its first buy is
         # rejected until a deposit is recorded.
@@ -357,6 +436,14 @@ async def update_transaction(
             status.HTTP_422_UNPROCESSABLE_CONTENT, "executed_at cannot be in the future"
         )
 
+    # Checked against the edit's OUTCOME, and before anything is mutated so
+    # there is nothing to roll back. This is the path the hole was actually
+    # reachable through: an affordable buy could be moved behind the funding
+    # date, at which point the `balance < 0` guard below stops counting its
+    # cost and lets the edit through.
+    if payload.type == "BUY":
+        await _reject_buy_before_funding(session, portfolio.id, payload.executed_at)
+
     security = await session.get(Security, txn.security_id)
     ticker = security.ticker  # capture before rollback can expire it
 
@@ -473,10 +560,13 @@ async def get_cash(
             .limit(20)
         )
     )
+    uncounted, first_flow = await _uncounted_trades(session, portfolio.id)
     return CashSummaryOut(
         balance=balance,
         tracked=tracked,
         flows=[CashFlowOut.model_validate(f) for f in flows],
+        uncounted_trades=uncounted,
+        first_flow_date=first_flow,
     )
 
 
@@ -583,10 +673,15 @@ async def get_holdings(
         )
     )
     realized_by_sec: dict[uuid.UUID, int] = {}
+    # cost of shares already sold — the other half of the denominator a
+    # portfolio-level return percentage needs
+    total_realized_cost = 0
     for sid, group in groupby(txn_rows, key=lambda row: row[0]):
-        realized_by_sec[sid] = realized_pnl(
+        pnl_value, cost_sold = realized_pnl_and_cost(
             [(t[1], t[2], t[3], t[4]) for t in group]
         )
+        realized_by_sec[sid] = pnl_value
+        total_realized_cost += cost_sold
     total_realized = sum(realized_by_sec.values())
 
     # Price preference: delayed quote, else the most recent stored close
@@ -661,6 +756,7 @@ async def get_holdings(
 
     priced_any = len(holdings) > unpriced
     cash_balance, cash_tracked = await _cash_state(session, portfolio.id)
+    cash_uncounted, _ = await _uncounted_trades(session, portfolio.id)
     return HoldingsOut(
         portfolio_id=portfolio.id,
         holdings=holdings,
@@ -669,8 +765,10 @@ async def get_holdings(
             market_value=total_mv if priced_any else None,
             unrealized_pnl=total_pnl if priced_any else None,
             realized_pnl=total_realized,
+            realized_cost_basis=total_realized_cost,
             unpriced_holdings=unpriced,
             cash_balance=cash_balance,
             cash_tracked=cash_tracked,
+            cash_uncounted_trades=cash_uncounted,
         ),
     )

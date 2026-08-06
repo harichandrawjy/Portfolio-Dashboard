@@ -1,0 +1,38 @@
+# One origin for the whole app. This is the piece that replaces Vite's dev
+# proxy: the frontend hardcodes `BASE = "/api"` (see api/client.ts), which in
+# development only exists because vite.config.ts invents it. In production
+# nothing would answer that path, so every request would 404.
+#
+# Serving the static build and the API from the SAME origin means `/api` keeps
+# working with no code change, and there is no CORS to configure at all.
+#
+# Caddy obtains and renews TLS certificates automatically for a real domain.
+
+{$DOMAIN} {
+	encode zstd gzip
+
+	# API first — the strip_prefix matches vite.config.ts's `rewrite`, which
+	# removes /api before forwarding. FastAPI mounts its routers at the root
+	# (/health, /auth/..., /portfolios/...), so the prefix must come off.
+	handle_path /api/* {
+		reverse_proxy backend:8000
+	}
+
+	# Everything else is the SPA.
+	handle {
+		root * /srv
+		encode gzip
+
+		# Hashed asset filenames are immutable; index.html must never be
+		# cached or a deploy leaves browsers on the old bundle forever.
+		@assets path /assets/*
+		header @assets Cache-Control "public, max-age=31536000, immutable"
+		header /index.html Cache-Control "no-cache"
+
+		# Client-side routing: /portfolios/<id> and /stocks/<ticker> are React
+		# Router paths with no file behind them, so unmatched requests fall
+		# back to index.html rather than 404ing.
+		try_files {path} /index.html
+		file_server
+	}
+}

@@ -1,0 +1,72 @@
+# Production overrides. Use WITH the base file, never instead of it:
+#
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+#
+# The base file is a development config — it bind-mounts the source, runs
+# uvicorn with --reload, publishes Postgres on the host, and falls back to
+# well-known credentials. Every one of those is wrong on a public box, so this
+# file turns each of them off explicitly rather than relying on a second copy
+# of the whole stack that would drift.
+services:
+  db:
+    # `ports` cannot be un-published by an override, so the base file's
+    # "5432:5432" would still expose the database to the internet. Binding to
+    # loopback is the override that actually closes it: the backend reaches
+    # Postgres over the compose network, and nothing outside the host can.
+    ports:
+      - "127.0.0.1:5432:5432"
+    environment:
+      # `:?` makes COMPOSE ITSELF refuse to start when the variable is unset,
+      # instead of silently falling back to the dev password in the base file.
+      POSTGRES_USER: ${POSTGRES_USER:?set POSTGRES_USER in .env.prod}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env.prod}
+      POSTGRES_DB: ${POSTGRES_DB:?set POSTGRES_DB in .env.prod}
+      PGDATABASE: ${POSTGRES_DB}
+
+  backend:
+    # No --reload, no file watcher, no bind mount: the image ships the code.
+    # One worker on purpose — APScheduler runs IN-PROCESS, so a second worker
+    # would mean two schedulers racing to write the same bars.
+    command: >
+      sh -c "alembic upgrade head &&
+             uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 1"
+    # Replaces the base file's source bind mount. Compose merges volume lists
+    # by appending, so this cannot remove it — see DEPLOY.md for why the
+    # deploy uses `--build` and why the base mount is harmless once the image
+    # contains the same code at the same path.
+    volumes: []
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      SECRET_KEY: ${SECRET_KEY:?generate one with `openssl rand -hex 32`}
+      # The scheduler is written against Asia/Jakarta wall-clock time (bars
+      # 18:30, quotes 09:00-16:00). python:3.12-slim has no tzdata, so without
+      # this ZoneInfo resolution differs from a dev machine.
+      TZ: Asia/Jakarta
+      WATCHFILES_FORCE_POLLING: "false"
+    # Only Caddy talks to the API; the port is not published to the host.
+    ports: []
+    expose:
+      - "8000"
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      # The built frontend. `npm run build` output, copied to the server —
+      # there is no Node on the box and no reason for one.
+      - ./frontend/dist:/srv:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    environment:
+      # Caddy reads this to request a certificate for the right name.
+      DOMAIN: ${DOMAIN:?set DOMAIN in .env.prod (or use :80 for an IP-only box)}
+    depends_on:
+      - backend
+
+volumes:
+  caddy_data:
+  caddy_config:

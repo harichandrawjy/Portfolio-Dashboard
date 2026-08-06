@@ -32,6 +32,7 @@ from app.schemas import (
     SecurityStatsOut,
     StatementPeriodOut,
     StockPositionOut,
+    ProvisionalBar,
     StockPricePoint,
     StockPricesOut,
 )
@@ -316,7 +317,37 @@ async def security_prices(
             )
         )
 
-    return StockPricesOut(ticker=sec.ticker, range=range_key, points=points)
+    # Today's session, if one is actually in progress. Gated on the quote's
+    # own trade_date being NEWER than the last published bar — that single
+    # condition covers both ways this could mislead: a stale quote left over
+    # from a previous session, and the window after 18:30 when the real bar
+    # exists and a provisional copy would duplicate it.
+    provisional = None
+    quote = await session.scalar(
+        select(LatestQuote).where(LatestQuote.security_id == sec.id)
+    )
+    newest_bar = bars[-1].trade_date if bars else None
+    if (
+        quote is not None
+        and quote.trade_date is not None
+        and (newest_bar is None or quote.trade_date > newest_bar)
+    ):
+        provisional = ProvisionalBar(
+            date=quote.trade_date,
+            open=quote.open,
+            high=quote.high,
+            low=quote.low,
+            close=quote.price,
+            volume=quote.volume,
+            as_of=quote.as_of,
+        )
+
+    return StockPricesOut(
+        ticker=sec.ticker,
+        range=range_key,
+        points=points,
+        provisional=provisional,
+    )
 
 
 @router.get("/securities/{ticker}/position", response_model=StockPositionOut)

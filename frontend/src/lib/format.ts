@@ -68,6 +68,19 @@ export function fmtPct(n: number | null | undefined, signed = false): string {
   return (signed && n > 0 ? "+" : "") + s + "%";
 }
 
+/**
+ * Ratios, multiples, betas and scores. Everything else on screen is formatted
+ * id-ID, so a raw `toFixed` puts "1.25×" next to "Rp 27.742.500" and "-3,93%"
+ * and the locale visibly breaks. Route every user-facing decimal through here.
+ */
+export function fmtDec(n: number | null | undefined, digits = 2): string {
+  if (n == null) return DASH;
+  return n.toLocaleString("id-ID", {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  });
+}
+
 export function fmtSignedRp(n: number | null | undefined): string {
   if (n == null) return DASH;
   return (n > 0 ? "+" : "") + rp.format(n);
