@@ -5,18 +5,23 @@ transactions in board lots, watch live value and time-weighted performance
 against the IHSG benchmark, and drill into per-stock pages with five years
 of history, risk analytics, and fundamentals.
 
-Built as a personal portfolio project: FastAPI + PostgreSQL backend,
-React + Vite + Tailwind + Recharts frontend, Docker Compose for local dev.
+Built as a personal portfolio project: FastAPI + PostgreSQL backend, React +
+Vite + Tailwind frontend, Recharts for the portfolio curve and TradingView
+Lightweight Charts for candles, Docker Compose for local dev.
 
 ## Screenshots
 
-<!-- TODO: add screenshots to docs/screenshots/ and uncomment
-![Portfolio dashboard](docs/screenshots/dashboard.png)
-![Stock detail](docs/screenshots/stock-detail.png)
-![Add transaction](docs/screenshots/add-transaction.png)
+<!--
+Capture at 1280px wide, light theme, with the demo portfolio seeded so the
+figures are real. Save to docs/screenshots/ and delete the italic line below.
+
+![Portfolio detail — value, allocation, holdings, ledger](docs/screenshots/portfolio-detail.png)
+![Stock page — candles, your trades, break-even](docs/screenshots/stock-detail.png)
+![Order entry — lots bounded by cash, IDX tick sizes](docs/screenshots/add-transaction.png)
 -->
-*Screenshots pending — run the demo seed below and see it live in under
-five minutes.*
+
+*Screenshots pending — the demo seed below gets you a populated app in a
+couple of minutes.*
 
 ## Architecture
 
@@ -40,7 +45,7 @@ fresh:
 |---|---|---|
 | Universe sync | nightly 21:00 | IDX ticker list upsert; delistings deactivated, never deleted; CSV fallback if IDX is unreachable |
 | Daily prices | Mon–Fri 18:30 | Appends recent bars for every tracked ticker + IHSG, then rebuilds the stat cache |
-| Quote refresh | Mon–Fri 09:00–16:00, every 15 min | Delayed quotes for held tickers into `latest_quotes` |
+| Quote refresh | Mon–Fri 09:00–16:00, every 15 min | Delayed quotes for held tickers into `latest_quotes`, plus the session's OHLC so far for the in-progress candle |
 | Fundamentals | Sat 06:00 | Market cap, P/E, EPS, yield, book value + curated extended stats (weekly — this data barely moves) |
 | Statements | Sat 06:30 | Income statement, balance sheet, cash flow (≈4 annual, ≈5 quarters); solvency/efficiency metrics derived from them |
 | Lazy backfill | on demand | 5y of daily OHLCV the first time anyone touches a ticker, then its stats, fundamentals, and statements immediately after |
@@ -58,6 +63,11 @@ Backend layout: `app/routers` (API), `app/sync` (all external data),
 single typed API surface; pages in `src/pages`, components in
 `src/components`.
 
+The interface follows a documented design system — one variable grotesk,
+black rules and numbered sections instead of cards, and a single accent used
+only as a full flat field. The contract, including the named rules and the
+reasoning behind them, is in [`DESIGN.md`](DESIGN.md).
+
 ## Local setup
 
 Prereqs: Docker Desktop, Node 20+.
@@ -74,8 +84,15 @@ Sign in at <http://localhost:5173> with **demo@arus.id / arus-demo-123**.
 The seed backfills real price history, so the first run needs network and
 takes a minute or two. Re-running it is a no-op.
 
-Tests: `docker compose exec backend pytest` (45 tests against a throwaway
+Tests: `docker compose exec backend pytest` (87 tests against a throwaway
 database). CI runs them plus the frontend type-check/build on every push.
+
+## Deployment
+
+One box runs everything: Caddy for TLS and routing, the API, and Postgres,
+with the built frontend served as static files from the same origin — which
+is what keeps the client's `/api` prefix working without CORS. Steps,
+configuration and the operational caveats are in [`DEPLOY.md`](DEPLOY.md).
 
 ## API summary
 
@@ -84,10 +101,11 @@ All endpoints except `/health` and `/auth/*` require a JWT bearer token.
 | Area | Endpoints |
 |---|---|
 | Auth | `POST /auth/register`, `POST /auth/login`, `GET /me` |
-| Portfolios | CRUD on `/portfolios`, owner-scoped (others' portfolios 404) |
-| Transactions | `POST/GET /portfolios/{id}/transactions` (lots in, shares stored), `DELETE .../{txn_id}` |
+| Portfolios | `POST/GET /portfolios`, `GET/PATCH/DELETE /portfolios/{id}` — owner-scoped (others' portfolios 404) |
+| Transactions | `POST/GET /portfolios/{id}/transactions` (lots in, shares stored), `PATCH/DELETE .../{txn_id}` with ledger-integrity guards |
+| Cash | `GET/POST /portfolios/{id}/cash`, `DELETE .../cash/{flow_id}` — balance guarded so a delete cannot strand later buys |
 | Analytics | `/portfolios/{id}/holdings`, `/performance?range=`, `/metrics?range=`, `/allocation` |
-| Securities | `/securities/search?q=`, `/securities/{ticker}` (+`/prices`, `/position`, `POST /ensure-prices`) |
+| Securities | `/securities/search?q=`, `/securities/{ticker}` (+`/prices`, `/position`, `/financials`, `/close`, `POST /ensure-prices`) |
 
 Interactive docs at `http://localhost:8000/docs`.
 
@@ -133,6 +151,26 @@ history does not have its opening deposit drained by old buys. Analytics
 still measure invested capital only — idle cash is a budgeting device, not
 part of the performance series.
 
+That exclusion needs a second rule to be safe, and finding out why was
+instructive: **a buy may not be dated before the first cash flow.** The
+affordability guards compute the balance with the same exclusion, so a buy
+dated behind the funding was left out of the very sum meant to catch it and
+cost nothing at all — deposit 94jt, buy 84jt dated earlier, and the balance
+still reported the full 94jt. The same hole was reachable by editing an
+affordable buy's date backwards. It is enforced on create and edit, for buys
+only: a sell releases cash rather than spending it, and blocking it would
+strand imported history.
+
+**An unfinished session is never stored as a bar.** Yahoo returns the current
+day as an ordinary row, so a sync during market hours used to write a partial
+candle — and the startup catch-up, which compares dates, then saw a bar for
+that date and concluded nothing was missing. One ticker sat on a mid-session
+price of 565 whose real close was 615. `price_history` now refuses any bar
+before the day's close is published; today's in-progress candle comes from
+the quote cache instead, kept in `latest_quotes` and returned as a separate
+`provisional` field so nothing that consumes the historical series can mistake
+it for settled.
+
 **Data licensing.** IDX's terms restrict commercial redistribution of
 their data, and Yahoo Finance data comes with its own usage limits. This
 is a personal, non-commercial project; a commercial version would use a
@@ -144,8 +182,11 @@ sync interfaces.
 - US stocks and multi-currency portfolios (money model generalizes from
   whole-rupiah `BIGINT` to per-currency minor units; `.JK`-suffix handling
   becomes a per-exchange symbol map)
-- Realized P&L and tax-lot accounting
+- Tax-lot accounting (realized P&L today is average-cost)
 - Dividend tracking (cash flows would upgrade TWR handling too)
+- Quotes for tickers nobody holds go stale after the first visit — the
+  15-minute job only covers held tickers, so a browsed-but-unowned stock is
+  fetched once and never refreshed
 
 ## Disclaimers
 
