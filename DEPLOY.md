@@ -99,12 +99,12 @@ Migrations run automatically — the backend's command is
 `alembic upgrade head && uvicorn ...`, so the schema is current before the API
 serves a single request.
 
-The demo credentials in `.env.prod` are read at **build** time by Vite, so
-changing them needs a rebuild (`up -d --build`), not just a restart. They are
-also not free-form: `app/seed_demo.py` hardcodes the account it creates, so
-they must be exactly the values shipped in `.env.prod.example` or the demo
-button builds fine and then fails to log in. Blank both to ship without the
-button at all.
+The build takes no configuration and no secrets. It used to inline demo
+credentials that had to match values hardcoded in Python — a mismatch shipped
+a button that looked right and signed nobody in, fixable only by a full
+rebuild. `POST /auth/demo` replaced that: the server mints a private account
+per visitor, so there is nothing to bake in. Set `DEMO_ENABLED=false` to turn
+the endpoint off; the login page hides its button when it answers 404.
 
 **5. Seed the demo**
 
@@ -187,23 +187,21 @@ the next boot — so the data self-heals on wake rather than staying stale.
 **Yahoo throttles datacenter IPs** harder than home connections. Expect more
 sync failures than on a laptop; the retry/backoff absorbs some of it.
 
-**The demo account is shared and mutable.** Anyone who clicks the demo button
-can add or delete portfolios, and a visitor who arrives after someone deleted
-the demo portfolio sees an empty app. `seed_demo` is idempotent — it exits if
-the portfolio is still there — so a nightly cron costs nothing and keeps the
-link presentable:
+**The demo needs no upkeep.** Each visitor gets a private clone of the seeded
+template (`POST /auth/demo`), so nothing a visitor does is visible to anyone
+else and the template itself is unreachable — its password is deliberately
+unusable, and only the clone path reads the row. No re-seeding cron, which
+earlier versions of this file recommended and this design removes the need for.
+
+Two things keep that safe, and both are automatic: the endpoint is rate-limited
+to 5 accounts per caller per hour, and the scheduler purges demo accounts older
+than 24 hours at 04:00 WIB. To check the churn:
 
 ```bash
-sudo crontab -e
+docker compose --env-file .env.prod -f docker-compose.yml -f docker-compose.prod.yml \
+  exec -T db psql -U "$POSTGRES_USER" "$POSTGRES_DB" \
+  -c "select count(*) from users where is_demo"
 ```
-
-```cron
-# 03:00 WIB — after the day's syncs, before anyone looks.
-0 3 * * * cd /home/ubuntu/arus && /usr/bin/docker compose --env-file .env.prod -f docker-compose.yml -f docker-compose.prod.yml exec -T backend python -m app.seed_demo >> /var/log/arus-seed.log 2>&1
-```
-
-Note `exec -T`: cron has no TTY, and without it the command fails with "the
-input device is not a TTY". Adjust the path if you cloned somewhere else.
 
 **Backups.** Postgres lives in the `pgdata` volume. Nothing backs it up
 automatically:

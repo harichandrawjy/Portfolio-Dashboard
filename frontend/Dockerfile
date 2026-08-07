@@ -14,15 +14,12 @@ RUN npm ci
 
 COPY . .
 
-# Vite inlines these at BUILD time, so they must be present here rather than in
-# the container environment. They end up readable in the shipped JS by
-# construction — hence a throwaway demo account, never anything private. Unset
-# means the demo button is not rendered at all.
-ARG VITE_DEMO_EMAIL=""
-ARG VITE_DEMO_PASSWORD=""
-ENV VITE_DEMO_EMAIL=$VITE_DEMO_EMAIL
-ENV VITE_DEMO_PASSWORD=$VITE_DEMO_PASSWORD
-
+# No build args. There used to be VITE_DEMO_EMAIL/PASSWORD here, inlined by
+# Vite into the bundle — which meant the demo credentials were public by
+# construction, had to match values hardcoded in app/seed_demo.py, and could
+# only be corrected by a full rebuild rather than a restart. The server now
+# mints a private demo account per visitor, so the build takes no secrets and
+# no configuration at all.
 RUN npm run build
 
 # Serving stage. Caddy also reverse-proxies /api to the backend so the whole app

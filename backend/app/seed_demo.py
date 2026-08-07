@@ -17,16 +17,28 @@ from sqlalchemy import func, or_, select
 
 from app.db import SessionLocal
 from app.models import CashFlow, Portfolio, PriceHistory, Security, Transaction, User
-from app.security import hash_password
+from app.demo import (
+    TEMPLATE_EMAIL,
+    TEMPLATE_PORTFOLIO_NAME,
+    UNUSABLE_PASSWORD_HASH,
+)
 from app.sync.fundamentals import sync_fundamentals
 from app.sync.prices import backfill_ticker, sync_quotes
 from app.sync.universe import sync_universe
 
 logger = logging.getLogger(__name__)
 
-DEMO_EMAIL = "demo@arus.id"
-DEMO_PASSWORD = "arus-demo-123"
-PORTFOLIO_NAME = "Blue Chips (demo)"
+# The template every visitor's demo is cloned from (app/demo.py). It is no
+# longer an account anyone signs into: its password is deliberately unusable,
+# so the credentials that used to ship in the JS bundle — and are still in the
+# README's history and in older builds — cannot be used to edit what visitors
+# see. Nothing but POST /auth/demo reads this row.
+DEMO_EMAIL = TEMPLATE_EMAIL
+# Defined in app/demo.py, because that is what looks the portfolio up when
+# cloning it for a visitor. One definition: if these two ever disagreed, the
+# seed would build a portfolio the demo endpoint could not find, and the only
+# symptom would be a 503 from a database that looks correctly seeded.
+PORTFOLIO_NAME = TEMPLATE_PORTFOLIO_NAME
 
 # (ticker, months_ago, type, lots) — a two-year story with buys and sells
 SCRIPT: list[tuple[str, int, str, int]] = [
@@ -80,7 +92,18 @@ async def main() -> None:
 
     # 2. Already seeded?
     async with SessionLocal() as session:
-        user = await session.scalar(select(User).where(User.email == DEMO_EMAIL))
+        async with session.begin():
+            user = await session.scalar(select(User).where(User.email == DEMO_EMAIL))
+            if user is not None and user.password_hash != UNUSABLE_PASSWORD_HASH:
+                # Upgrade path for databases seeded before per-visitor demos:
+                # the template used to hold a real hash of a password printed
+                # in the README, which still let anyone sign in and edit the
+                # thing clones are cut from. Neuter it every run, so the fix
+                # lands even when the portfolio itself is already in place and
+                # the block below returns early.
+                user.password_hash = UNUSABLE_PASSWORD_HASH
+                print("Retired the old shared demo password on the template account.")
+
         if user is not None:
             existing = await session.scalar(
                 select(Portfolio.id).where(
@@ -89,7 +112,7 @@ async def main() -> None:
                 )
             )
             if existing is not None:
-                print(f"Demo already seeded. Sign in with {DEMO_EMAIL} / {DEMO_PASSWORD}")
+                print("Demo template already seeded — visitors get their own clone.")
                 return
 
     # 3. Five years of daily bars for every demo ticker + the benchmark
@@ -108,7 +131,9 @@ async def main() -> None:
             if user is None:
                 user = User(
                     email=DEMO_EMAIL,
-                    password_hash=hash_password(DEMO_PASSWORD),
+                    # Not a login. Visitors get a clone via POST /auth/demo;
+                    # this row exists only to be copied from.
+                    password_hash=UNUSABLE_PASSWORD_HASH,
                     display_name="Demo",
                 )
                 session.add(user)
@@ -179,9 +204,11 @@ async def main() -> None:
     await sync_fundamentals(TICKERS)
 
     print()
-    print("Demo ready. Sign in at http://localhost:5173")
-    print(f"  email:    {DEMO_EMAIL}")
-    print(f"  password: {DEMO_PASSWORD}")
+    print("Demo template ready.")
+    print("  Visitors click 'Explore the demo portfolio' and POST /auth/demo")
+    print("  hands each of them a private clone of it. There is no shared")
+    print("  password to hand out, and nothing a visitor does can reach this")
+    print("  template — so it stays presentable without a re-seed cron.")
 
 
 if __name__ == "__main__":

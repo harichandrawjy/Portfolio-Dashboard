@@ -48,6 +48,10 @@ services:
       # 18:30, quotes 09:00-16:00). python:3.12-slim has no tzdata, so without
       # this ZoneInfo resolution differs from a dev machine.
       TZ: Asia/Jakarta
+      # Controls POST /auth/demo. Defaulted rather than `:?` required: an
+      # existing .env.prod written before this variable existed should keep
+      # deploying, and "on" matches what a public showcase wants.
+      DEMO_ENABLED: ${DEMO_ENABLED:-true}
       WATCHFILES_FORCE_POLLING: "false"
     # Only Caddy talks to the API. Again `!reset` rather than `[]`: without it
     # the base file's "8000:8000" survives the merge and the API answers
@@ -63,10 +67,6 @@ services:
     # log to explain it. Building here means the server needs only Docker.
     build:
       context: ./frontend
-      args:
-        # Compile-time for Vite, so they belong to the build, not the runtime.
-        VITE_DEMO_EMAIL: ${VITE_DEMO_EMAIL:-}
-        VITE_DEMO_PASSWORD: ${VITE_DEMO_PASSWORD:-}
     restart: unless-stopped
     ports:
       - "80:80"

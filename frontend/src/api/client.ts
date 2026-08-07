@@ -428,6 +428,18 @@ export const api = {
       body: { email, password },
     }),
 
+  /** Mint a private, throwaway demo account and get a token for it.
+   *
+   *  No credentials go out. The demo used to be a shared account whose
+   *  password was compiled into this bundle, which meant every visitor edited
+   *  the same portfolio and any of them could delete it. Now each caller gets
+   *  their own clone, server-side, and there is nothing to bake in at build
+   *  time — which is also why VITE_DEMO_EMAIL/PASSWORD no longer exist.
+   *
+   *  404 means the deployment has demo sign-in switched off. */
+  demoLogin: () =>
+    request<{ access_token: string }>("/auth/demo", { method: "POST" }),
+
   me: () => request<User>("/me"),
 
   listPortfolios: () => request<Portfolio[]>("/portfolios"),

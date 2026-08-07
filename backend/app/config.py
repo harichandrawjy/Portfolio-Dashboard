@@ -27,6 +27,11 @@ class Settings(BaseSettings):
     idx_base_url: str = "https://www.idx.co.id"  # overridable for tests/failure drills
     secret_key: str  # JWT signing key — required, no default
     access_token_expire_minutes: int = 1440
+    # POST /auth/demo mints a throwaway account with no authentication, which
+    # is the point on a public showcase and unwanted on a private deployment.
+    # Defaults on: the endpoint is rate-limited and its accounts are purged
+    # nightly, and a demo nobody can reach is the more common mistake.
+    demo_enabled: bool = True
     # Annual risk-free rate for Sharpe: Bank Indonesia policy rate (BI Rate).
     # A constant is fine for this project; update via env when BI moves it.
     risk_free_rate_annual: float = 0.055

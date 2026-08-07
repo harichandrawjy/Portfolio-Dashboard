@@ -4,6 +4,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.combining import OrTrigger
 from apscheduler.triggers.cron import CronTrigger
 
+from app.demo import purge_expired_demo_users
 from app.sync.fundamentals import sync_fundamentals
 from app.sync.prices import backfill_ticker, sync_daily, sync_quotes
 from app.sync.universe import sync_universe
@@ -66,6 +67,18 @@ def create_scheduler() -> AsyncIOScheduler:
         sync_statements,
         CronTrigger(day_of_week="sat", hour=6, minute=30, timezone=JAKARTA),
         id="statements-sync",
+        coalesce=True,
+        misfire_grace_time=6 * 3600,
+    )
+
+    # Every visitor who clicks "explore the demo" leaves a user row behind.
+    # They are disposable by construction (app/demo.py), but nothing else
+    # deletes them, so without this the table grows for the lifetime of the
+    # deployment. 04:00 is after the day's syncs and before anyone is awake.
+    scheduler.add_job(
+        purge_expired_demo_users,
+        CronTrigger(hour=4, minute=0, timezone=JAKARTA),
+        id="demo-purge",
         coalesce=True,
         misfire_grace_time=6 * 3600,
     )

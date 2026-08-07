@@ -42,6 +42,9 @@ class User(Base):
     email: Mapped[str] = mapped_column(Text, unique=True)
     password_hash: Mapped[str] = mapped_column(Text)
     display_name: Mapped[str | None] = mapped_column(Text)
+    # Minted by POST /auth/demo and deleted by the nightly purge (migration
+    # 0008). Registration never sets it, so a real account cannot be swept up.
+    is_demo: Mapped[bool] = mapped_column(Boolean, server_default=text("false"))
     created_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True), server_default=text("now()")
     )

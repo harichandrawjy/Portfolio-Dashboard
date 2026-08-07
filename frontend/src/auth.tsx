@@ -14,6 +14,7 @@ interface AuthState {
   user: User | null;
   ready: boolean;
   login: (email: string, password: string) => Promise<void>;
+  demoLogin: () => Promise<void>;
   register: (
     email: string,
     password: string,
@@ -51,6 +52,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(await api.me());
   }, []);
 
+  const demoLogin = useCallback(async () => {
+    const { access_token } = await api.demoLogin();
+    setToken(access_token);
+    setUser(await api.me());
+  }, []);
+
   const register = useCallback(
     async (email: string, password: string, displayName?: string) => {
       await api.register(email, password, displayName);
@@ -65,7 +72,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, ready, login, register, logout }}>
+    <AuthContext.Provider
+      value={{ user, ready, login, demoLogin, register, logout }}
+    >
       {children}
     </AuthContext.Provider>
   );

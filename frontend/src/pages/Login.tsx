@@ -1,16 +1,18 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 
+import { ApiError } from "../api/client";
 import { useAuth } from "../auth";
 import { Button, ErrorNote, Field } from "../components/ui";
 
 type Mode = "login" | "register";
 
-// Both must be set for the demo entry to exist at all, so a private
-// deployment never ships a shared account it did not ask for.
-const DEMO_EMAIL = import.meta.env.VITE_DEMO_EMAIL;
-const DEMO_PASSWORD = import.meta.env.VITE_DEMO_PASSWORD;
-const DEMO_READY = Boolean(DEMO_EMAIL && DEMO_PASSWORD);
+// No build-time demo credentials any more. The server mints a private account
+// per visitor (POST /auth/demo), so there is nothing to bake in — and nothing
+// to get wrong: the old VITE_DEMO_EMAIL/PASSWORD pair had to match what
+// seed_demo.py hardcoded, and a mismatch shipped a button that looked fine and
+// failed to sign anyone in. A deployment with the demo switched off answers
+// 404, and the button hides itself on seeing one.
 
 /** Fixed heights for the knockout column motif. Hand-set rather than random
  *  so the composition is stable across reloads — a Swiss plate is drawn, not
@@ -21,7 +23,7 @@ const COLUMNS = [
 ];
 
 export function LoginPage() {
-  const { login, register } = useAuth();
+  const { login, demoLogin, register } = useAuth();
   const navigate = useNavigate();
   const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
@@ -30,6 +32,9 @@ export function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [demoBusy, setDemoBusy] = useState(false);
+  // Shown until the server says otherwise. A deployment with demo sign-in
+  // disabled answers 404, and there is no point offering it again.
+  const [demoOffered, setDemoOffered] = useState(true);
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
@@ -47,14 +52,17 @@ export function LoginPage() {
   };
 
   const signInAsDemo = async () => {
-    if (!DEMO_EMAIL || !DEMO_PASSWORD) return;
     setError(null);
     setDemoBusy(true);
     try {
-      await login(DEMO_EMAIL, DEMO_PASSWORD);
+      await demoLogin();
       navigate("/", { replace: true });
     } catch (err) {
-      setError((err as Error).message);
+      // 404 is not a failure to report — it is this deployment telling us it
+      // does not do demo sign-in. Retire the button rather than leaving one
+      // that can only ever error.
+      if (err instanceof ApiError && err.status === 404) setDemoOffered(false);
+      else setError((err as Error).message);
     } finally {
       setDemoBusy(false);
     }
@@ -179,7 +187,7 @@ export function LoginPage() {
             </Button>
           </form>
 
-          {DEMO_READY && (
+          {demoOffered && (
             <div className="mt-8 border-t border-line-2 pt-6">
               <Button
                 variant="ghost" className="w-full" busy={demoBusy}
@@ -188,8 +196,8 @@ export function LoginPage() {
                 Explore the demo portfolio
               </Button>
               <p className="mt-3 text-xs leading-relaxed text-ink-3">
-                Two years of recorded IDX trades, already funded. Shared by
-                everyone who opens this demo, so treat it as a sandbox.
+                Two years of recorded IDX trades, already funded. Yours alone —
+                buy, sell and delete freely; nobody else sees what you do here.
               </p>
             </div>
           )}

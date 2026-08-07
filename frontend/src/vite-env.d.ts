@@ -1,17 +1,12 @@
 /// <reference types="vite/client" />
 
-interface ImportMetaEnv {
-  /**
-   * Set BOTH to surface a one-click demo sign-in on the login page. Leave
-   * either unset and the affordance disappears entirely — a private
-   * deployment never ships a shared account it did not ask for.
-   *
-   * These are build-time values and end up in the client bundle, so only
-   * ever point them at a throwaway demo account.
-   */
-  readonly VITE_DEMO_EMAIL?: string;
-  readonly VITE_DEMO_PASSWORD?: string;
-}
+// No app-specific build-time variables.
+//
+// There used to be VITE_DEMO_EMAIL / VITE_DEMO_PASSWORD here, compiling a
+// shared demo account's credentials into the bundle. The server now mints a
+// private demo per visitor (POST /auth/demo), so there is nothing to inline —
+// and one fewer thing that has to agree with a value hardcoded in Python.
+interface ImportMetaEnv {}
 
 interface ImportMeta {
   readonly env: ImportMetaEnv;

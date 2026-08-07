@@ -76,11 +76,16 @@ Prereqs: Docker Desktop, Node 20+.
 cp .env.example .env                                   # defaults work for local dev
 docker compose up -d --build                           # Postgres 16 + API :8000
 docker compose exec backend alembic upgrade head       # create tables
-docker compose exec backend python -m app.seed_demo    # demo user + 2y portfolio
+docker compose exec backend python -m app.seed_demo    # demo template + 2y portfolio
 cd frontend && npm install && npm run dev              # UI at :5173
 ```
 
-Sign in at <http://localhost:5173> with **demo@arus.id / arus-demo-123**.
+Open <http://localhost:5173> and click **Explore the demo portfolio** — no
+credentials needed. `POST /auth/demo` mints a private, throwaway account and
+hands back a token, so every visitor gets their own copy of the seeded
+portfolio and can buy, sell and delete in it without touching anyone else's.
+Those accounts are rate-limited per caller and purged nightly once a day old.
+
 The seed backfills real price history, so the first run needs network and
 takes a minute or two. Re-running it is a no-op.
 
@@ -100,7 +105,7 @@ All endpoints except `/health` and `/auth/*` require a JWT bearer token.
 
 | Area | Endpoints |
 |---|---|
-| Auth | `POST /auth/register`, `POST /auth/login`, `GET /me` |
+| Auth | `POST /auth/register`, `POST /auth/login`, `POST /auth/demo` (mints a throwaway account, no credentials), `GET /me` |
 | Portfolios | `POST/GET /portfolios`, `GET/PATCH/DELETE /portfolios/{id}` — owner-scoped (others' portfolios 404) |
 | Transactions | `POST/GET /portfolios/{id}/transactions` (lots in, shares stored), `PATCH/DELETE .../{txn_id}` with ledger-integrity guards |
 | Cash | `GET/POST /portfolios/{id}/cash`, `DELETE .../cash/{flow_id}` — balance guarded so a delete cannot strand later buys |
