@@ -121,6 +121,27 @@ export function SummaryCards({
                   ? "at last close"
                   : "no priced holdings yet"}
           </p>
+
+          {/* What the holdings cost, set against what they are worth — the
+              comparison every figure on the row to the right is derived from.
+              It belongs inside the accent field rather than beside it: as a
+              sixth cell it read as one more metric among many, when it is
+              actually the other half of the poster figure.
+
+              `cost_basis`, deliberately not cost_basis + realized_cost_basis.
+              The poster is the market value of what is HELD, so its
+              counterpart must be what THAT cost; folding in closed positions
+              would measure today's holdings against capital already returned
+              to cash. Total return, to the right, is the figure that does
+              want the wider denominator. */}
+          <div className="mt-6 border-t border-on-accent/25 pt-4">
+            <p className="w-wide text-[10px] font-bold uppercase leading-none tracking-[0.16em] text-on-accent/75">
+              Invested
+            </p>
+            <p className="tnum mt-2 text-[22px] font-bold leading-none">
+              {fmtRp(totals?.cost_basis)}
+            </p>
+          </div>
         </div>
       </div>
 
@@ -131,19 +152,26 @@ export function SummaryCards({
           label="Total return"
           value={totalReturnPct == null ? DASH : fmtPct(totalReturnPct, true)}
           tone={signClass(totalReturnPct)}
+          // "committed", not "invested". This denominator includes closed
+          // positions, so it is a LARGER number than the Invested cell
+          // alongside — two adjacent figures both labelled "invested" and
+          // disagreeing reads as a bug rather than as the deliberate
+          // distinction it is.
           note={
             totalReturnRp == null
               ? "appears once a holding is priced"
-              : `${fmtSignedRp(totalReturnRp)} on ${fmtRp(investedCost)} invested`
+              : `${fmtSignedRp(totalReturnRp)} on ${fmtRp(investedCost)} committed, incl. closed`
           }
         />
         <Cell
           label="Unrealized P&L"
           value={fmtSignedRp(totals?.unrealized_pnl)}
           tone={signClass(totals?.unrealized_pnl)}
-          // the cost it is measured against, not a second return percentage
-          // competing with Total return above
-          note={totals ? `on ${fmtRp(totals.cost_basis)} cost` : DASH}
+          // Was `on {cost_basis} cost` — now that Invested prints that exact
+          // rupiah figure two cells away, repeating it made the row look like
+          // it had miscounted. Says what the number covers instead; still not
+          // a second percentage competing with Total return above.
+          note={totals ? "open positions, at market" : DASH}
         />
         {totals != null && totals.realized_pnl !== 0 && (
           <Cell

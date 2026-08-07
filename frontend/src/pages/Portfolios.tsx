@@ -100,6 +100,14 @@ export function PortfoliosPage() {
                 rather than fixed tracks so a row that doesn't divide evenly
                 never leaves an unpainted track showing the hairline bed. */}
             <dl className="flex flex-wrap gap-px border-t border-line bg-line lg:border-t-0">
+              {/* `totalCost` was already summed here to divide by; it just
+                  never had anywhere to appear. The poster figure is net worth
+                  — holdings at market plus cash — so this is what the
+                  holdings part of it cost. */}
+              <Figure
+                label="Invested" value={pnlKnown ? fmtRp(totalCost) : DASH}
+                note="cost of open positions"
+              />
               <Figure
                 label="Unrealized" value={fmtSignedRp(totalPnl)}
                 tone={signClass(totalPnl)}

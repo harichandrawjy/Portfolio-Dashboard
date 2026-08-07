@@ -22,7 +22,7 @@ import {
   Skeleton,
 } from "./ui";
 
-type SortKey = "ticker" | "lots" | "avg_cost_per_share" | "last_price" | "market_value" | "unrealized_pnl";
+type SortKey = "ticker" | "lots" | "avg_cost_per_share" | "cost_basis" | "last_price" | "market_value" | "unrealized_pnl";
 
 /** Tighter cell padding on a phone: every 40px of chrome is a numeric column
  *  pushed off screen. */
@@ -37,7 +37,12 @@ const STICKY = "sticky left-0 border-r border-line bg-panel";
 const COLUMNS: { key: SortKey; label: string; align: "left" | "right" }[] = [
   { key: "ticker", label: "Ticker", align: "left" },
   { key: "lots", label: "Lots", align: "right" },
+  // Ordered as two pairs and their difference: what a share cost and what the
+  // position cost, then what a share is worth and what the position is worth,
+  // then the gap between them. Reading left to right walks the arithmetic,
+  // which is why Invested sits beside Avg cost rather than beside Value.
   { key: "avg_cost_per_share", label: "Avg cost", align: "right" },
+  { key: "cost_basis", label: "Invested", align: "right" },
   { key: "last_price", label: "Last price", align: "right" },
   { key: "market_value", label: "Value", align: "right" },
   { key: "unrealized_pnl", label: "P&L", align: "right" },
@@ -211,6 +216,11 @@ function Row({
       <td className="tnum px-3 py-2.5 sm:px-5 text-right ">{fmtNum(h.lots)}</td>
       <td className="tnum px-3 py-2.5 sm:px-5 text-right text-ink-2">
         {fmtRp(Math.round(h.avg_cost_per_share))}
+      </td>
+      {/* ink-2 like Avg cost beside it: both are what you paid, held back a
+          step from the live figures they are read against. */}
+      <td className="tnum px-3 py-2.5 sm:px-5 text-right text-ink-2">
+        {fmtRp(h.cost_basis)}
       </td>
       <td className="tnum px-3 py-2.5 sm:px-5 text-right ">
         {fmtRp(h.last_price)}
