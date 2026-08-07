@@ -221,13 +221,20 @@ EOF
 EOF
   ;;
 esac
+# Precomputed rather than inlined as ${PUBLIC_IP:-...} below: an apostrophe
+# inside a parameter expansion opens a quote that bash then hunts for a partner
+# to, swallowing the closing brace — "bad substitution: no closing `}'". The
+# surrounding heredoc prose can contain apostrophes freely; only the expansion
+# cannot.
+IP_HINT="${PUBLIC_IP:-the public IP of this box}"
+
 cat <<EOF
 
-  2. Point the hostname at ${PUBLIC_IP:-this box's public IP} and confirm it
+  2. Point the hostname at $IP_HINT and confirm it
      resolves BEFORE deploying — Caddy's certificate challenge fails otherwise,
      and Let's Encrypt rate-limits repeated failures:
 
-       getent hosts <your-host>      # must print ${PUBLIC_IP:-the IP above}
+       getent hosts <your-host>      # must print $IP_HINT
 
   3. Then follow DEPLOY.md from step 1 (git clone).
 
