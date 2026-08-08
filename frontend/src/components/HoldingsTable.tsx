@@ -22,7 +22,7 @@ import {
   Skeleton,
 } from "./ui";
 
-type SortKey = "ticker" | "lots" | "avg_cost_per_share" | "cost_basis" | "last_price" | "market_value" | "unrealized_pnl";
+type SortKey = "ticker" | "lots" | "cost_basis" | "last_price" | "market_value" | "unrealized_pnl";
 
 /** Tighter cell padding on a phone: every 40px of chrome is a numeric column
  *  pushed off screen. */
@@ -37,13 +37,13 @@ const STICKY = "sticky left-0 border-r border-line bg-panel";
 const COLUMNS: { key: SortKey; label: string; align: "left" | "right" }[] = [
   { key: "ticker", label: "Ticker", align: "left" },
   { key: "lots", label: "Lots", align: "right" },
-  // Ordered as two pairs and their difference: what a share cost and what the
-  // position cost, then what a share is worth and what the position is worth,
-  // then the gap between them. Reading left to right walks the arithmetic,
-  // which is why Invested sits beside Avg cost rather than beside Value.
-  { key: "avg_cost_per_share", label: "Avg cost", align: "right" },
+  // Position totals, each carrying its per-share figure underneath: Invested
+  // over avg cost, Value over last price. Adding an Invested column pushed the
+  // table to ten columns and it started scrolling sideways on a laptop, so the
+  // per-share numbers moved into the cells they belong to rather than holding
+  // columns of their own. Reading across still walks the arithmetic —
+  // what it cost, what it is worth, the gap — with three fewer columns.
   { key: "cost_basis", label: "Invested", align: "right" },
-  { key: "last_price", label: "Last price", align: "right" },
   { key: "market_value", label: "Value", align: "right" },
   { key: "unrealized_pnl", label: "P&L", align: "right" },
 ];
@@ -124,7 +124,7 @@ export function HoldingsTable({
         // page scrolls sideways on a phone — overflow-x-auto alone does not
         // stop it here.
         <div className="overflow-x-auto pb-2 [contain:paint]">
-          <table className="w-full min-w-[900px] text-[13px]">
+          <table className="w-full min-w-[680px] text-[13px]">
             <thead>
               {/* a heavy rule under the heads, the way a ruled table is set */}
               <tr className="border-b-2 border-ink text-left">
@@ -161,7 +161,6 @@ export function HoldingsTable({
                     </button>
                   </th>
                 ))}
-                <th className={`${HEAD_CELL} text-left`}>Weight</th>
                 <th className={`${HEAD_CELL} text-right`}>As of</th>
                 <th className={`${HEAD_CELL} text-right`}>
                   <span className="sr-only">Trade</span>
@@ -214,43 +213,32 @@ function Row({
         </Link>
       </td>
       <td className="tnum px-3 py-2.5 sm:px-5 text-right ">{fmtNum(h.lots)}</td>
+      {/* ink-2 throughout: what you paid, held a step back from the live
+          figures it is read against. */}
       <td className="tnum px-3 py-2.5 sm:px-5 text-right text-ink-2">
-        {fmtRp(Math.round(h.avg_cost_per_share))}
-      </td>
-      {/* ink-2 like Avg cost beside it: both are what you paid, held back a
-          step from the live figures they are read against. */}
-      <td className="tnum px-3 py-2.5 sm:px-5 text-right text-ink-2">
-        {fmtRp(h.cost_basis)}
+        <span className="block">{fmtRp(h.cost_basis)}</span>
+        <span className="block text-xs opacity-80">
+          @ {fmtRp(Math.round(h.avg_cost_per_share))}
+        </span>
       </td>
       <td className="tnum px-3 py-2.5 sm:px-5 text-right ">
-        {fmtRp(h.last_price)}
-      </td>
-      <td className="tnum px-3 py-2.5 sm:px-5 text-right ">
-        {fmtRp(h.market_value)}
+        <span className="block">{fmtRp(h.market_value)}</span>
+        <span className="block text-xs text-ink-3">
+          {/* Two facts about the same figure: the price behind it and the
+              share of the portfolio it represents. Weight had its own column
+              with a meter bar; the bar was decoration and the number is a
+              proportion OF this cell, so it reads better here. The donut
+              beside the table is by sector, so this is the only per-holding
+              weight there is — dropping it outright would have lost it. */}
+          @ {fmtRp(h.last_price)}
+          {weight != null && ` · ${weight.toFixed(0)}%`}
+        </span>
       </td>
       <td className={`tnum px-3 py-2.5 sm:px-5 text-right ${signClass(h.unrealized_pnl)}`}>
         <span className="block">{fmtSignedRp(h.unrealized_pnl)}</span>
         <span className="block text-xs opacity-80">
           {h.unrealized_pnl_pct == null ? DASH : fmtPct(h.unrealized_pnl_pct, true)}
         </span>
-      </td>
-      <td className="px-3 py-2.5 sm:px-5">
-        {weight == null ? (
-          <span className="text-xs text-ink-3">{DASH}</span>
-        ) : (
-          <div className="flex items-center gap-2">
-            {/* a square meter on a flat track — the system has no pills */}
-            <div className="h-2 w-16 overflow-hidden bg-panel-2">
-              <div
-                className="h-full bg-accent"
-                style={{ width: `${Math.min(100, weight)}%` }}
-              />
-            </div>
-            <span className="tnum w-8 text-right text-[11px] text-ink-3">
-              {weight.toFixed(0)}%
-            </span>
-          </div>
-        )}
       </td>
       <td className="px-3 py-2.5 sm:px-5 text-right text-[11px] text-ink-3">
         {h.as_of
