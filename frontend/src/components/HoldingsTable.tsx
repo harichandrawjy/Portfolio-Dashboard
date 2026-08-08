@@ -34,18 +34,26 @@ const HEAD_CELL =
  *  background must be opaque or the scrolled columns show through. */
 const STICKY = "sticky left-0 border-r border-line bg-panel";
 
-const COLUMNS: { key: SortKey; label: string; align: "left" | "right" }[] = [
-  { key: "ticker", label: "Ticker", align: "left" },
-  { key: "lots", label: "Lots", align: "right" },
-  // Position totals, each carrying its per-share figure underneath: Invested
-  // over avg cost, Value over last price. Adding an Invested column pushed the
-  // table to ten columns and it started scrolling sideways on a laptop, so the
-  // per-share numbers moved into the cells they belong to rather than holding
-  // columns of their own. Reading across still walks the arithmetic —
-  // what it cost, what it is worth, the gap — with three fewer columns.
-  { key: "cost_basis", label: "Invested", align: "right" },
-  { key: "market_value", label: "Value", align: "right" },
-  { key: "unrealized_pnl", label: "P&L", align: "right" },
+/** Every cell here holds two figures — a position total over the per-share
+ *  number behind it — so every heading does too. The sub-label is what makes
+ *  the folding legible: without it the second line is an unexplained number
+ *  and the table reads as cramped rather than as two registers.
+ *
+ *  Only the top line sorts. The pair is one column, ordered by its total. */
+const COLUMNS: {
+  key: SortKey;
+  label: string;
+  sub?: string;
+  align: "left" | "right";
+}[] = [
+  // Lot count rides under the code, which is where a broker's blotter puts it
+  // and which buys back the width that allocation needs.
+  { key: "ticker", label: "Code", sub: "Lot", align: "left" },
+  { key: "cost_basis", label: "Invested", sub: "Avg price", align: "right" },
+  // "Market", not "Value": paired against Invested the contrast is what the
+  // number is measured by, not that one of them is the real one.
+  { key: "market_value", label: "Market", sub: "Current price", align: "right" },
+  { key: "unrealized_pnl", label: "P&L", sub: "Gain", align: "right" },
 ];
 
 export function HoldingsTable({
@@ -159,8 +167,16 @@ export function HoldingsTable({
                           <CaretDown size={10} weight="bold" />
                         ))}
                     </button>
+                    {/* Outside the button on purpose: it names the second
+                        line of the cell, which is not what sorting acts on. */}
+                    {c.sub && (
+                      <span className="mt-1 block font-normal opacity-60">
+                        {c.sub}
+                      </span>
+                    )}
                   </th>
                 ))}
+                <th className={`${HEAD_CELL} text-left`}>Allocation</th>
                 <th className={`${HEAD_CELL} text-right`}>As of</th>
                 <th className={`${HEAD_CELL} text-right`}>
                   <span className="sr-only">Trade</span>
@@ -207,38 +223,56 @@ function Row({
           <span className="w-wide text-[13px] font-bold uppercase tracking-[0.06em] text-ink transition-colors group-hover:text-accent">
             {h.ticker}
           </span>
-          <span className="max-w-[110px] truncate text-[11px] text-ink-3 sm:max-w-[220px]">
-            {h.name}
+          {/* Lot count first, company name after: the lot count is the figure
+              this line is headed as, and the name is context. Truncating
+              trims the name, never the number. */}
+          {/* Capped tighter than the name alone used to be: this column is the
+              table's widest, and the 30-odd pixels it gives up here are what
+              keep the whole row inside a 1024px window. The name truncates;
+              the lot count never does. */}
+          <span className="max-w-[130px] truncate text-[11px] text-ink-3 sm:max-w-[205px]">
+            <span className="tnum">{fmtNum(h.lots)} lot</span> · {h.name}
           </span>
         </Link>
       </td>
-      <td className="tnum px-3 py-2.5 sm:px-5 text-right ">{fmtNum(h.lots)}</td>
       {/* ink-2 throughout: what you paid, held a step back from the live
           figures it is read against. */}
       <td className="tnum px-3 py-2.5 sm:px-5 text-right text-ink-2">
         <span className="block">{fmtRp(h.cost_basis)}</span>
         <span className="block text-xs opacity-80">
-          @ {fmtRp(Math.round(h.avg_cost_per_share))}
+          {fmtRp(Math.round(h.avg_cost_per_share))}
         </span>
       </td>
       <td className="tnum px-3 py-2.5 sm:px-5 text-right ">
         <span className="block">{fmtRp(h.market_value)}</span>
-        <span className="block text-xs text-ink-3">
-          {/* Two facts about the same figure: the price behind it and the
-              share of the portfolio it represents. Weight had its own column
-              with a meter bar; the bar was decoration and the number is a
-              proportion OF this cell, so it reads better here. The donut
-              beside the table is by sector, so this is the only per-holding
-              weight there is — dropping it outright would have lost it. */}
-          @ {fmtRp(h.last_price)}
-          {weight != null && ` · ${weight.toFixed(0)}%`}
-        </span>
+        <span className="block text-xs text-ink-3">{fmtRp(h.last_price)}</span>
       </td>
       <td className={`tnum px-3 py-2.5 sm:px-5 text-right ${signClass(h.unrealized_pnl)}`}>
         <span className="block">{fmtSignedRp(h.unrealized_pnl)}</span>
         <span className="block text-xs opacity-80">
           {h.unrealized_pnl_pct == null ? DASH : fmtPct(h.unrealized_pnl_pct, true)}
         </span>
+      </td>
+      {/* Back as its own column now that the lot count rides under the code.
+          The donut beside this table is by SECTOR, so per-holding weight
+          exists nowhere else on the page. */}
+      <td className="px-3 py-2.5 sm:px-5">
+        {weight == null ? (
+          <span className="text-xs text-ink-3">{DASH}</span>
+        ) : (
+          <div className="flex items-center gap-2">
+            {/* a square meter on a flat track — the system has no pills */}
+            <div className="h-2 w-10 overflow-hidden bg-panel-2">
+              <div
+                className="h-full bg-accent"
+                style={{ width: `${Math.min(100, weight)}%` }}
+              />
+            </div>
+            <span className="tnum w-7 text-right text-[11px] text-ink-3">
+              {weight.toFixed(0)}%
+            </span>
+          </div>
+        )}
       </td>
       <td className="px-3 py-2.5 sm:px-5 text-right text-[11px] text-ink-3">
         {h.as_of
