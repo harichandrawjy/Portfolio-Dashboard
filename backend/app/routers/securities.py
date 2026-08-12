@@ -163,6 +163,7 @@ async def security_detail(
             float(quote.change_pct) if quote and quote.change_pct is not None else None
         ),
         quote_as_of=quote.as_of if quote else None,
+        quote_trade_date=quote.trade_date if quote else None,
         last_close=last_bar.close if last_bar else None,
         last_close_date=last_bar.trade_date if last_bar else None,
         stats=SecurityStatsOut.model_validate(stats) if stats else None,

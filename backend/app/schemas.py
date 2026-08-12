@@ -343,6 +343,12 @@ class SecurityDetailOut(BaseModel):
     quote_price: int | None
     quote_change_pct: float | None
     quote_as_of: datetime | None
+    # The session the quote belongs to, so a caller can tell a LIVE quote from
+    # one left behind. Compare it with `last_close_date`: a quote is only
+    # current while it is strictly newer than the last published bar. Equal
+    # dates mean the bar has settled and the quote is the older of the two —
+    # after the 18:30 bar job that is every held ticker at once.
+    quote_trade_date: date | None
     last_close: int | None
     last_close_date: date | None
     stats: SecurityStatsOut | None  # null until the cache is computed

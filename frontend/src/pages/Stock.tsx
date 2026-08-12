@@ -117,7 +117,21 @@ export function StockPage() {
   }, [position.data]);
 
   const d = detail.data;
-  const displayPrice = d?.quote_price ?? d?.last_close ?? null;
+  // Prefer the quote only while it is strictly NEWER than the last published
+  // bar — the same gate routers/securities.py applies before drawing today's
+  // provisional candle. `quote_price ?? last_close` looked equivalent and was
+  // not: latest_quotes is only refreshed for tickers someone HOLDS, while bars
+  // refresh for anything with history, so a ticker you merely opened once
+  // keeps a frozen quote forever (AADI read 9.175 from five days earlier
+  // against a 9.350 close). Held tickers hit a smaller version of it nightly:
+  // between the 18:30 bar job and the next 09:00 quote, the settled close is
+  // newer than the last intraday quote, and the header disagreed with the
+  // holdings table by a few rupiah.
+  const quoteIsLive =
+    d?.quote_trade_date != null &&
+    (d.last_close_date == null || d.quote_trade_date > d.last_close_date);
+  const displayPrice =
+    (quoteIsLive ? d?.quote_price : null) ?? d?.last_close ?? d?.quote_price ?? null;
   const isFetchingHistory = d != null && !d.has_history && !backfillTimedOut;
 
   return (
@@ -235,7 +249,6 @@ export function StockPage() {
                   showIhsg={showIhsg}
                   onToggleIhsg={() => setShowIhsg((v) => !v)}
                   markers={markers}
-                  quotePrice={d.quote_price}
                   provisional={prices.data?.provisional ?? null}
                   avgCost={avgCost}
                 />

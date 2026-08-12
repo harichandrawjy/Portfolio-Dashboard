@@ -78,7 +78,6 @@ export function StockChart({
   showIhsg,
   onToggleIhsg,
   markers,
-  quotePrice,
   provisional,
   avgCost,
 }: {
@@ -90,9 +89,6 @@ export function StockChart({
   showIhsg: boolean;
   onToggleIhsg: () => void;
   markers: PositionTxn[];
-  /** The live quote. Used as a fallback marker when there is no provisional
-   *  bar to draw — see the price line below. */
-  quotePrice?: number | null;
   /** Today's session so far. Real OHLC from the quote cache, never from
    *  `price_history`, which refuses to hold an unfinished session. Drawn
    *  muted so it never reads as a settled candle. */
@@ -234,24 +230,27 @@ export function StockChart({
       mainSeries = area;
     }
 
-    // ---- today's price, drawn but never stored ------------------------
-    // The series ends at the last PUBLISHED close, so during a session the
-    // header shows a price the chart cannot: 6.525 above a plot topping out
-    // at 6.400. This marks the live quote as a line rather than a bar,
-    // because today's candle genuinely does not exist yet — `price_history`
-    // deliberately refuses to hold an unfinished session, and fabricating a
-    // bar from one price would draw a doji that never traded.
+    // ---- break-even -----------------------------------------------------
+    // The one line here about the holder rather than the instrument:
+    // everything above it is profit on this position, everything below it is
+    // loss, which is the question the page is actually being opened to answer.
     //
-    // Suppressed while the IHSG comparison is on: that scale reads in percent
-    // change, where a rupiah price line means nothing.
-    // Break-even. The one line here that is about the holder rather than the
-    // instrument: everything above it is profit on this position, everything
-    // below it is loss, which is the question the page is actually being
-    // opened to answer. Dashed to separate it from the dotted "now" marker.
+    // Hidden with the IHSG comparison on, because that scale reads in percent
+    // change, where a rupiah level is meaningless.
     //
-    // Hidden with the IHSG comparison on, for the same reason as the quote
-    // line: that scale reads in percent change, where a rupiah level is
-    // meaningless.
+    // There used to be a second, dotted line here titled "now", marking the
+    // live quote for the window where the chart ended at the last published
+    // close and could not show today. Migration 0007 put real intraday OHLC on
+    // `latest_quotes`, which let the provisional candle draw that session
+    // properly — and the line quietly became unreachable-when-right. It was
+    // skipped whenever a provisional bar existed (redundant), which is exactly
+    // when the quote is live; so the only times it rendered were the times the
+    // quote was NOT newer than the last bar, i.e. stale. After the 18:30 bar
+    // job it sat below a settled candle from the same day insisting it was
+    // "now" — 268 against a 270 close on PACK, on 8 of 14 tickers at once.
+    // The provisional bar's freshness gate in routers/securities.py is the
+    // rule that was missing here; applying it would have made the line never
+    // draw, so it is gone instead.
     if (!showIhsg && avgCost != null) {
       mainSeries.createPriceLine({
         price: avgCost,
@@ -260,20 +259,6 @@ export function StockChart({
         lineStyle: LineStyle.Dashed,
         axisLabelVisible: true,
         title: "avg cost",
-      });
-    }
-
-    // Skipped when a provisional bar is drawn: that candle's close IS the
-    // live price, so the line would only restate it.
-    const lastClose = points.length ? points[points.length - 1].close : null;
-    if (!showIhsg && !provisional && quotePrice != null && quotePrice !== lastClose) {
-      mainSeries.createPriceLine({
-        price: quotePrice,
-        color: ACCENT,
-        lineWidth: 1,
-        lineStyle: LineStyle.Dotted,
-        axisLabelVisible: true,
-        title: "now",
       });
     }
 
@@ -340,8 +325,9 @@ export function StockChart({
 
     chart.timeScale().fitContent();
     return () => chart.remove();
-    // quotePrice is a dep so the marker follows the 15-minute refresh
-  }, [points, loading, showIhsg, markers, style, quotePrice, provisional, avgCost]);
+    // `provisional` is a dep so today's candle follows the 15-minute quote
+    // refresh — it carries the live price now that the "now" line is gone.
+  }, [points, loading, showIhsg, markers, style, provisional, avgCost]);
 
   return (
     <Panel>

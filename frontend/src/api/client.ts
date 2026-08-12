@@ -306,6 +306,11 @@ export interface SecurityDetail {
   quote_price: number | null;
   quote_change_pct: number | null;
   quote_as_of: string | null;
+  /** ISO date of the session the quote belongs to. Only treat the quote as
+   *  current while this is strictly greater than `last_close_date`; equal
+   *  dates mean the bar settled after the quote was taken. Both are plain
+   *  YYYY-MM-DD, so string comparison is date comparison. */
+  quote_trade_date: string | null;
   last_close: number | null;
   last_close_date: string | null;
   stats: SecurityStats | null;
