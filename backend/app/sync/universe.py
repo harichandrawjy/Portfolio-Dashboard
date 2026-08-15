@@ -127,7 +127,7 @@ async def _seed_from_csv() -> SyncResult:
 
     logger.warning(
         "FALLBACK PATH: seeding universe from bundled CSV snapshot (%s, %d rows) — "
-        "insert-only; existing rows are never updated or deactivated from the snapshot",
+        "insert-only, except for repairing names the snapshot proves were truncated",
         CSV_PATH.name, len(rows),
     )
 
@@ -135,11 +135,22 @@ async def _seed_from_csv() -> SyncResult:
     async with SessionLocal() as session:
         async with session.begin():
             await _ensure_benchmark(session)
-            existing = set(
-                (await session.scalars(select(Security.ticker))).all()
-            )
+            by_ticker = {
+                s.ticker: s
+                for s in (
+                    await session.scalars(
+                        select(Security).where(Security.kind == "stock")
+                    )
+                ).all()
+            }
             for row in rows:
-                if row["ticker"] in existing:
+                current = by_ticker.get(row["ticker"])
+                if current is not None:
+                    if _is_truncation_of(current.name, row["name"]):
+                        # Append only the sliced-off tail, so the stored
+                        # casing survives even if the snapshot shouts.
+                        current.name += row["name"][len(current.name) :]
+                        result.updated += 1
                     continue
                 session.add(
                     Security(
@@ -157,10 +168,41 @@ async def _seed_from_csv() -> SyncResult:
         result.total_active = await _count_active(session)
 
     logger.info(
-        "universe seed (CSV fallback): +%d inserted, %d active stocks",
-        result.inserted, result.total_active,
+        "universe seed (CSV fallback): +%d inserted, %d name(s) un-truncated, "
+        "%d active stocks",
+        result.inserted, result.updated, result.total_active,
     )
     return result
+
+
+def _is_truncation_of(stored: str, snapshot: str) -> bool:
+    """Is `stored` the same name as `snapshot`, with the tail cut off?
+
+    The one exception to this path being insert-only, and deliberately the
+    narrowest one that fixes the problem.
+
+    IDX's stock-list endpoint cuts Name at 30 characters, so a database seeded
+    from the snapshot carries "Abadi Nusantara Hijau Investam" where the real
+    name is "Abadi Nusantara Hijau Investama Tbk". Every name in a
+    CSV-seeded deployment was clipped that way, because the live fetch — the
+    only path that enriches from the profiles endpoint — 403s from a
+    datacenter IP and never runs there.
+
+    Insert-only exists so an ageing snapshot cannot overwrite fresher live
+    data. Restoring characters that were sliced off the end is not competing
+    with fresher data: it is the same name, less damaged. The guard is
+    strictly "one is a prefix of the other and shorter", so a genuinely
+    different name can never be written over a good one — which matters,
+    because plenty of real names are exactly 30 characters and complete
+    ("Akasha Wira International Tbk."), and length alone would have condemned
+    them.
+
+    Case-insensitive because IDX shouts some names in the profiles feed; the
+    stored value keeps the casing the caller already has.
+    """
+    if not stored or not snapshot or len(snapshot) <= len(stored):
+        return False
+    return snapshot.lower().startswith(stored.lower())
 
 
 async def _ensure_benchmark(session) -> None:
