@@ -7,6 +7,7 @@ import { AddTransactionModal } from "../components/AddTransactionModal";
 import { CashModal } from "../components/CashModal";
 import { EditPortfolioModal } from "../components/EditPortfolioModal";
 import { AllocationDonut } from "../components/AllocationDonut";
+import { FrontierChart } from "../components/FrontierChart";
 import { HoldingsTable } from "../components/HoldingsTable";
 import { PortfolioFirstRun } from "../components/PortfolioFirstRun";
 import { PerformanceChart } from "../components/PerformanceChart";
@@ -63,6 +64,7 @@ export function PortfolioDetailPage() {
   const portfolio = useAsync(() => api.getPortfolio(id), [id]);
   const holdings = useAsync(() => api.holdings(id), [id, refreshTick]);
   const allocation = useAsync(() => api.allocation(id), [id, refreshTick]);
+  const frontier = useAsync(() => api.frontier(id), [id, refreshTick]);
   const performance = useAsync(
     () => api.performance(id, range),
     [id, range, refreshTick],
@@ -243,7 +245,18 @@ export function PortfolioDetailPage() {
             />
           </div>
 
+          {/* Below the holdings on purpose: it is an analytical view of what
+              those holdings are, so it only makes sense once you have read
+              them. Full width because the chart carries a legend and a table. */}
           <div className="rise" style={rise(4)}>
+            <FrontierChart
+              frontier={frontier.data}
+              loading={frontier.loading}
+              error={frontier.error}
+            />
+          </div>
+
+          <div className="rise" style={rise(5)}>
             <TransactionsList
               portfolioId={id}
               transactions={transactions.data}

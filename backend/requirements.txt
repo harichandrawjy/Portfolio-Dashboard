@@ -5,6 +5,10 @@ asyncpg>=0.30
 alembic>=1.14
 pydantic-settings>=2.6
 httpx>=0.27
+# Direct dependency of app/optimize.py. It already arrives transitively via
+# yfinance's pandas, but relying on that would mean a yfinance change could
+# silently break the optimiser — declare what the code imports.
+numpy>=2.0
 apscheduler>=3.10,<4
 tzdata>=2024.1
 yfinance>=0.2.50

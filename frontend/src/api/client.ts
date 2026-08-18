@@ -296,6 +296,31 @@ export interface Fundamentals {
   last_updated: string;
 }
 
+export interface FrontierPoint {
+  volatility_pct: number;
+  expected_return_pct: number;
+  /** ticker -> percent of the allocation, summing to 100 */
+  weights: Record<string, number>;
+}
+
+export interface AssetPoint {
+  ticker: string;
+  volatility_pct: number;
+  expected_return_pct: number;
+  current_weight_pct: number;
+}
+
+export interface Frontier {
+  portfolio_id: string;
+  /** Empty when fewer than two holdings share enough price history. */
+  curve: FrontierPoint[];
+  assets: AssetPoint[];
+  current_volatility_pct: number | null;
+  current_expected_return_pct: number | null;
+  trading_days: number;
+  excluded: string[];
+}
+
 export interface SecurityDetail {
   ticker: string;
   name: string;
@@ -510,6 +535,9 @@ export const api = {
     request<Metrics>(`/portfolios/${id}/metrics?range=${range}`),
 
   allocation: (id: string) => request<Allocation>(`/portfolios/${id}/allocation`),
+
+  /** Mean-variance frontier over the portfolio's own holdings. */
+  frontier: (id: string) => request<Frontier>(`/portfolios/${id}/frontier`),
 
   cash: (id: string) => request<CashSummary>(`/portfolios/${id}/cash`),
 

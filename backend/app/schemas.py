@@ -234,6 +234,37 @@ class AllocationOut(BaseModel):
     unpriced: list[str]  # held tickers with no price at all — excluded above
 
 
+class FrontierPoint(BaseModel):
+    """One allocation on the efficient frontier. Percentages, annualised."""
+
+    volatility_pct: float
+    expected_return_pct: float
+    weights: dict[str, float]  # ticker -> percent, sums to 100
+
+
+class AssetPoint(BaseModel):
+    """A single holding plotted on the same axes as the frontier."""
+
+    ticker: str
+    volatility_pct: float
+    expected_return_pct: float
+    current_weight_pct: float  # what this portfolio actually holds today
+
+
+class FrontierOut(BaseModel):
+    portfolio_id: uuid.UUID
+    # Fewer than two priced holdings with overlapping history means there is
+    # no frontier to draw — the UI says so rather than plotting a dot.
+    curve: list[FrontierPoint]
+    assets: list[AssetPoint]
+    # Where the portfolio actually sits, on the same axes. Null when the
+    # current holdings cannot be priced over the shared window.
+    current_volatility_pct: float | None
+    current_expected_return_pct: float | None
+    trading_days: int  # observations behind the estimate — read it sceptically
+    excluded: list[str]  # held tickers dropped for want of overlapping history
+
+
 class SecuritySearchOut(BaseModel):
     ticker: str
     name: str

@@ -72,7 +72,7 @@ export function TransactionsList({
   return (
     <Panel tone="flat">
       <PanelHeader
-        seq="04"
+        seq="05"
         title="Transactions" meta={
           transactions
             ? shown < total
