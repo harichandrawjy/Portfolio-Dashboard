@@ -11,11 +11,11 @@ It is allowed to do nothing else. These pin the boundary, because the guard
 sits inside a code path whose whole point is that it does not overwrite.
 """
 
-from app.sync.universe import _is_truncation_of
+import pytest
 
-# No asyncio mark: every test here is synchronous. The guard is a pure
-# function and the snapshot check just reads a file, so neither needs a
-# database or an event loop.
+from app.sync.universe import _is_truncation_of, sync_universe
+
+# Only the last test needs an event loop; the rest are pure or read a file.
 
 
 # ---------------------------------------------------------------------------
@@ -97,3 +97,34 @@ def test_bundled_snapshot_is_no_longer_clipped_at_thirty():
     joined = set(names)
     assert "Bank Negara Indonesia (Persero) Tbk" in joined
     assert "Abadi Nusantara Hijau Investama Tbk" in joined
+
+
+# ---------------------------------------------------------------------------
+# where the data comes from
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio(loop_scope="session")
+async def test_default_sync_never_contacts_idx(client, monkeypatch):
+    """The default path must not reach for the network.
+
+    This is a licensing guarantee, not a performance one. IDX's terms exclude
+    obtaining their data by crawling, so the scheduled job was removed and the
+    universe comes from the committed snapshot. A future edit that restores
+    the live fetch as the default would be a silent regression — the app would
+    keep working, look identical, and quietly resume the thing the terms
+    exclude. So the test fails loudly instead of asserting on a log line.
+    """
+    called = False
+
+    async def _boom():
+        nonlocal called
+        called = True
+        raise AssertionError("sync_universe() reached for IDX without --from-idx")
+
+    monkeypatch.setattr("app.sync.universe.fetch_universe", _boom)
+
+    result = await sync_universe()
+
+    assert called is False
+    assert result.source == "csv-fallback"

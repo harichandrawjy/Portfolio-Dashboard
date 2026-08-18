@@ -1,6 +1,6 @@
 """CLI entry points:
 
-    python -m app.sync universe
+    python -m app.sync universe [--from-idx]
     python -m app.sync backfill --ticker BBCA [--ticker TLKM ...] [--years 5]
     python -m app.sync daily
     python -m app.sync quotes [--tickers BBCA,TLKM]
@@ -21,7 +21,18 @@ def main() -> None:
     parser = argparse.ArgumentParser(prog="python -m app.sync")
     sub = parser.add_subparsers(dest="command", required=True)
 
-    sub.add_parser("universe", help="refresh the IDX ticker universe")
+    p_universe = sub.add_parser(
+        "universe", help="seed the ticker universe from the bundled snapshot"
+    )
+    p_universe.add_argument(
+        "--from-idx",
+        action="store_true",
+        help=(
+            "fetch from IDX instead of the snapshot. For regenerating "
+            "data/idx_universe.csv by hand, from a machine IDX answers; "
+            "nothing scheduled does this. See app/sync/universe.py."
+        ),
+    )
 
     p_backfill = sub.add_parser("backfill", help="backfill daily OHLCV history")
     p_backfill.add_argument(
@@ -53,7 +64,7 @@ def main() -> None:
     args = parser.parse_args()
 
     if args.command == "universe":
-        result = asyncio.run(sync_universe())
+        result = asyncio.run(sync_universe(from_idx=args.from_idx))
         print(
             f"universe sync [{result.source}]: "
             f"+{result.inserted} inserted, {result.updated} updated, "

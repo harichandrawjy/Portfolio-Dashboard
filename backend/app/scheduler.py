@@ -7,7 +7,6 @@ from apscheduler.triggers.cron import CronTrigger
 from app.demo import purge_expired_demo_users
 from app.sync.fundamentals import sync_fundamentals
 from app.sync.prices import backfill_ticker, sync_daily, sync_quotes
-from app.sync.universe import sync_universe
 
 JAKARTA = ZoneInfo("Asia/Jakarta")
 
@@ -18,15 +17,22 @@ def create_scheduler() -> AsyncIOScheduler:
     global _scheduler
     scheduler = AsyncIOScheduler(timezone=JAKARTA)
 
-    # Nightly, hours after the 16:00 WIB close so the day's listing changes
-    # are published on IDX's side.
-    scheduler.add_job(
-        sync_universe,
-        CronTrigger(hour=21, minute=0, timezone=JAKARTA),
-        id="universe-sync",
-        coalesce=True,
-        misfire_grace_time=3600,
-    )
+    # There is deliberately NO universe job here.
+    #
+    # It used to run nightly at 21:00, crawling IDX's JSON endpoints for the
+    # day's listing changes. IDX's terms permit non-commercial use of their
+    # data but exclude obtaining it by "web scrapping/crawling", and a job on
+    # a timer is squarely that. The universe now comes from the snapshot
+    # committed at data/idx_universe.csv, refreshed by hand with
+    # `python -m app.sync universe --from-idx` from a machine where IDX
+    # answers. See app/sync/universe.py.
+    #
+    # Nothing was lost operationally: Cloudflare 403s datacenter IPs, so the
+    # scheduled crawl had failed on every single run since this deployed and
+    # fallen through to that same snapshot anyway.
+    #
+    # Yahoo (bars, quotes, fundamentals, statements) is a separate question
+    # and those jobs stay — see DEPLOY.md.
 
     # Daily bars appear on Yahoo shortly after close; 18:30 leaves margin.
     scheduler.add_job(

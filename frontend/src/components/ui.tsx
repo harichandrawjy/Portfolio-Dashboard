@@ -129,6 +129,15 @@ export function SectionHead({
  * bottom edge, which is what keeps it reading as a printed mark rather than
  * as very large text.
  */
+/** When `backend/app/data/idx_universe.csv` was last taken from IDX.
+ *
+ *  IDX's terms require the access date alongside the source credit, so this
+ *  is a compliance value, not a nicety — a wrong one is worse than none.
+ *  It changes only when someone runs `python -m app.sync universe --from-idx`
+ *  and commits the result, which is rare and deliberate by design. The
+ *  reminder to update it lives in that module's docstring. */
+const SNAPSHOT_ACCESSED = "13 August 2026";
+
 export function Colophon() {
   return (
     <footer className="mt-24 overflow-hidden bg-accent text-on-accent">
@@ -152,6 +161,20 @@ export function Colophon() {
 
         <p className="w-wide max-w-[52ch] border-t border-on-accent/25 pt-5 text-[11px] font-bold uppercase leading-relaxed tracking-[0.12em] text-on-accent/70">
           Mock portfolios only — no real money moves here
+        </p>
+
+        {/* Source credit. IDX's terms permit non-commercial use of their data
+            on condition that the source is cited "accompanied with the date of
+            Users access" — this line is that condition, not decoration, so it
+            carries a real date rather than a vague one.
+            The companion condition (no crawling) is handled in
+            app/sync/universe.py, which reads from a committed snapshot.
+            SNAPSHOT_ACCESSED below is the date that snapshot was taken; update
+            it whenever it is regenerated. */}
+        <p className="max-w-[64ch] pt-3 text-[11px] leading-relaxed text-on-accent/70">
+          Listed-company data sourced from the Indonesia Stock Exchange (IDX),
+          accessed {SNAPSHOT_ACCESSED}. Prices and fundamentals via Yahoo
+          Finance, delayed. Not investment advice.
         </p>
 
         {/* the mark, cropped by the field's bottom edge */}
