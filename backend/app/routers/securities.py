@@ -36,6 +36,7 @@ from app.schemas import (
     StockPricePoint,
     StockPricesOut,
 )
+from app.sync.prices import drop_holiday_placeholders
 from app.sync.statements import compute_derived
 
 router = APIRouter(tags=["securities"])
@@ -294,6 +295,11 @@ async def security_prices(
                 )
             )
             ihsg_by_date = {d: c for d, c in rows}
+
+    # Rows written before the sync-side guard existed, plus anything its
+    # fail-open path lets through, are refused here too. See the docstring
+    # on drop_holiday_placeholders for why both conditions are needed.
+    bars = drop_holiday_placeholders(bars, ihsg_by_date.keys())
 
     points: list[StockPricePoint] = []
     ihsg_base: int | None = None

@@ -183,3 +183,78 @@ def test_missing_calendar_fails_open():
     assert session_dates(pd.DataFrame()) is None
     rows = _df_to_rows(_frame([20, 21]), now=_wib(2026, 7, 21, 19), sessions=None)
     assert [r["trade_date"] for r in rows] == [date(2026, 7, 20), date(2026, 7, 21)]
+
+
+# --------------------------------------------------------------------------
+# The read-path twin: never SERVE a holiday bar either
+#
+# The write guard above stops new ones. This one covers rows already stored
+# before it existed (79 in production, 191 locally) and anything the
+# write guard's fail-open path lets through on a night the benchmark fetch
+# dies. Pure, so it needs no fixtures and cannot contaminate the shared
+# BBCA/IHSG series the endpoint tests assert exact point counts against.
+# --------------------------------------------------------------------------
+
+from dataclasses import dataclass
+
+from app.sync.prices import drop_holiday_placeholders
+
+
+@dataclass
+class _Bar:
+    trade_date: date
+    open: int
+    high: int
+    low: int
+    close: int
+    volume: int
+
+
+def _bar(day: int, *, traded: bool = True) -> _Bar:
+    d = date(2026, 7, day)
+    if traded:
+        return _Bar(d, 100, 110, 90, 105, 1_000_000)
+    return _Bar(d, 100, 100, 100, 100, 0)  # flat, no volume
+
+
+def _days(bars) -> list[int]:
+    return [b.trade_date.day for b in bars]
+
+
+def test_holiday_bar_is_not_served():
+    # index printed on the 20th and 22nd; the 21st was a holiday
+    index = {date(2026, 7, 20), date(2026, 7, 22)}
+    bars = [_bar(20), _bar(21, traded=False), _bar(22)]
+    assert _days(drop_holiday_placeholders(bars, index)) == [20, 22]
+
+
+def test_untraded_stock_on_a_real_session_is_still_served():
+    """The discriminator. Identical shape to a holiday bar — flat OHLC, zero
+    volume — but the index printed, so the exchange was open and the bar is
+    real. Hundreds of stored days look like this and none may be dropped."""
+    index = {date(2026, 7, 20), date(2026, 7, 21), date(2026, 7, 22)}
+    bars = [_bar(20), _bar(21, traded=False), _bar(22)]
+    assert _days(drop_holiday_placeholders(bars, index)) == [20, 21, 22]
+
+
+def test_a_traded_bar_is_never_dropped_even_without_an_index_close():
+    """Shape alone must not condemn a bar: if it carries volume it is real,
+    whatever the index did."""
+    index = {date(2026, 7, 20), date(2026, 7, 22)}
+    bars = [_bar(20), _bar(21), _bar(22)]  # the 21st TRADED
+    assert _days(drop_holiday_placeholders(bars, index)) == [20, 21, 22]
+
+
+def test_bars_outside_the_index_range_are_kept():
+    """A stock whose history starts before the benchmark's, or runs past it,
+    must not be truncated — outside that span there is nothing to compare."""
+    index = {date(2026, 7, 21)}
+    bars = [_bar(20, traded=False), _bar(21), _bar(22, traded=False)]
+    assert _days(drop_holiday_placeholders(bars, index)) == [20, 21, 22]
+
+
+def test_no_index_at_all_keeps_everything():
+    """Without a benchmark there is no way to tell a holiday from a quiet
+    day, and guessing would silently delete real history."""
+    bars = [_bar(20), _bar(21, traded=False)]
+    assert _days(drop_holiday_placeholders(bars, set())) == [20, 21]

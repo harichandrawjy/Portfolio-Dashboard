@@ -262,6 +262,46 @@ def session_dates(df: pd.DataFrame) -> set[date] | None:
     return {idx.date() for idx, r in df.iterrows() if not pd.isna(r.get("Close"))}
 
 
+def drop_holiday_placeholders(bars, index_dates) -> list:
+    """Remove bars for days the exchange was shut.
+
+    The read-path twin of the `sessions` filter in `_df_to_rows`. That one
+    stops holiday placeholders being WRITTEN; this one stops any already
+    stored from being SERVED — rows that predate the write guard, or that
+    its fail-open path let through on a night the benchmark fetch died.
+
+    `bars` is any sequence of objects carrying trade_date/open/high/low/
+    close/volume. `index_dates` is the set of dates the benchmark printed.
+
+    BOTH conditions are required to drop a bar, and neither is sufficient:
+
+      - a missing index close only means the benchmark did not print, which
+        is also true outside the range the benchmark covers at all;
+      - the placeholder SHAPE only means nothing traded, which is equally
+        true of an illiquid stock on a day the exchange WAS open. Hundreds
+        of days of stored history look exactly like that and every one of
+        them is real.
+
+    Together they are specific: the market was open (the index brackets this
+    date) but printed nothing on it, and this bar carries no trade.
+
+    An empty `index_dates` returns the bars untouched — without a benchmark
+    there is no way to tell a holiday from a quiet day, and guessing would
+    silently delete real history.
+    """
+    if not index_dates:
+        return list(bars)
+    lo, hi = min(index_dates), max(index_dates)
+
+    def shut(bar) -> bool:
+        d = bar.trade_date
+        if not lo <= d <= hi or d in index_dates:
+            return False
+        return bar.volume == 0 and bar.open == bar.high == bar.low == bar.close
+
+    return [bar for bar in bars if not shut(bar)]
+
+
 def _df_to_rows(
     df: pd.DataFrame,
     now: datetime | None = None,
