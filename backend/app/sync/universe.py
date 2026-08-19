@@ -212,6 +212,50 @@ async def _seed_from_csv() -> SyncResult:
     return result
 
 
+async def reconcile_names() -> int:
+    """Force every stored name to match the snapshot. Returns how many moved.
+
+    Deliberately NOT part of any automatic path, and not what the CSV fallback
+    does — that one may only ever EXTEND a name it can prove was truncated,
+    so it can never restyle a good value into a worse one.
+
+    This exists because the database can drift from the snapshot in ways the
+    conservative rule cannot repair. It did: while the nightly IDX crawl still
+    existed it occasionally got past Cloudflare, and a successful run rewrote
+    every name with the profiles endpoint's raw form — "PT " prefixes the rest
+    of the app does not use, and shouting ("PACIFIC STRATEGIC FINANCIAL Tbk").
+    Those are LONGER than the snapshot's, so the truncation guard correctly
+    refuses to touch them, and they would sit there forever.
+
+    The crawl is gone now, so the snapshot is the only source there is and
+    this should be a one-off. It stays available because a database that has
+    drifted once can drift again, and hand-written UPDATE statements against
+    963 rows are a worse answer.
+    """
+    if not CSV_PATH.exists():
+        logger.critical("CSV fallback missing at %s — nothing to reconcile", CSV_PATH)
+        return 0
+
+    with CSV_PATH.open(newline="", encoding="utf-8") as f:
+        wanted = {r["ticker"]: r["name"] for r in csv.DictReader(f) if r.get("ticker")}
+
+    changed = 0
+    async with SessionLocal() as session:
+        async with session.begin():
+            rows = (
+                await session.scalars(select(Security).where(Security.kind == "stock"))
+            ).all()
+            for sec in rows:
+                target = wanted.get(sec.ticker)
+                if target and target != sec.name:
+                    logger.info("name: %s %r -> %r", sec.ticker, sec.name, target)
+                    sec.name = target
+                    changed += 1
+
+    logger.info("reconciled %d name(s) to the snapshot", changed)
+    return changed
+
+
 def _is_truncation_of(stored: str, snapshot: str) -> bool:
     """Is `stored` the same name as `snapshot`, with the tail cut off?
 

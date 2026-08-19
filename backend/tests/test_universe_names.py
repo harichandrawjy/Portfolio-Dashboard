@@ -128,3 +128,35 @@ async def test_default_sync_never_contacts_idx(client, monkeypatch):
 
     assert called is False
     assert result.source == "csv-fallback"
+
+
+def test_snapshot_names_are_house_style_not_idx_raw():
+    """The shipped snapshot must not carry IDX's own formatting.
+
+    IDX's profiles feed is inconsistent: some names gain a "PT " prefix the
+    rest of this app never uses, and some arrive shouting
+    ("PACIFIC STRATEGIC FINANCIAL Tbk"). The snapshot is normalised when it is
+    regenerated, and this pins that — a regeneration that forgets to normalise
+    would otherwise ship straight into the holdings table, where it looks far
+    worse than the truncation it was meant to fix.
+    """
+    import csv
+
+    from app.sync.universe import CSV_PATH
+
+    with CSV_PATH.open(newline="", encoding="utf-8") as f:
+        names = {r["ticker"]: r["name"] for r in csv.DictReader(f) if r.get("ticker")}
+
+    pt = [t for t, n in names.items() if n.startswith("PT ")]
+    assert not pt, f"snapshot carries IDX's 'PT ' prefix on {len(pt)}: {pt[:5]}"
+
+    def shouting(n: str) -> bool:
+        letters = [c for c in n if c.isalpha()]
+        return len(letters) > 6 and sum(c.isupper() for c in letters) > 0.8 * len(letters)
+
+    loud = [t for t, n in names.items() if shouting(n)]
+    assert not loud, f"snapshot has ALL-CAPS names: {loud[:5]}"
+
+    # The two that started this whole thread.
+    assert names["APIC"] == "Pacific Strategic Financial Tbk"
+    assert names["PACK"] == "Abadi Nusantara Hijau Investama Tbk"

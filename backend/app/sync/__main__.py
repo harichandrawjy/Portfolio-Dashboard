@@ -1,6 +1,6 @@
 """CLI entry points:
 
-    python -m app.sync universe [--from-idx]
+    python -m app.sync universe [--from-idx] [--reconcile-names]
     python -m app.sync backfill --ticker BBCA [--ticker TLKM ...] [--years 5]
     python -m app.sync daily
     python -m app.sync quotes [--tickers BBCA,TLKM]
@@ -11,7 +11,7 @@ import asyncio
 import logging
 
 from app.sync.prices import backfill_many, sync_daily, sync_quotes
-from app.sync.universe import sync_universe
+from app.sync.universe import reconcile_names, sync_universe
 
 
 def main() -> None:
@@ -23,6 +23,16 @@ def main() -> None:
 
     p_universe = sub.add_parser(
         "universe", help="seed the ticker universe from the bundled snapshot"
+    )
+    p_universe.add_argument(
+        "--reconcile-names",
+        action="store_true",
+        help=(
+            "force every stored name to match the snapshot. Repairs drift the "
+            "conservative path cannot: a name that is LONGER than the snapshot "
+            "(an IDX 'PT ' prefix, or its shouty casing) is never shortened "
+            "automatically. One-off repair, never scheduled."
+        ),
     )
     p_universe.add_argument(
         "--from-idx",
@@ -64,6 +74,10 @@ def main() -> None:
     args = parser.parse_args()
 
     if args.command == "universe":
+        if args.reconcile_names:
+            changed = asyncio.run(reconcile_names())
+            print(f"reconciled {changed} name(s) to the bundled snapshot")
+            return
         result = asyncio.run(sync_universe(from_idx=args.from_idx))
         print(
             f"universe sync [{result.source}]: "
