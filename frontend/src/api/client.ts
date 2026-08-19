@@ -303,11 +303,24 @@ export interface FrontierPoint {
   weights: Record<string, number>;
 }
 
+/** How expected returns are estimated. Risk is unchanged either way. */
+export type MuModel = "capm" | "log";
+
+export interface Selection {
+  volatility_pct: number;
+  expected_return_pct: number;
+  sharpe: number | null;
+  weights: Record<string, number>;
+}
+
 export interface AssetPoint {
   ticker: string;
   volatility_pct: number;
   expected_return_pct: number;
   current_weight_pct: number;
+  /** Sensitivity to IHSG. Null when expected returns fell back to the
+   *  historical mean, which has no beta in it. */
+  beta: number | null;
 }
 
 export interface Frontier {
@@ -318,7 +331,27 @@ export interface Frontier {
   current_volatility_pct: number | null;
   current_expected_return_pct: number | null;
   trading_days: number;
+  /** The calendar year the estimate covers — the last complete one. */
+  window_year: number;
+  window_start: string;
+  window_end: string;
   excluded: string[];
+  /** "capm" = Rf + B(Rm - Rf); "historical" = per-stock average, the fallback
+   *  when IHSG cannot be aligned to the holdings' calendar. */
+  mu_source: "capm" | "log" | "historical";
+  risk_free_rate_pct: number;
+  equity_risk_premium_pct: number;
+  /** What CAPM assumes the market returns (risk-free + premium). */
+  market_return_pct: number | null;
+  /** What IHSG actually did over this window — shown beside the assumption. */
+  market_return_realised_pct: number | null;
+  /** The textbook's three formulations, all read off `curve`. */
+  min_risk: Selection | null;
+  max_sharpe: Selection | null;
+  /** Only when a target was requested and is reachable long-only. */
+  target: Selection | null;
+  target_floor_pct: number | null;
+  target_ceiling_pct: number | null;
 }
 
 export interface SecurityDetail {
@@ -536,8 +569,16 @@ export const api = {
 
   allocation: (id: string) => request<Allocation>(`/portfolios/${id}/allocation`),
 
-  /** Mean-variance frontier over the portfolio's own holdings. */
-  frontier: (id: string) => request<Frontier>(`/portfolios/${id}/frontier`),
+  /** Mean-variance frontier over the portfolio's own holdings.
+   *
+   *  `targetReturnPct` asks for the least-risk allocation reaching that
+   *  annualised return; the response's `target` is null when it is out of
+   *  reach without shorting. */
+  frontier: (id: string, targetReturnPct?: number, muModel: MuModel = "capm") => {
+    const q = new URLSearchParams({ mu_model: muModel });
+    if (targetReturnPct != null) q.set("target_return_pct", String(targetReturnPct));
+    return request<Frontier>(`/portfolios/${id}/frontier?${q}`);
+  },
 
   cash: (id: string) => request<CashSummary>(`/portfolios/${id}/cash`),
 

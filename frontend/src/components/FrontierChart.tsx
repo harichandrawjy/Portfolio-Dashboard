@@ -10,9 +10,9 @@ import {
   ZAxis,
 } from "recharts";
 
-import type { Frontier, FrontierPoint } from "../api/client";
+import type { Frontier, FrontierPoint, MuModel } from "../api/client";
 import { CHART_NEUTRAL, token } from "../colors";
-import { fmtPct } from "../lib/format";
+import { DASH, fmtPct } from "../lib/format";
 import { EmptyState, ErrorNote, Panel, PanelHeader, Skeleton } from "./ui";
 
 /** Mean-variance frontier: risk on x, expected return on y.
@@ -27,6 +27,15 @@ import { EmptyState, ErrorNote, Panel, PanelHeader, Skeleton } from "./ui";
  *  The slider walks the curve rather than issuing instructions: it is the
  *  textbook's risk-tolerance parameter, and moving it is the point.
  */
+
+type Mode = "explore" | "min_risk" | "target" | "max_sharpe";
+
+const MODES: { key: Mode; label: string; hint: string }[] = [
+  { key: "explore", label: "Explore", hint: "Slide along the whole frontier" },
+  { key: "min_risk", label: "Min risk", hint: "Least volatility, whatever the return" },
+  { key: "target", label: "Target return", hint: "Least risk that still reaches a return you name" },
+  { key: "max_sharpe", label: "Max Sharpe", hint: "Best return per unit of risk" },
+];
 
 function FrontierTooltip({
   active,
@@ -61,14 +70,31 @@ export function FrontierChart({
   frontier,
   loading,
   error,
+  targetInput,
+  onTargetChange,
+  muModel,
+  onMuModelChange,
 }: {
   frontier: Frontier | null;
   loading: boolean;
   error?: string | null;
+  /** Lives in the parent because changing it refetches — the least-risk
+   *  allocation for a target return is solved server-side, not interpolated
+   *  from the plotted points. */
+  targetInput: string;
+  onTargetChange: (value: string) => void;
+  /** Which expected-return model to use. Also a refetch, since mu is solved
+   *  server-side and the whole curve changes with it. */
+  muModel: MuModel;
+  onMuModelChange: (m: MuModel) => void;
 }) {
   // Index into the curve. Defaults to the far end of the risk scale only
   // once data arrives; until then there is nothing to point at.
   const [index, setIndex] = useState<number | null>(null);
+  // Which of the textbook's three formulations to show. "explore" is the
+  // free slider — the three named modes are fixed points on the same curve,
+  // so switching between them never moves the curve itself.
+  const [mode, setMode] = useState<Mode>("explore");
 
   const accent = token("--color-accent", "#084d77");
   const ink = token("--color-ink", "#12161b");
@@ -76,11 +102,30 @@ export function FrontierChart({
   // frontier dot underneath it.
   const panel = token("--color-panel", "#ffffff");
 
+  // In a named mode the point comes from the server's own selection, so the
+  // figure shown is the exact optimum rather than the nearest grid point the
+  // slider happens to land on.
   const selected: FrontierPoint | null = useMemo(() => {
     if (!frontier?.curve.length) return null;
+    const named =
+      mode === "min_risk"
+        ? frontier.min_risk
+        : mode === "max_sharpe"
+          ? frontier.max_sharpe
+          : mode === "target"
+            ? frontier.target
+            : null;
+    if (named) {
+      return {
+        volatility_pct: named.volatility_pct,
+        expected_return_pct: named.expected_return_pct,
+        weights: named.weights,
+      };
+    }
+    if (mode !== "explore") return null; // target asked for but unreachable
     const i = index == null ? 0 : Math.min(index, frontier.curve.length - 1);
     return frontier.curve[i];
-  }, [frontier, index]);
+  }, [frontier, index, mode]);
 
   if (loading) {
     return (
@@ -166,9 +211,25 @@ export function FrontierChart({
           weight,
           held:
             frontier.assets.find((a) => a.ticker === ticker)?.current_weight_pct ?? 0,
+          beta: frontier.assets.find((a) => a.ticker === ticker)?.beta ?? null,
         }))
         .sort((a, b) => b.held - a.held || a.ticker.localeCompare(b.ticker))
     : [];
+
+  // Beta is a CAPM quantity: it is what turns the market's premium into each
+  // holding's expected return. Under log returns nothing is regressed against
+  // the index, so the column would be a full stack of em-dashes pretending a
+  // number exists. Drop it instead.
+  const showBeta = frontier.mu_source === "capm";
+
+  const namedSharpe =
+    mode === "min_risk"
+      ? (frontier.min_risk?.sharpe ?? null)
+      : mode === "max_sharpe"
+        ? (frontier.max_sharpe?.sharpe ?? null)
+        : mode === "target"
+          ? (frontier.target?.sharpe ?? null)
+          : null;
 
   return (
     <Panel>
@@ -177,17 +238,92 @@ export function FrontierChart({
         title="Efficient frontier"
         right={
           <span className="w-wide text-[10px] font-bold uppercase tracking-[0.12em] text-ink-3">
-            {frontier.trading_days} shared sessions
+            {frontier.window_year} · {frontier.trading_days} sessions
           </span>
         }
       />
 
       <p className="mt-4 max-w-[68ch] text-[12px] leading-relaxed text-ink-2">
         Every allocation of your current holdings that gives the most expected
-        return for its risk. Estimated from {frontier.trading_days} sessions of
-        shared price history — expected returns are the least reliable part of
-        this model, so read the curve, not the decimal places.
+        return for its risk. Both axes are estimated from calendar{" "}
+        {frontier.window_year} alone — {frontier.trading_days} sessions of shared
+        price history, the last complete year. Expected return{" "}
+        {frontier.mu_source === "capm"
+          ? "comes from CAPM, not from what each stock happened to do."
+          : frontier.mu_source === "log"
+            ? "is each holding's own annualised log return, so volatility drag is priced in — but it is still history, not a forecast."
+            : "is each stock's own average — read the curve, not the decimals."}
       </p>
+
+      {/* Which estimator produced the y-axis. Offered as a switch because the
+          two disagree enormously and the disagreement is the lesson: CAPM
+          compresses expected returns into a ~5pp band, historical log returns
+          spread them over ~60pp and drive the optimum into a single holding.
+          Risk is identical either way — only mu changes. */}
+      <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2">
+        <span className="w-wide text-[10px] font-bold uppercase tracking-[0.12em] text-ink-3">
+          Expected return from
+        </span>
+        <div className="inline-flex max-w-full flex-wrap gap-px bg-line">
+          {(
+            [
+              ["capm", "CAPM", "Rf + β(Rm − Rf) — steadier, but assumes a market premium"],
+              ["log", "Log returns", "Each holding's own annualised geometric return — honest about volatility drag, but noisy"],
+            ] as const
+          ).map(([key, label, hint]) => (
+            <button
+              key={key}
+              title={hint}
+              aria-pressed={muModel === key}
+              onClick={() => onMuModelChange(key)}
+              className={`w-wide px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-accent ${
+                muModel === key
+                  ? "bg-accent text-on-accent"
+                  : "bg-panel text-ink-3 hover:text-ink"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* The assumption, stated. CAPM's expected market return is a judgement
+          call, and the whole model hangs off it — so it is shown next to what
+          the index actually did rather than hidden in a constant. When those
+          two disagree sharply, that IS the caveat. */}
+      {frontier.mu_source === "capm" && (
+        <dl className="tnum mt-4 flex flex-wrap gap-x-8 gap-y-2 border-t border-line pt-4 text-[11px]">
+          <div>
+            <dt className="w-wide text-[10px] uppercase tracking-[0.12em] text-ink-3">
+              Risk-free
+            </dt>
+            <dd className="mt-0.5 text-ink">{fmtPct(frontier.risk_free_rate_pct)}</dd>
+          </div>
+          <div>
+            <dt className="w-wide text-[10px] uppercase tracking-[0.12em] text-ink-3">
+              Assumed equity premium
+            </dt>
+            <dd className="mt-0.5 text-ink">
+              {fmtPct(frontier.equity_risk_premium_pct)}
+            </dd>
+          </div>
+          <div>
+            <dt className="w-wide text-[10px] uppercase tracking-[0.12em] text-ink-3">
+              So market is assumed to return
+            </dt>
+            <dd className="mt-0.5 text-ink">{fmtPct(frontier.market_return_pct)}</dd>
+          </div>
+          <div>
+            <dt className="w-wide text-[10px] uppercase tracking-[0.12em] text-ink-3">
+              IHSG actually did
+            </dt>
+            <dd className="mt-0.5 text-ink-2">
+              {fmtPct(frontier.market_return_realised_pct, true)}
+            </dd>
+          </div>
+        </dl>
+      )}
 
       <div className="mt-6 h-[320px] w-full">
         <ResponsiveContainer width="100%" height="100%">
@@ -291,27 +427,106 @@ export function FrontierChart({
         </div>
       </dl>
 
-      {/* the risk-tolerance sweep — the textbook's tau, as a control */}
+      {/* The three formulations, plus the free sweep. They are selections on
+          one curve rather than separate optimisations, so switching never
+          moves the frontier — only the marker on it. */}
       <div className="mt-6 border-t border-line pt-5">
-        <label
-          htmlFor="frontier-tau"
-          className="w-wide block text-[10px] font-bold uppercase tracking-[0.14em] text-ink-3"
+        {/* inline-flex, not flex: the gap-px hairline bed is painted by the
+            container's own background, so a block-level flex row leaves that
+            grey running the full width past the last tab. max-w-full lets it
+            still wrap on a narrow screen. */}
+        <div
+          className="inline-flex max-w-full flex-wrap gap-px bg-line"
+          role="tablist"
         >
-          Risk tolerance
-        </label>
-        <input
-          id="frontier-tau"
-          type="range"
-          min={0}
-          max={frontier.curve.length - 1}
-          value={index ?? 0}
-          onChange={(e) => setIndex(Number(e.target.value))}
-          className="mt-3 w-full accent-accent"
-        />
+          {MODES.map((m) => (
+            <button
+              key={m.key}
+              role="tab"
+              aria-selected={mode === m.key}
+              title={m.hint}
+              onClick={() => setMode(m.key)}
+              className={`w-wide px-3 py-2 text-[10px] font-bold uppercase tracking-[0.12em] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-accent ${
+                mode === m.key
+                  ? "bg-ink text-bg"
+                  : "bg-panel text-ink-3 hover:text-ink"
+              }`}
+            >
+              {m.label}
+            </button>
+          ))}
+        </div>
+
+        {mode === "explore" && (
+          <div className="mt-5">
+            <label
+              htmlFor="frontier-tau"
+              className="w-wide block text-[10px] font-bold uppercase tracking-[0.14em] text-ink-3"
+            >
+              Risk tolerance
+            </label>
+            <input
+              id="frontier-tau"
+              type="range"
+              min={0}
+              max={frontier.curve.length - 1}
+              value={index ?? 0}
+              onChange={(e) => setIndex(Number(e.target.value))}
+              className="mt-3 w-full accent-accent"
+            />
+          </div>
+        )}
+
+        {mode === "target" && (
+          <div className="mt-5">
+            <label
+              htmlFor="frontier-target"
+              className="w-wide block text-[10px] font-bold uppercase tracking-[0.14em] text-ink-3"
+            >
+              Target return
+            </label>
+            <div className="mt-3 flex items-center gap-3">
+              <input
+                id="frontier-target"
+                type="number"
+                step="0.1"
+                value={targetInput}
+                onChange={(e) => onTargetChange(e.target.value)}
+                className="tnum w-28 border border-line-2 bg-panel px-2 py-1.5 text-[13px] outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              />
+              <span className="text-[11px] text-ink-3">
+                % per year
+                {frontier.target_floor_pct != null &&
+                  frontier.target_ceiling_pct != null && (
+                    <>
+                      {" · reachable "}
+                      <span className="tnum">
+                        {fmtPct(frontier.target_floor_pct)}
+                      </span>
+                      {" to "}
+                      <span className="tnum">
+                        {fmtPct(frontier.target_ceiling_pct)}
+                      </span>
+                    </>
+                  )}
+              </span>
+            </div>
+            {frontier.target == null && (
+              <p className="mt-2 text-[11px] text-warn">
+                Out of reach without short selling — the best your holdings can
+                do is {fmtPct(frontier.target_ceiling_pct)}.
+              </p>
+            )}
+          </div>
+        )}
+
         {selected && (
-          <p className="tnum mt-2 text-[12px] text-ink-2">
+          <p className="tnum mt-4 text-[12px] text-ink-2">
             Risk {fmtPct(selected.volatility_pct)} · expected return{" "}
             {fmtPct(selected.expected_return_pct, true)}
+            {namedSharpe != null && (
+              <> · Sharpe {namedSharpe.toFixed(3)}</>
+            )}
           </p>
         )}
       </div>
@@ -324,6 +539,11 @@ export function FrontierChart({
                 <th className="px-3 py-2.5 pl-0 text-[10px] font-bold uppercase tracking-[0.12em] text-ink-3">
                   Ticker
                 </th>
+                {showBeta && (
+                  <th className="px-3 py-2.5 text-right text-[10px] font-bold uppercase tracking-[0.12em] text-ink-3">
+                    Beta
+                  </th>
+                )}
                 <th className="px-3 py-2.5 text-right text-[10px] font-bold uppercase tracking-[0.12em] text-ink-3">
                   This allocation
                 </th>
@@ -338,6 +558,11 @@ export function FrontierChart({
                   <td className="w-wide px-3 py-2 pl-0 text-[13px] font-bold uppercase tracking-[0.06em] text-ink">
                     {r.ticker}
                   </td>
+                  {showBeta && (
+                    <td className="tnum px-3 py-2 text-right text-ink-3">
+                      {r.beta == null ? DASH : r.beta.toFixed(2)}
+                    </td>
+                  )}
                   <td className="tnum px-3 py-2 text-right">
                     {fmtPct(r.weight)}
                   </td>

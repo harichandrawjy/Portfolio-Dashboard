@@ -35,6 +35,23 @@ class Settings(BaseSettings):
     # Annual risk-free rate for Sharpe: Bank Indonesia policy rate (BI Rate).
     # A constant is fine for this project; update via env when BI moves it.
     risk_free_rate_annual: float = 0.055
+    # Long-run equity risk premium — what holding the market is expected to
+    # pay ABOVE the risk-free rate, used as E[Rm] = Rf + ERP in CAPM.
+    #
+    # An assumption, deliberately, rather than a measurement. The realised
+    # figure is not usable as an expectation: over the windows available here
+    # IHSG returned -18.9%/yr over one year, -7.5% over two and +1.1% over
+    # five, so an estimate built from it says more about where the window
+    # starts than about what equities are expected to pay. Worse, every one of
+    # those is below the BI rate, which makes the premium negative and inverts
+    # the model — CAPM then recommends minimising beta, and the "best return"
+    # end of the frontier becomes whatever moves least with the market.
+    #
+    # 8% is a conventional emerging-market figure (a mature-market premium
+    # around 4.5-5%, plus a country risk premium for Indonesia). It is a
+    # number to argue with, which is why the panel shows it next to what the
+    # index actually did.
+    equity_risk_premium: float = 0.08
 
     @model_validator(mode="after")
     def _reject_the_public_dev_key_in_production(self) -> "Settings":

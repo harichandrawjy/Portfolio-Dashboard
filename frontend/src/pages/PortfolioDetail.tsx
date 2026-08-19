@@ -1,8 +1,8 @@
 import { ArrowLeft, PencilSimple, Trash } from "@phosphor-icons/react";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
-import { api, type RangeKey, type TxnType } from "../api/client";
+import { api, type MuModel, type RangeKey, type TxnType } from "../api/client";
 import { AddTransactionModal } from "../components/AddTransactionModal";
 import { CashModal } from "../components/CashModal";
 import { EditPortfolioModal } from "../components/EditPortfolioModal";
@@ -64,7 +64,25 @@ export function PortfolioDetailPage() {
   const portfolio = useAsync(() => api.getPortfolio(id), [id]);
   const holdings = useAsync(() => api.holdings(id), [id, refreshTick]);
   const allocation = useAsync(() => api.allocation(id), [id, refreshTick]);
-  const frontier = useAsync(() => api.frontier(id), [id, refreshTick]);
+  // Target return for the frontier's "target" mode. Debounced into
+  // `frontierTarget` because each change refetches — the least-risk portfolio
+  // for a given return is solved on the server, not read off the curve.
+  const [targetInput, setTargetInput] = useState("");
+  const [frontierTarget, setFrontierTarget] = useState<number | undefined>();
+  useEffect(() => {
+    const n = Number(targetInput);
+    const t = setTimeout(
+      () => setFrontierTarget(targetInput.trim() && !Number.isNaN(n) ? n : undefined),
+      400,
+    );
+    return () => clearTimeout(t);
+  }, [targetInput]);
+
+  const [muModel, setMuModel] = useState<MuModel>("capm");
+  const frontier = useAsync(
+    () => api.frontier(id, frontierTarget, muModel),
+    [id, refreshTick, frontierTarget, muModel],
+  );
   const performance = useAsync(
     () => api.performance(id, range),
     [id, range, refreshTick],
@@ -253,6 +271,10 @@ export function PortfolioDetailPage() {
               frontier={frontier.data}
               loading={frontier.loading}
               error={frontier.error}
+              targetInput={targetInput}
+              onTargetChange={setTargetInput}
+              muModel={muModel}
+              onMuModelChange={setMuModel}
             />
           </div>
 

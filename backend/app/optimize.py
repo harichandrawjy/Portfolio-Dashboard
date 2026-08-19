@@ -168,6 +168,115 @@ def covariance_matrix(
     )
 
 
+def log_returns(closes: Sequence[float]) -> list[float]:
+    """Continuously-compounded daily returns, ln(P_t / P_t-1).
+
+    Differs from `analytics.daily_returns` by roughly -sigma^2/2 per period,
+    which is the volatility drag: ln(1+r) = r - r^2/2 + ... So the annualised
+    mean of these is the GEOMETRIC return — what a holder actually compounded
+    — where the arithmetic mean of simple returns overstates it, badly for a
+    volatile asset. On this data GOTO's arithmetic -33.5%/yr is -50.2%/yr
+    geometric, a 16.8pp gap against a half-sigma-squared of 17.1pp.
+
+    Pairs whose base is non-positive are skipped, matching daily_returns.
+    """
+    out: list[float] = []
+    prev = None
+    for c in closes:
+        c = float(c)
+        if prev is not None and prev > 0 and c > 0:
+            out.append(math.log(c / prev))
+        prev = c
+    return out
+
+
+def annualised_log_mean(returns_by_ticker: dict[str, Sequence[float]]) -> tuple[list[str], np.ndarray]:
+    """(tickers, annualised mean log return). Sorted, like covariance_matrix."""
+    tickers = sorted(returns_by_ticker)
+    if not tickers:
+        return [], np.zeros(0)
+    mu = np.array(
+        [float(np.mean(list(returns_by_ticker[t]))) for t in tickers]
+    ) * TRADING_DAYS_PER_YEAR
+    return tickers, mu
+
+
+def annualised_market_return(market_closes: Sequence[float]) -> float:
+    """Geometric annualised return of the benchmark over the window.
+
+    CAGR, not the mean daily return scaled up. For a single series the
+    geometric figure is what actually happened to a holder — arithmetic means
+    overstate compounding growth — and it is far less swayed by one violent
+    session than a mean is.
+    """
+    closes = [float(c) for c in market_closes if c]
+    if len(closes) < 2 or closes[0] <= 0:
+        return 0.0
+    years = (len(closes) - 1) / TRADING_DAYS_PER_YEAR
+    if years <= 0:
+        return 0.0
+    return (closes[-1] / closes[0]) ** (1.0 / years) - 1.0
+
+
+def capm_expected_returns(
+    returns_by_ticker: dict[str, Sequence[float]],
+    market_returns: Sequence[float],
+    risk_free_rate: float,
+    market_return: float,
+) -> tuple[list[str], np.ndarray, np.ndarray]:
+    """Expected returns from CAPM: (tickers, mu, betas).
+
+        E[Ri] = Rf + Bi * (E[Rm] - Rf)
+
+    Replaces the historical mean as the estimate of mu, and it is the single
+    biggest improvement available to this model. Mean-variance weights are
+    notoriously sensitive to mu, and a per-stock average over two years is
+    mostly noise — which is why the historical version put a stock's entire
+    two-year drawdown into its "expected" return and then allocated as if that
+    would continue.
+
+    CAPM estimates one thing per stock instead: beta, its sensitivity to the
+    market. Beta is a regression slope over hundreds of paired observations
+    and is far steadier than a mean. Every stock's expected return is then
+    pinned to the same market figure, so the estimates move together rather
+    than eight noisy numbers drifting independently.
+
+    What it buys is stability, not clairvoyance. CAPM assumes only systematic
+    risk is rewarded, which is a model of the world, not a measurement of it —
+    a stock that fell for reasons unrelated to the market gets an expected
+    return that ignores the fall entirely. That is the point, and also the
+    assumption to distrust.
+
+    Everything here is annualised, matching `covariance_matrix`. Mixing an
+    annual mu with a daily Sigma is a real and easy mistake: it inflates every
+    Sharpe-like ratio by about sqrt(252).
+    """
+    tickers = sorted(returns_by_ticker)
+    if not tickers:
+        return [], np.zeros(0), np.zeros(0)
+
+    market = np.asarray(list(market_returns), dtype=float)
+    betas = np.zeros(len(tickers))
+    for i, ticker in enumerate(tickers):
+        asset = np.asarray(list(returns_by_ticker[ticker]), dtype=float)
+        if asset.size != market.size:
+            raise ValueError(
+                f"CAPM needs date-aligned series; {ticker} has {asset.size} "
+                f"observations against the market's {market.size}"
+            )
+        market_var = float(np.var(market, ddof=1)) if market.size > 1 else 0.0
+        if market_var <= 0:
+            # A flat benchmark carries no systematic risk to be paid for, so
+            # every asset collapses to the risk-free rate rather than dividing
+            # by zero.
+            betas[i] = 0.0
+            continue
+        betas[i] = float(np.cov(asset, market, ddof=1)[0][1] / market_var)
+
+    mu = risk_free_rate + betas * (market_return - risk_free_rate)
+    return tickers, mu, betas
+
+
 def portfolio_stats(
     weights: Sequence[float],
     mu: Sequence[float],
@@ -183,7 +292,9 @@ def portfolio_stats(
 
 
 def efficient_frontier(
-    returns_by_ticker: dict[str, Sequence[float]], points: int = 40
+    returns_by_ticker: dict[str, Sequence[float]],
+    points: int = 40,
+    mu: Sequence[float] | None = None,
 ) -> list[Allocation]:
     """Trace the frontier by sweeping the risk-tolerance parameter.
 
@@ -195,9 +306,18 @@ def efficient_frontier(
     curvature is at low tau, and a linear sweep spends most of its points on
     the straight tail.
     """
-    tickers, mu, cov = covariance_matrix(returns_by_ticker)
+    tickers, historical_mu, cov = covariance_matrix(returns_by_ticker)
     if not tickers:
         return []
+
+    # `mu` overrides the historical mean — CAPM, normally. Sigma always comes
+    # from the realised returns: the covariance structure is what the data
+    # measures well, and CAPM has nothing to say about it anyway.
+    mu = historical_mu if mu is None else np.asarray(mu, dtype=float)
+    if len(mu) != len(tickers):
+        raise ValueError(
+            f"mu has {len(mu)} entries for {len(tickers)} tickers"
+        )
 
     if len(tickers) == 1:
         expected, vol = portfolio_stats([1.0], mu, cov)
@@ -205,9 +325,7 @@ def efficient_frontier(
 
     # Upper end of the sweep, scaled to the data: tau trades return against
     # variance, so the tau at which return dominates is set by their ratio.
-    spread = float(np.max(mu) - np.min(mu))
-    scale = float(np.max(np.diag(cov)))
-    tau_max = (scale / spread) * 4.0 if spread > 1e-12 else 1.0
+    tau_max = frontier_tau_max(mu, cov)
 
     taus = [0.0] + [
         tau_max * (10 ** (i / (points - 2) * 2 - 2)) for i in range(points - 1)
@@ -238,3 +356,156 @@ def efficient_frontier(
         seen.add(rounded)
         unique.append(a)
     return unique
+
+# ---------------------------------------------------------------------------
+# Picking a single portfolio off the frontier
+# ---------------------------------------------------------------------------
+#
+# The textbook's three formulations — minimise risk, minimise risk for a target
+# return, maximise risk-adjusted return — are three ways of naming a point on
+# the SAME curve, so all three are selections rather than separate problems.
+# One tau sweep answers them all, and they cannot disagree with each other.
+#
+# The alternative is what the reference implementation does: a separate
+# constrained solve per question, plus 5000 more to draw the curve. That is
+# both slower and a way for the "optimal" portfolio to end up somewhere the
+# drawn frontier says is unreachable.
+
+
+def sharpe_ratio_of(allocation: Allocation, risk_free_rate: float) -> float | None:
+    """(return - Rf) / volatility. None when there is no volatility to divide by."""
+    if allocation.volatility <= 1e-12:
+        return None
+    return (allocation.expected_return - risk_free_rate) / allocation.volatility
+
+
+def select_min_risk(curve: Sequence[Allocation]) -> Allocation | None:
+    """The leftmost point: least variance, whatever that costs in return."""
+    return min(curve, key=lambda a: a.volatility) if curve else None
+
+
+def select_max_sharpe(
+    curve: Sequence[Allocation],
+    mu: Sequence[float],
+    cov: Sequence[Sequence[float]],
+    tickers: Sequence[str],
+    risk_free_rate: float,
+) -> Allocation | None:
+    """The tangency portfolio: best return per unit of risk.
+
+    Found on the curve rather than by a separate optimisation, because the
+    maximum-Sharpe portfolio provably lies ON the efficient frontier — nothing
+    off it can have a better ratio, since for any interior point there is a
+    frontier point with the same risk and more return.
+
+    The sweep is a grid, so the best grid point is refined by bisecting tau
+    against its neighbours. Without that the answer is only as precise as the
+    spacing, which is coarse exactly where the curve bends hardest.
+    """
+    if not curve:
+        return None
+
+    scored = [(sharpe_ratio_of(a, risk_free_rate), a) for a in curve]
+    scored = [(s, a) for s, a in scored if s is not None]
+    if not scored:
+        return None
+
+    best_sharpe, best = max(scored, key=lambda pair: pair[0])
+    taus = sorted(a.tau for a in curve)
+    i = taus.index(best.tau)
+    lo = taus[max(0, i - 1)]
+    hi = taus[min(len(taus) - 1, i + 1)]
+
+    # Golden-section on tau. The Sharpe ratio along the frontier is unimodal,
+    # so this converges on the peak rather than a neighbouring shoulder.
+    phi = (5 ** 0.5 - 1) / 2
+    for _ in range(40):
+        a1 = hi - phi * (hi - lo)
+        a2 = lo + phi * (hi - lo)
+        s1 = _sharpe_at(a1, mu, cov, tickers, risk_free_rate)
+        s2 = _sharpe_at(a2, mu, cov, tickers, risk_free_rate)
+        if (s1 or -1e9) < (s2 or -1e9):
+            lo = a1
+        else:
+            hi = a2
+        if hi - lo < 1e-9:
+            break
+
+    refined = _allocation_at((lo + hi) / 2, mu, cov, tickers)
+    refined_sharpe = sharpe_ratio_of(refined, risk_free_rate)
+    if refined_sharpe is not None and refined_sharpe > best_sharpe:
+        return refined
+    return best
+
+
+def select_for_target_return(
+    target: float,
+    mu: Sequence[float],
+    cov: Sequence[Sequence[float]],
+    tickers: Sequence[str],
+    tau_max: float,
+) -> Allocation | None:
+    """Least risk among portfolios reaching `target` expected return.
+
+    Bisects tau rather than adding the return as a second equality
+    constraint. Expected return rises monotonically with tau along the
+    frontier, so bisection lands on the same portfolio a constrained solve
+    would — and it reuses the one solver instead of needing a projection onto
+    {w >= 0, sum w = 1, wᵀmu = target}, which has no cheap exact form.
+
+    Returns None when the target is out of reach: long-only cannot exceed the
+    best single asset, and cannot go below the minimum-variance portfolio's
+    return without deliberately choosing a worse portfolio.
+    """
+    lo_alloc = _allocation_at(0.0, mu, cov, tickers)
+    hi_alloc = _allocation_at(tau_max, mu, cov, tickers)
+    if target > hi_alloc.expected_return + 1e-12:
+        return None  # beyond the best the holdings can do
+    if target <= lo_alloc.expected_return:
+        return lo_alloc  # already satisfied at minimum variance
+
+    lo, hi = 0.0, tau_max
+    for _ in range(60):
+        mid = (lo + hi) / 2
+        alloc = _allocation_at(mid, mu, cov, tickers)
+        if alloc.expected_return < target:
+            lo = mid
+        else:
+            hi = mid
+        if hi - lo < 1e-12:
+            break
+    return _allocation_at(hi, mu, cov, tickers)
+
+
+def _allocation_at(
+    tau: float,
+    mu: Sequence[float],
+    cov: Sequence[Sequence[float]],
+    tickers: Sequence[str],
+) -> Allocation:
+    w = optimal_weights(mu, cov, tau)
+    expected, vol = portfolio_stats(w, mu, cov)
+    return Allocation(
+        weights={t: float(x) for t, x in zip(tickers, w)},
+        expected_return=expected,
+        volatility=vol,
+        tau=tau,
+    )
+
+
+def _sharpe_at(
+    tau: float,
+    mu: Sequence[float],
+    cov: Sequence[Sequence[float]],
+    tickers: Sequence[str],
+    risk_free_rate: float,
+) -> float | None:
+    return sharpe_ratio_of(_allocation_at(tau, mu, cov, tickers), risk_free_rate)
+
+
+def frontier_tau_max(mu: Sequence[float], cov: Sequence[Sequence[float]]) -> float:
+    """The top of the tau sweep, exposed so selectors share the same range."""
+    mu_v = np.asarray(mu, dtype=float)
+    spread = float(np.max(mu_v) - np.min(mu_v))
+    scale = float(np.max(np.diag(np.asarray(cov, dtype=float))))
+    return (scale / spread) * 4.0 if spread > 1e-12 else 1.0

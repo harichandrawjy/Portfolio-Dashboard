@@ -242,6 +242,19 @@ class FrontierPoint(BaseModel):
     weights: dict[str, float]  # ticker -> percent, sums to 100
 
 
+class Selection(BaseModel):
+    """One named portfolio picked off the frontier.
+
+    The textbook's three formulations are three ways of naming a point on the
+    same curve, so all three are returned together and cannot disagree.
+    """
+
+    volatility_pct: float
+    expected_return_pct: float
+    sharpe: float | None  # (return - Rf) / volatility
+    weights: dict[str, float]  # ticker -> percent
+
+
 class AssetPoint(BaseModel):
     """A single holding plotted on the same axes as the frontier."""
 
@@ -249,6 +262,9 @@ class AssetPoint(BaseModel):
     volatility_pct: float
     expected_return_pct: float
     current_weight_pct: float  # what this portfolio actually holds today
+    # Sensitivity to IHSG. Null when expected returns fell back to the
+    # historical mean, which has no beta in it.
+    beta: float | None
 
 
 class FrontierOut(BaseModel):
@@ -262,7 +278,33 @@ class FrontierOut(BaseModel):
     current_volatility_pct: float | None
     current_expected_return_pct: float | None
     trading_days: int  # observations behind the estimate — read it sceptically
+    # The calendar year the estimate covers, and its bounds. Sent so the panel
+    # can name the period instead of leaving "annualised" to be taken on faith.
+    window_year: int
+    window_start: date
+    window_end: date
     excluded: list[str]  # held tickers dropped for want of overlapping history
+    # How expected returns were estimated. "capm" uses Rf + B(Rm - Rf), which
+    # is far steadier than a per-stock average; "historical" is the fallback
+    # when IHSG lacks a bar on some date in the shared window.
+    mu_source: Literal["capm", "log", "historical"]
+    risk_free_rate_pct: float
+    equity_risk_premium_pct: float
+    # What CAPM assumes the market returns: risk-free + the premium above.
+    market_return_pct: float | None
+    # What IHSG actually did over this window. Shown beside the assumption so
+    # the gap between them is visible rather than buried in a constant.
+    market_return_realised_pct: float | None
+    # The three formulations, all read off `curve`.
+    min_risk: Selection | None
+    max_sharpe: Selection | None
+    # Present only when ?target_return_pct= was given AND is reachable.
+    target: Selection | None
+    # Bounds a caller can offer for the target input: below the floor is
+    # already satisfied by minimum variance, above the ceiling is impossible
+    # long-only.
+    target_floor_pct: float | None
+    target_ceiling_pct: float | None
 
 
 class SecuritySearchOut(BaseModel):
