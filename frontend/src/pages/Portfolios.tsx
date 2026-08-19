@@ -115,13 +115,10 @@ export function PortfoliosPage() {
               />
               <Figure
                 label="Portfolios" value={String(rows.length)}
-                note={anyFailed ? "some didn't load" : "tracked"}
+                note={anyFailed ? "some didn't load" : undefined}
                 warn={anyFailed}
               />
-              <Figure
-                label="Holdings" value={String(holdingCount)}
-                note="open positions"
-              />
+              <Figure label="Holdings" value={String(holdingCount)} />
             </dl>
           </div>
         ) : null}
@@ -141,12 +138,12 @@ export function PortfoliosPage() {
         </Panel>
       )}
 
-      {/* ── 02 — the register ────────────────────────────────────────── */}
+      {/* ── 02 — the list itself ─────────────────────────────────────── */}
       {error ? null : (
         <div
           className="rise mt-12" style={{ "--rise": 1 } as React.CSSProperties}
         >
-          {(hasAny || loading) && <SectionHead seq="02" title="The register" />}
+          {(hasAny || loading) && <SectionHead seq="02" title="All portfolios" />}
 
           {loading ? (
             <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -162,7 +159,7 @@ export function PortfoliosPage() {
           ) : !hasAny ? (
             <Panel>
               <EmptyState
-                title="No portfolios yet" body="Create your first portfolio, then record buys and sells to track value, performance against the IHSG, and risk." action={
+                title="No portfolios yet" body="Create one, then record your buys and sells. Everything else on the page is derived from those transactions." action={
                   <Button onClick={() => setCreating(true)}>
                     <Plus size={13} weight="bold" /> New portfolio
                   </Button>

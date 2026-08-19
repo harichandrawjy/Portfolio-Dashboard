@@ -214,7 +214,7 @@ export function FinancialsPanel({
             bankruptcy-risk score for emerging markets: above about 5,85 is
             considered safe, below about 3,75 is distressed.{" "}
             <strong className="font-medium text-ink">Piotroski F-Score</strong>{" "}
-            counts how many of nine accounting health checks a company passes —
+            counts how many of nine accounting health checks a company passes:
             8–9 is strong, 0–2 is weak.{" "}
             <strong className="font-medium text-ink">Interest coverage</strong>{" "}
             is how many times over profit covers the interest bill.

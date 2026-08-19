@@ -98,6 +98,21 @@ html {
   scroll-behavior: smooth;
 }
 
+/* ── The pointer ───────────────────────────────────────────────────
+   Tailwind v4's preflight sets `cursor: default` on buttons, so every
+   control in this app — buttons, segment slots, sort headers, the
+   masthead sign-out — showed an arrow. In a system with no shadows,
+   no radius and no raised sheets, the pointer is doing more work than
+   usual: it is often the only thing that separates a segment you can
+   click from the label sitting beside it. Restore it, and say
+   "unavailable" rather than "nothing here" on a disabled control. */
+button:not(:disabled) {
+  cursor: pointer;
+}
+button:disabled {
+  cursor: not-allowed;
+}
+
 body {
   @apply bg-bg text-ink font-sans antialiased;
   /* The grotesk is the whole voice, so it is worth setting properly:

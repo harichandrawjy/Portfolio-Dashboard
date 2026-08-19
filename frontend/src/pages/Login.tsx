@@ -83,15 +83,15 @@ export function LoginPage() {
         <div className="relative">
           <div className="rule-draw mb-6 h-[3px] w-24 bg-on-accent lg:mb-10" />
           <h1 className="w-condensed text-[clamp(2.75rem,7vw,5.5rem)] font-extrabold uppercase leading-[0.88] tracking-[-0.03em]">
-            Every lot
+            IDX
             <br />
-            on the
+            portfolio
             <br />
-            record
+            ledger
           </h1>
           <p className="mt-6 max-w-[42ch] text-[15px] leading-relaxed text-on-accent/80">
-            Mock IDX portfolios with honest analytics: time-weighted returns,
-            drawdowns, and a benchmark that keeps score.
+            A mock portfolio tracker for Indonesian stocks. Trades go in as
+            board lots, and performance is time-weighted against the IHSG.
           </p>
         </div>
 
@@ -196,14 +196,14 @@ export function LoginPage() {
                 Explore the demo portfolio
               </Button>
               <p className="mt-3 text-xs leading-relaxed text-ink-3">
-                Two years of recorded IDX trades, already funded. Yours alone —
-                buy, sell and delete freely; nobody else sees what you do here.
+                Two years of recorded IDX trades, already funded. It is your
+                own copy, so buy and sell freely. It is deleted after 24 hours.
               </p>
             </div>
           )}
 
           <p className="w-wide mt-8 text-[10px] font-bold uppercase tracking-[0.14em] text-ink-3">
-            Mock portfolios only — no real money moves here
+            Mock portfolios only. No real orders are placed.
           </p>
         </div>
       </main>

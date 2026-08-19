@@ -80,16 +80,16 @@ export function PortfolioFirstRun({
             <span className="tnum font-semibold text-ink">
               {fmtRp(cashBalance)}
             </span>{" "}
-            is available. Record a buy and this page fills in — market value,
-            unrealized P&amp;L, sector allocation, and performance against the
-            IHSG.
+            is available. Record a buy and the rest of this page fills in:
+            market value, unrealized P&amp;L, allocation and performance
+            against the IHSG.
           </>
         ) : (
           <>
             Arus works like a brokerage account: a buy is paid for out of cash,
             so a deposit comes first. If you are recording trades that already
-            happened, date the deposit before the oldest one — only trades on
-            or after your first cash flow count towards the balance.
+            happened, date the deposit before the oldest one. Only trades on or
+            after your first cash flow count towards the balance.
           </>
         )}
       </p>

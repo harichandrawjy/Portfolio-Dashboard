@@ -124,7 +124,7 @@ export function HoldingsTable({
       ) : rows.length === 0 ? (
         <EmptyState
           icon={<ChartLine size={28} weight="light" />}
-          title="No holdings yet" body="Record your first buy to see value, P&L, and allocation for this portfolio." action={<Button onClick={onAddTransaction}>Add transaction</Button>}
+          title="No holdings yet" body="Record a buy and this table fills in." action={<Button onClick={onAddTransaction}>Add transaction</Button>}
         />
       ) : (
         // contain:paint keeps the wide table's overflow inside this scroller.

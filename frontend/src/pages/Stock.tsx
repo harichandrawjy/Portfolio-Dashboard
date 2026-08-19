@@ -396,13 +396,13 @@ function StatsPanel({
           <div className="mt-4">
             <WhatIsThis label="risk statistics">
               <strong className="font-medium text-ink">Volatility</strong> is how
-              much the daily price moves, annualised — higher means a bumpier
-              ride.{" "}
+              much the daily price moves, annualised. Higher means a wider
+              spread of daily outcomes.{" "}
               <strong className="font-medium text-ink">Max drawdown</strong> is
               the worst peak-to-trough fall in the last year.{" "}
               <strong className="font-medium text-ink">Beta</strong> compares the
-              stock to the IHSG: 1,00 moves with the index, above 1,00 amplifies
-              it, below 1,00 dampens it, and a negative beta moves against it.
+              stock to the IHSG: 1,00 moves with the index, above 1,00 swings
+              harder than it, and a negative beta moves against it.
             </WhatIsThis>
           </div>
 

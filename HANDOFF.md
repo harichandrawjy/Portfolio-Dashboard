@@ -1,8 +1,10 @@
 # Arus — project handoff
 
 Context for picking this project up in a fresh session. Read this plus
-`README.md`; the frontend design contract lives in Claude memory
-(`frontend-design-direction`) and in `.claude/skills`.
+`README.md` and `DEPLOY.md`; the frontend design contract lives in Claude
+memory (`frontend-design-direction`) and in `.claude/skills`.
+
+**Live at https://arus-idx.duckdns.org.** See *Deployment* below.
 
 ## What it is
 
@@ -30,6 +32,10 @@ Personal / non-commercial. Nothing executes real trades.
 ```
 schema.sql                  canonical DB design (migration 0001 mirrors it verbatim)
 docker-compose.yml          postgres + backend, both restart: unless-stopped
+docker-compose.prod.yml     prod overlay — uses !override / !reset, load-bearing
+Caddyfile                   TLS + static + /api reverse proxy, one origin
+DEPLOY.md                   full deployment procedure
+scripts/bootstrap-host.sh   fresh-VM prep: docker, iptables, swap, Compose check
 .github/workflows/ci.yml
 .claude/launch.json         dev-server config for the preview tool (autoPort: true)
 backend/
@@ -40,6 +46,10 @@ backend/
     schemas.py              all Pydantic request/response models
     security.py deps.py     bcrypt + JWT, CurrentUser dependency
     analytics.py            PURE functions: returns, volatility, Sharpe, drawdown, beta
+    optimize.py             PURE mean-variance: simplex projection, projected
+                            gradient, CAPM/log mu, frontier + the three selectors
+    demo.py                 per-visitor demo accounts (mint, 24h TTL, purge)
+    ratelimit.py            sliding-window limiter; rightmost X-Forwarded-For hop
     performance.py          daily valuation series (replays transactions), TWR
     pnl.py                  PURE realized P&L (average-cost)
     scheduler.py            APScheduler jobs + enqueue_backfill()
@@ -47,10 +57,12 @@ backend/
     routers/                auth, portfolios, performance, securities, health
     sync/                   ALL external data: idx, prices, stats, fundamentals,
                             statements, universe, catchup, __main__ (CLI)
-    data/idx_universe.csv   963-ticker offline fallback snapshot
-  alembic/versions/         0001..0006
-  tests/                    12 test files, 82 tests
+    data/idx_universe.csv   963-ticker snapshot — now the PRIMARY source, not
+                            a fallback; the live IDX crawl is opt-in only
+  alembic/versions/         0001..0008
+  tests/                    18 test files, 159 tests
 frontend/
+  Dockerfile                multi-stage build; Caddy serves the static output
   src/api/client.ts         THE single typed API surface (no fetch elsewhere)
   src/colors.ts             dataviz-validated chart palette
   src/styles.css            Tailwind v4 @theme design tokens
@@ -115,22 +127,45 @@ Do not casually undo these — each was deliberate.
     The user rejected dark fintech twice — do not propose it. See the memory
     file before touching styling.
 
+## Deployment
+
+One box runs Caddy + backend + Postgres. Four decisions hold it together:
+
+1. **One origin, no CORS.** The frontend hardcodes `BASE = "/api"`; Caddy
+   serves the static build and proxies `/api` from the same host, so that path
+   works unchanged. Splitting the frontend onto its own host would need CORS
+   middleware (the app has none) and an env-driven absolute API URL.
+2. **The backend must stay awake.** APScheduler runs in-process, so a host that
+   sleeps stops the quote and bar schedule outright. There is no separate
+   worker. Single uvicorn worker, too — two workers means two schedulers racing.
+3. **Compose merge semantics.** List fields *append*, so `ports: []` does
+   nothing. `docker-compose.prod.yml` uses `!override` / `!reset` and they are
+   load-bearing; they need Compose ≥ 2.24 or they are ignored **silently**.
+   `bootstrap-host.sh` asserts the version for this reason.
+4. **`SECRET_KEY` must be real.** The app refuses to boot in production on the
+   dev placeholder or anything under 32 chars; `APP_ENV=production` turns the
+   check on. Generate with `openssl rand -hex 32`.
+
 ## Scheduled jobs (Asia/Jakarta)
 
 | Job | When |
 |---|---|
-| Universe sync | nightly 21:00 |
 | Daily bars | Mon–Fri 18:30 (then rebuilds the stat cache) |
 | Quote refresh | Mon–Fri 09:00–16:00, every 15 min |
 | Fundamentals | Sat 06:00 |
 | Statements | Sat 06:30 |
+| Demo-account purge | daily 04:00 — drops per-visitor demo users past their 24h TTL |
 | Startup catch-up | every boot — appends missed bars, refreshes quotes >30 min old |
+
+**There is deliberately no scheduled universe sync.** It was removed: IDX's
+terms bar the scraping method, and the crawl had never actually succeeded in
+production anyway (Cloudflare 403). The bundled snapshot is the source now.
 
 Jobs only run while containers are up, hence `restart: unless-stopped` plus
 the catch-up. Manual override: `docker compose exec backend python -m app.sync
 <universe|backfill|daily|quotes|stats|fundamentals|statements>`.
 
-## Done (39 commits, all 11 original build steps + extras)
+## Done (58 commits, all 11 original build steps + extras)
 
 **Steps 1–11 (the original plan), all verified:** scaffold/Docker/Alembic ·
 IDX universe sync with CSV fallback · yfinance lazy backfill + nightly +
@@ -165,12 +200,46 @@ with cached stats · weekly fundamentals · CI + README + one-command demo seed.
   names corrected), and back-adjustment of corporate actions Yahoo never
   recorded (`adjust_corporate_actions` in `sync/prices.py`)
 
-**Test suite: 82 passing.** `docker compose exec backend pytest`
+**Shipped since, and deployed:**
+- **Public deployment** on Oracle Always Free — Caddy + backend + Postgres on
+  one box, Let's Encrypt TLS, `scripts/bootstrap-host.sh` for a fresh VM
+- **Per-visitor demo accounts** (`POST /auth/demo`, 24h TTL, purged daily 04:00)
+  replacing the single shared mutable demo login, plus a sliding-window limiter
+- **Efficient frontier panel** — long-only mean-variance optimisation:
+  - `optimize.py` is pure and dependency-light. Projected gradient descent with
+    an exact simplex projection (Duchi et al. 2008) and a 1/λ_max step, chosen
+    over SciPy to keep ~30 MB out of the image
+  - Expected returns from **CAPM** (default) or **annualised log returns**,
+    switchable in the panel. Σ stays on *simple* returns under both, because
+    `wᵀΣw` is exact only for asset-additive returns
+  - Three formulations read off one curve: min risk (τ→0), max Sharpe (golden
+    section on τ), target return (bisection on τ)
+  - Estimated over the **last complete calendar year** — 2025 now, 2026 from
+    1 Jan 2027 (`frontier_window()`), rather than a rolling lookback, so the
+    figures are quotable and do not drift nightly
+- **IDX compliance**: scheduled crawl removed, snapshot committed, source
+  credited in the UI with an access date
+- **Name reconcile** (`--reconcile-names`) for drift the truncation guard
+  cannot repair — a name that came back *longer* (a `PT ` prefix, ALL CAPS)
+- Invested value surfaced per portfolio and per holding; broker-style
+  two-line holdings header with allocation
+
+**Test suite: 159 passing.** `docker compose exec backend pytest`
 
 ## Not done / known gaps
 
-- **Never pushed to GitHub.** No remote configured; CI has never run. This is
-  the single biggest remaining task for a portfolio project.
+- **The frontier panel shows no uncertainty.** This is the biggest open item.
+  Max Sharpe can render a confident `+50,66% · Sharpe 1,543` off 236 sessions,
+  where the two-sigma band on that return is roughly ±60 percentage points.
+  Two fixes were designed and not built: (a) flag the degenerate case where
+  fewer than two holdings clear Rf, which currently renders as a 100%
+  single-name allocation; (b) draw a ±2·SE band on the holding scatter points.
+- **No automated backups.** Four manual `pg_dump` snapshots exist; nothing is
+  scheduled.
+- **Live URL is not in the README or the GitHub About.**
+- **Python dependencies are unpinned.**
+- `analytics.py` comments "~247 sessions/year"; measured 2022–25 is ~238. The
+  252 constant elsewhere is a shared convention, not a measurement.
 - **No screenshots** in the README (placeholders are in place).
 - **Tier-3 market-wide features are out of reach by design** (rank
   percentiles, IHSG median P/E, relative strength) — they need all-universe
@@ -202,7 +271,40 @@ with cached stats · weekly fundamentals · CI + README + one-command demo seed.
   ```
   Fix any hit with `python -m app.sync backfill --ticker XXXX`. Last audit:
   clean across all 37 tracked tickers / 42.690 bars.
-- IDX holidays are not modelled anywhere (harmless: syncs no-op).
+- **IDX holidays are handled by the index, not a calendar.** They were once
+  listed here as "not modelled anywhere (harmless: syncs no-op)". Not
+  harmless: Yahoo omits holidays from `^JKSE` but *synthesises* them for
+  individual tickers, copying the previous close into O/H/L/C with volume 0.
+  191 such rows reached `price_history` across eight 2026 holidays and drew
+  bodiless candles on days the exchange was shut. Only the nightly path was
+  affected — a five-year backfill request omits holidays on its own, which is
+  why 2025's eleven-day Idul Fitri closure is simply absent from the data.
+
+  `sync_daily` now fetches the benchmark window first and passes its dates to
+  `_df_to_rows` as `sessions`: **if `^JKSE` printed nothing, nothing traded.**
+  The naive filter — drop zero-volume flat bars — is wrong, because an
+  illiquid stock with no trades on a real session produces an identical bar;
+  892 days of stored history look like that and none may be dropped. A failed
+  index fetch yields `sessions=None` and stores unfiltered, so a bad Yahoo
+  night costs one holiday bar rather than a whole night of prices.
+
+  Cleaning the 191 rows moved `volatility_1y_pct` up on 46 of 47 tickers
+  (median +0,84%, max +1,46%) and `avg_volume_3mo` up a median +3,33%; the
+  zeros had been padding both. `beta_1y` moved on none of them, because it
+  aligns against IHSG and those dates never had an index bar to align to.
+  The frontier was never affected — its window is calendar 2025.
+
+  To re-audit:
+
+  ```sql
+  WITH ihsg AS (SELECT ph.trade_date FROM price_history ph
+                JOIN securities s ON s.id = ph.security_id WHERE s.ticker = 'IHSG'),
+       rng AS (SELECT min(trade_date) lo, max(trade_date) hi FROM ihsg)
+  SELECT ph.trade_date, count(*) FROM price_history ph, rng
+  WHERE ph.trade_date BETWEEN rng.lo AND rng.hi
+    AND ph.trade_date NOT IN (SELECT trade_date FROM ihsg)
+  GROUP BY ph.trade_date ORDER BY ph.trade_date;
+  ```
 - Cross-file test dependencies exist (e.g. `test_stocks.py` alone fails
   because `AAAA` is seeded by `test_performance.py`). Run the whole suite.
 - P/FCF from Yahoo's `info` uses their levered-FCF definition and can diverge
@@ -211,17 +313,44 @@ with cached stats · weekly fundamentals · CI + README + one-command demo seed.
 
 ## Running it
 
+Development:
+
 ```sh
 docker compose up -d                                   # postgres + API :8000
 docker compose exec backend alembic upgrade head
-docker compose exec backend python -m app.seed_demo    # demo@arus.id / arus-demo-123
+docker compose exec backend python -m app.seed_demo    # seeds the demo template
 cd frontend && npm install && npm run dev              # :5173
 ```
 
+Production — Oracle Always Free, x86 E2.1.Micro, 1 GB RAM + 2 GB swap
+(A1 ARM had no capacity). `ssh ubuntu@161.118.254.84`, app in `~/arus`:
+
+```sh
+git pull
+docker compose --env-file .env.prod -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+```
+
+That one command builds the frontend too, and takes several minutes on this
+box — run it in the background. Alembic migrates automatically on boot.
+
 ## Gotchas learned the hard way
 
-- **Windows + PowerShell**: git commit messages must avoid `"` (breaks
-  native-arg quoting) — use single-quoted here-strings.
+- **Windows + PowerShell 5.1**: no `&&`, no ternary, no `??` — chaining with
+  `&&` is a parser error. Commit messages must avoid `"`; prefer repeated `-m`
+  flags over here-strings, whose closing `'@` must sit at column 0.
+- **`docker compose cp x backend:/app/...` writes into the repo**, because
+  `./backend` is bind-mounted. Scratch scripts land in `git status`. Copy to
+  `/tmp` inside the container instead, and pass `-e PYTHONPATH=/app`.
+- **Deploy watchers need the right completion condition.** Three separate ones
+  reported a finished deploy as stalled: `pgrep -f "docker compose"` matched
+  its own command line; a check for `"Up N hour"` failed when uptime was in
+  days; and one waited on `arus-caddy-1 Started` during a backend-only change.
+- **`bash -n` will not catch a bad heredoc substitution.** `${VAR:-a b's c}`
+  fails at *runtime*, not parse time — an apostrophe opens a quote that never
+  closes. Precompute the string into a variable instead.
+- **The IDX Cloudflare block is not total.** Logs showing only 403s do not
+  prove the crawl never lands; one success rewrote all 963 company names with
+  `PT ` prefixes and shouty casing. Hence the snapshot-first design.
 - **uvicorn `--reload` file watcher crashes** on the Windows bind mount
   (`WatchfilesRustInternalError`) and used to kill the container silently;
   the restart policy now covers it.

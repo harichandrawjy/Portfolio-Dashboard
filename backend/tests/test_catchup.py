@@ -121,3 +121,65 @@ def test_cutoff_never_includes_an_open_session():
         for hour in (18, 20, 23):
             now = _wib(2026, 7, day, hour)
             assert _last_final_trade_date(now) == now.date()
+
+
+# --------------------------------------------------------------------------
+# Never store a bar for a day the exchange was shut
+#
+# Real case: 27-28 May 2026 (Idul Adha + cuti bersama). Yahoo omits IDX
+# holidays from ^JKSE but synthesises them for individual tickers, copying
+# the previous close into O/H/L/C with volume 0. 191 such rows reached
+# price_history across eight 2026 holidays, and each drew a bodiless candle
+# on a day nothing traded. The five-year backfill never had the problem:
+# long-range Yahoo requests omit holidays, so this is a nightly-path bug.
+# --------------------------------------------------------------------------
+
+from app.sync.prices import session_dates
+
+
+def _holiday_frame(days: list[int], close: int = 100) -> pd.DataFrame:
+    """A ticker frame where every bar is Yahoo's holiday placeholder."""
+    idx = pd.to_datetime([f"2026-07-{d:02d}" for d in days])
+    return pd.DataFrame(
+        {
+            "Open": [close] * len(days),
+            "High": [close] * len(days),
+            "Low": [close] * len(days),
+            "Close": [close] * len(days),
+            "Volume": [0] * len(days),
+        },
+        index=idx,
+    )
+
+
+def test_holiday_placeholder_is_not_stored():
+    # the index traded on the 20th and the 22nd; the 21st was a holiday
+    sessions = session_dates(_frame([20, 22]))
+    rows = _df_to_rows(
+        _frame([20, 21, 22]), now=_wib(2026, 7, 23, 19), sessions=sessions
+    )
+    assert [r["trade_date"] for r in rows] == [date(2026, 7, 20), date(2026, 7, 22)]
+
+
+def test_untraded_stock_on_a_real_session_is_still_stored():
+    """The discriminator that matters. An illiquid stock with no trades
+    produces a bar identical in shape to a holiday placeholder — flat OHLC,
+    zero volume — but the exchange WAS open, so the bar is real. 892 days of
+    stored history look like this and none may be dropped."""
+    sessions = session_dates(_frame([20, 21, 22]))
+    rows = _df_to_rows(
+        _holiday_frame([20, 21, 22]), now=_wib(2026, 7, 23, 19), sessions=sessions
+    )
+    assert [r["trade_date"] for r in rows] == [
+        date(2026, 7, 20),
+        date(2026, 7, 21),
+        date(2026, 7, 22),
+    ]
+
+
+def test_missing_calendar_fails_open():
+    """A failed index fetch must not block every ticker's bars for the night.
+    The cost is one holiday bar slipping through, which is the old behaviour."""
+    assert session_dates(pd.DataFrame()) is None
+    rows = _df_to_rows(_frame([20, 21]), now=_wib(2026, 7, 21, 19), sessions=None)
+    assert [r["trade_date"] for r in rows] == [date(2026, 7, 20), date(2026, 7, 21)]

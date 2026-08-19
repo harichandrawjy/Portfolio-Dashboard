@@ -191,7 +191,7 @@ export function SummaryCards({
               !totals.cash_tracked
                 ? "deposit before buying"
                 : totals.cash_uncounted_trades > 0
-                  ? `${totals.cash_uncounted_trades} earlier trade${totals.cash_uncounted_trades > 1 ? "s" : ""} not counted — see Cash`
+                  ? `${totals.cash_uncounted_trades} earlier trade${totals.cash_uncounted_trades > 1 ? "s" : ""} not counted (see Cash)`
                   : "deposits minus trades"
             }
             noteTone={totals.cash_uncounted_trades > 0 ? "text-warn" : "text-ink-3"}

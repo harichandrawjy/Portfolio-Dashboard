@@ -584,6 +584,23 @@ paper, ring becomes 2px accent. The label above is 11px uppercase wide.
 A `panel-2` track with square items. The selected segment **inverts to solid
 ink**. No sliding pill, no shadow, no radius.
 
+**An unselected segment reads as a caption unless something answers the
+pointer.** On a white page an unfilled segment is the same colour as the
+ground, so the filled one looks like a label with text beside it rather than
+one of two slots. The fix is NOT to fill the unselected side or box the
+group — both were tried and both fight the plain ground. Instead:
+
+- the label is `ink-2`, not `ink-3`. The quiet floor makes an available
+  option look disabled;
+- hover fills `panel-2`, the same answer the data table gives a row;
+- `cursor: pointer` is restored (see the Do below), so the pointer confirms
+  the whole strip before anything is clicked.
+
+At rest the control stays flat on the ground, which is the point. The
+frontier's two switchers are the hairline-bed variant — `gap-px bg-line`,
+so the bed shows only as a rule *between* items. Selected inverts to ink, or
+to accent where the group is a binary choice (see `BinaryToggle`).
+
 ### Data table
 
 The densest surface. Column heads are 10px uppercase wide micro labels, each
@@ -611,8 +628,10 @@ a flat colour field ends the page deliberately instead of letting it trail
 off into whitespace.
 
 It is a surface, not an ornament — it holds the data provenance (`963 IDX
-tickers`, `5y daily bars`, `IHSG benchmark`, `Delayed / never real-time`) and
-the not-real-money disclaimer, which have to live somewhere regardless.
+tickers`, `5y daily bars`, `IHSG benchmark`) and the not-real-money
+disclaimer, which have to live somewhere regardless. Every entry in that row
+is a measured figure; a fourth slot was removed rather than filled with a
+word set in a figure's clothing.
 
 - **Full bleed is the one sanctioned exception to the One Measure Rule.** The
   *field* spans the viewport; everything *inside* it stays in the same
@@ -713,6 +732,10 @@ have.
 - **Do** gate every animation behind `prefers-reduced-motion` and give focus a
   2px accent ring with a page-ground offset.
 - **Do** verify `tnum` in-browser before ever changing the typeface.
+- **Do** keep `cursor: pointer` on enabled controls. Tailwind v4's preflight
+  sets buttons to `cursor: default`; `styles.css` restores it. In a system
+  with no shadow, no radius and no raised sheets, the pointer carries more of
+  the "this is interactive" signal than it would elsewhere.
 
 ### Don't
 

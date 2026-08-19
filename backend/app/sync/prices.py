@@ -250,7 +250,23 @@ def _last_final_trade_date(now: datetime | None = None) -> date:
     return wib.date() - timedelta(days=1)
 
 
-def _df_to_rows(df: pd.DataFrame, now: datetime | None = None) -> list[dict]:
+def session_dates(df: pd.DataFrame) -> set[date] | None:
+    """The dates the exchange actually traded, read off the benchmark index.
+
+    `None` means "unusable — do not filter". A failed or empty index fetch
+    must never block every ticker's bars; the cost of that failure mode is
+    one holiday bar slipping through, which is what we had before.
+    """
+    if df is None or df.empty or "Close" not in df:
+        return None
+    return {idx.date() for idx, r in df.iterrows() if not pd.isna(r.get("Close"))}
+
+
+def _df_to_rows(
+    df: pd.DataFrame,
+    now: datetime | None = None,
+    sessions: set[date] | None = None,
+) -> list[dict]:
     cutoff = _last_final_trade_date(now)
     rows = []
     for idx, r in df.iterrows():
@@ -258,6 +274,21 @@ def _df_to_rows(df: pd.DataFrame, now: datetime | None = None) -> list[dict]:
         if trade_date > cutoff:
             # the session is still open (or too fresh to trust) — skip it and
             # let the evening run store the real bar
+            continue
+        if sessions is not None and trade_date not in sessions:
+            # An IDX holiday. Yahoo does not omit these for individual
+            # tickers the way it does for ^JKSE — it synthesises a bar with
+            # the previous close copied into O/H/L/C and volume 0, which
+            # renders as a bodiless candle on a day the exchange was shut.
+            # The guard below cannot catch it, because that close is a real
+            # number rather than NaN.
+            #
+            # The index is the authority on whether the market opened: if
+            # ^JKSE printed nothing, nothing traded. That distinguishes a
+            # closed market from a single illiquid stock that simply had no
+            # trades, which produces an identical-looking bar on a day the
+            # exchange really was open — 892 such days are in the history and
+            # none of them should be touched.
             continue
         close = r.get("Close")
         if close is None or pd.isna(close):
@@ -458,10 +489,29 @@ async def sync_daily() -> SyncRunResult:
             logger.exception("benchmark backfill failed — continuing")
             result.failed.append(bench.ticker)
 
+    # The session calendar for this window, fetched before any ticker so the
+    # filter is available to all of them. It must come from a live fetch
+    # rather than from stored IHSG rows: `secs` is ordered by ticker, so
+    # everything from AADI to GOTO is written before IHSG's own bar lands.
+    sessions: set[date] | None = None
+    if bench is not None:
+        try:
+            bench_df = await asyncio.to_thread(
+                _download_history, bench.yahoo_symbol, "5d"
+            )
+            sessions = session_dates(bench_df)
+        except Exception:
+            logger.exception(
+                "benchmark calendar fetch failed — storing bars unfiltered"
+            )
+        await asyncio.sleep(REQUEST_PAUSE)
+    if sessions is None:
+        logger.warning("no session calendar this run — holiday bars may slip through")
+
     for sec in secs:
         try:
             df = await asyncio.to_thread(_download_history, sec.yahoo_symbol, "5d")
-            rows = _df_to_rows(df)
+            rows = _df_to_rows(df, sessions=sessions)
             if not rows:
                 logger.warning(
                     "no recent bars for %s (%s) — suspended or stale on Yahoo",
@@ -477,6 +527,10 @@ async def sync_daily() -> SyncRunResult:
                     "full backfill to re-adjust",
                     sec.ticker,
                 )
+                # deliberately unfiltered: backfill_ticker fetches five
+                # years, and `sessions` covers five days. Long-range Yahoo
+                # requests omit holidays on their own, which is why every
+                # phantom bar in the history is from this nightly path.
                 await backfill_ticker(sec.ticker)
                 result.synced += 1
             else:

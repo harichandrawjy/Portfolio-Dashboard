@@ -147,7 +147,6 @@ export function Colophon() {
             ["963", "IDX tickers"],
             ["5y", "daily bars"],
             ["IHSG", "benchmark"],
-            ["Delayed", "never real-time"],
           ].map(([v, l]) => (
             <div key={l}>
               <dt className="sr-only">{l}</dt>
@@ -160,7 +159,7 @@ export function Colophon() {
         </dl>
 
         <p className="w-wide max-w-[52ch] border-t border-on-accent/25 pt-5 text-[11px] font-bold uppercase leading-relaxed tracking-[0.12em] text-on-accent/70">
-          Mock portfolios only — no real money moves here
+          Mock portfolios only. No real orders are placed.
         </p>
 
         {/* Source credit. IDX's terms permit non-commercial use of their data

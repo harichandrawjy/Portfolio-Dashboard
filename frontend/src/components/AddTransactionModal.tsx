@@ -617,7 +617,7 @@ export function AddTransactionModal({
         {type === "BUY" && stateError !== null && (
           <p className="bg-warn/10 px-3 py-2 text-xs text-warn ring-1 ring-warn/25">
             Couldn't check this portfolio's cash balance. You can still record
-            the trade — the server validates it against the ledger.
+            the trade; the server validates it against the ledger.
           </p>
         )}
         {type === "BUY" && portfolioState !== null && (

@@ -12,7 +12,7 @@ import {
 
 import type { Frontier, FrontierPoint, MuModel } from "../api/client";
 import { CHART_NEUTRAL, token } from "../colors";
-import { DASH, fmtPct } from "../lib/format";
+import { fmtDec, fmtPct } from "../lib/format";
 import { EmptyState, ErrorNote, Panel, PanelHeader, Skeleton } from "./ui";
 
 /** Mean-variance frontier: risk on x, expected return on y.
@@ -246,13 +246,13 @@ export function FrontierChart({
       <p className="mt-4 max-w-[68ch] text-[12px] leading-relaxed text-ink-2">
         Every allocation of your current holdings that gives the most expected
         return for its risk. Both axes are estimated from calendar{" "}
-        {frontier.window_year} alone — {frontier.trading_days} sessions of shared
-        price history, the last complete year. Expected return{" "}
+        {frontier.window_year} alone, the last complete year, which is{" "}
+        {frontier.trading_days} sessions of shared price history. Expected return{" "}
         {frontier.mu_source === "capm"
-          ? "comes from CAPM, not from what each stock happened to do."
+          ? "comes from CAPM rather than from what each stock actually did."
           : frontier.mu_source === "log"
-            ? "is each holding's own annualised log return, so volatility drag is priced in — but it is still history, not a forecast."
-            : "is each stock's own average — read the curve, not the decimals."}
+            ? "is each holding's own annualised log return, which prices in volatility drag but is still history."
+            : "is each stock's own average return."}
       </p>
 
       {/* Which estimator produced the y-axis. Offered as a switch because the
@@ -261,25 +261,46 @@ export function FrontierChart({
           spread them over ~60pp and drive the optimum into a single holding.
           Risk is identical either way — only mu changes. */}
       <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2">
-        <span className="w-wide text-[10px] font-bold uppercase tracking-[0.12em] text-ink-3">
+        <span
+          id="mu-model-label"
+          className="w-wide text-[10px] font-bold uppercase tracking-[0.12em] text-ink-3"
+        >
           Expected return from
         </span>
-        <div className="inline-flex max-w-full flex-wrap gap-px bg-line">
+        {/* An exclusive choice, so radiogroup rather than two independent
+            aria-pressed toggles — it announces "1 of 2" the way the app's
+            other exclusive controls do. */}
+        {/* The divider is drawn ON the unselected segment, not in a gap
+            between the two. The hairline bed the mode tabs use is 15% black,
+            which reads against a white neighbour but is swallowed by a filled
+            one — and this group has exactly ONE boundary with a filled block
+            always on one side of it, so a bed could never show here. Exactly
+            one segment is unselected at any time, so exactly one rule is
+            drawn, always on paper. Group width is unchanged by the flip. */}
+        <div
+          role="radiogroup"
+          aria-labelledby="mu-model-label"
+          className="inline-flex max-w-full flex-wrap"
+        >
           {(
             [
-              ["capm", "CAPM", "Rf + β(Rm − Rf) — steadier, but assumes a market premium"],
-              ["log", "Log returns", "Each holding's own annualised geometric return — honest about volatility drag, but noisy"],
+              ["capm", "CAPM", "Rf + β(Rm − Rf). Steadier, but assumes a market premium"],
+              ["log", "Log returns", "Each holding's own annualised geometric return. Prices in volatility drag, but noisy"],
             ] as const
-          ).map(([key, label, hint]) => (
+          ).map(([key, label, hint], i) => (
             <button
               key={key}
+              type="button"
+              role="radio"
+              aria-checked={muModel === key}
               title={hint}
-              aria-pressed={muModel === key}
               onClick={() => onMuModelChange(key)}
               className={`w-wide px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-accent ${
                 muModel === key
                   ? "bg-accent text-on-accent"
-                  : "bg-panel text-ink-3 hover:text-ink"
+                  : `bg-panel text-ink-2 hover:bg-panel-2 hover:text-ink border-line ${
+                      i === 0 ? "border-r" : "border-l"
+                    }`
               }`}
             >
               {label}
@@ -449,7 +470,7 @@ export function FrontierChart({
               className={`w-wide px-3 py-2 text-[10px] font-bold uppercase tracking-[0.12em] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-accent ${
                 mode === m.key
                   ? "bg-ink text-bg"
-                  : "bg-panel text-ink-3 hover:text-ink"
+                  : "bg-panel text-ink-2 hover:bg-panel-2 hover:text-ink"
               }`}
             >
               {m.label}
@@ -513,7 +534,7 @@ export function FrontierChart({
             </div>
             {frontier.target == null && (
               <p className="mt-2 text-[11px] text-warn">
-                Out of reach without short selling — the best your holdings can
+                Out of reach without short selling. The best your holdings can
                 do is {fmtPct(frontier.target_ceiling_pct)}.
               </p>
             )}
@@ -525,7 +546,7 @@ export function FrontierChart({
             Risk {fmtPct(selected.volatility_pct)} · expected return{" "}
             {fmtPct(selected.expected_return_pct, true)}
             {namedSharpe != null && (
-              <> · Sharpe {namedSharpe.toFixed(3)}</>
+              <> · Sharpe {fmtDec(namedSharpe, 3)}</>
             )}
           </p>
         )}
@@ -560,7 +581,7 @@ export function FrontierChart({
                   </td>
                   {showBeta && (
                     <td className="tnum px-3 py-2 text-right text-ink-3">
-                      {r.beta == null ? DASH : r.beta.toFixed(2)}
+                      {fmtDec(r.beta)}
                     </td>
                   )}
                   <td className="tnum px-3 py-2 text-right">

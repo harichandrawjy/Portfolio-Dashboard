@@ -176,8 +176,8 @@ export function PerformanceChart({
             </div>
             <p className="max-w-[46ch] text-[13px] leading-relaxed text-ink-2">
               A performance line needs two days to draw. Yours appears after the
-              next market close — or widen the range if this portfolio has
-              older transactions.
+              next market close, or widen the range if this portfolio has older
+              transactions.
             </p>
           </div>
         ) : (
