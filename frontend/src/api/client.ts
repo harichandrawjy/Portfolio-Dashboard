@@ -72,6 +72,8 @@ export interface User {
   email: string;
   display_name: string | null;
   created_at: string;
+  /** null until the address is confirmed. Demo accounts stay null for good. */
+  email_verified_at: string | null;
 }
 
 export interface Portfolio {
@@ -485,10 +487,43 @@ export const api = {
       body: { email, password, display_name: displayName || null },
     }),
 
+  /** 401 for bad credentials, 403 when the address is not yet confirmed —
+   *  the two are distinguishable by status alone, so callers never match on
+   *  the message text. */
   login: (email: string, password: string) =>
     request<{ access_token: string }>("/auth/login", {
       method: "POST",
       body: { email, password },
+    }),
+
+  /** Redeem a link from a verification email. Returns a token: the link
+   *  already proves control of the address, so there is no second sign-in. */
+  confirmEmail: (token: string) =>
+    request<{ access_token: string }>("/auth/verify/confirm", {
+      method: "POST",
+      body: { token },
+    }),
+
+  /** Always resolves, whether or not the address has a pending account —
+   *  the backend refuses to say, so the UI must not imply otherwise. */
+  resendVerification: (email: string) =>
+    request<{ detail: string }>("/auth/verify/resend", {
+      method: "POST",
+      body: { email },
+    }),
+
+  /** Same silence: a 200 here means "we will not tell you". */
+  forgotPassword: (email: string) =>
+    request<{ detail: string }>("/auth/password/forgot", {
+      method: "POST",
+      body: { email },
+    }),
+
+  /** Sets the password and signs every other device out. */
+  resetPassword: (token: string, password: string) =>
+    request<{ access_token: string }>("/auth/password/reset", {
+      method: "POST",
+      body: { token, password },
     }),
 
   /** Mint a private, throwaway demo account and get a token for it.

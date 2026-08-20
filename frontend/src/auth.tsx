@@ -20,6 +20,8 @@ interface AuthState {
     password: string,
     displayName?: string,
   ) => Promise<void>;
+  /** Adopt a token minted by a verification or reset link. */
+  adoptToken: (token: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -58,13 +60,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(await api.me());
   }, []);
 
+  // Registration no longer signs anyone in: the address has to be confirmed
+  // first, and logging in here would just surface the 403 as a failed signup.
+  // The caller shows "check your inbox" instead.
   const register = useCallback(
     async (email: string, password: string, displayName?: string) => {
       await api.register(email, password, displayName);
-      await login(email, password);
     },
-    [login],
+    [],
   );
+
+  const adoptToken = useCallback(async (token: string) => {
+    setToken(token);
+    setUser(await api.me());
+  }, []);
 
   const logout = useCallback(() => {
     setToken(null);
@@ -73,7 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, ready, login, demoLogin, register, logout }}
+      value={{ user, ready, login, demoLogin, register, adoptToken, logout }}
     >
       {children}
     </AuthContext.Provider>

@@ -37,6 +37,8 @@ from datetime import date
 
 import pytest
 
+from tests.helpers import register_verified
+
 from app.sync.statements import compute_derived
 
 pytestmark = pytest.mark.asyncio(loop_scope="session")
@@ -131,13 +133,8 @@ async def test_ttm_tolerates_one_gap_and_ebit_fallback():
 
 
 async def _login(client, email):
-    await client.post(
-        "/auth/register", json={"email": email, "password": "password-123"}
-    )
-    r = await client.post(
-        "/auth/login", json={"email": email, "password": "password-123"}
-    )
-    return {"Authorization": f"Bearer {r.json()['access_token']}"}
+    """Register, verify and sign in. See helpers.register_verified."""
+    return await register_verified(client, email, "password-123")
 
 
 async def _seed_statement_rows():

@@ -29,12 +29,32 @@ async def get_current_user(
     )
     if credentials is None:
         raise unauthorized
-    user_id = decode_access_token(credentials.credentials)
-    if user_id is None:
+    decoded = decode_access_token(credentials.credentials)
+    if decoded is None:
         raise unauthorized
+    user_id, version = decoded
     user = await session.get(User, user_id)
     if user is None:
         raise unauthorized
+
+    # A password reset bumps `token_version`, retiring every token minted
+    # under the old one. Without this the reset would leave the attacker who
+    # prompted it signed in until their token expired on its own — the one
+    # window the feature exists to close.
+    #
+    # Equality, not `<`. A token from a FUTURE version is as wrong as a stale
+    # one: it means the claim was tampered with or the row was rolled back,
+    # and neither is a session to trust.
+    if version != user.token_version:
+        raise unauthorized
+
+    # Defence in depth. `/auth/login` already refuses unverified accounts, so
+    # no token should exist for one — this catches any future path that mints
+    # a token without going through it. Demo accounts have synthetic addresses
+    # and are exempt by design.
+    if not user.is_demo and user.email_verified_at is None:
+        raise unauthorized
+
     return user
 
 

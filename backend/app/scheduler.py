@@ -1,3 +1,5 @@
+import asyncio
+import logging
 from zoneinfo import ZoneInfo
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -5,10 +7,13 @@ from apscheduler.triggers.combining import OrTrigger
 from apscheduler.triggers.cron import CronTrigger
 
 from app.demo import purge_expired_demo_users
+from app.mail import Message, send as send_mail
 from app.sync.fundamentals import sync_fundamentals
 from app.sync.prices import backfill_ticker, sync_daily, sync_quotes
 
 JAKARTA = ZoneInfo("Asia/Jakarta")
+
+logger = logging.getLogger(__name__)
 
 _scheduler: AsyncIOScheduler | None = None
 
@@ -109,3 +114,47 @@ def enqueue_backfill(ticker: str) -> None:
         replace_existing=True,
         misfire_grace_time=None,
     )
+
+
+async def _deliver(message: Message) -> None:
+    """Send one message, swallowing failure.
+
+    Deliberately does not re-raise. An unreachable Gmail must not surface as a
+    500 on a registration that already succeeded — the account row is
+    committed by the time this runs, and the user's recourse is the resend
+    button, not a retry of the signup they cannot repeat. The exception is
+    logged with the recipient so a delivery problem is diagnosable.
+    """
+    try:
+        await asyncio.to_thread(send_mail, message)
+    except Exception:
+        logger.exception("could not deliver %r to %s", message.subject, message.to)
+
+
+def enqueue_email(message: Message) -> None:
+    """Hand a message to the scheduler and return immediately.
+
+    Two reasons this is not simply awaited in the handler. Architecture
+    decision 4 keeps external calls out of request handlers; and a handler
+    that waits on SMTP times its own response, which turns
+    `/auth/password/forgot` into an oracle — a fast 200 for an unknown
+    address, a slow one for a real account. Enqueuing makes both identical.
+
+    No job id, so nothing dedupes: two verification emails are a minor
+    annoyance, one silently dropped because it collided with another is a
+    person who cannot sign in.
+    """
+    if _scheduler is None or not _scheduler.running:
+        # Only tests and CLI paths get here — the app's lifespan starts the
+        # scheduler before it serves anything. Deliver inline rather than drop
+        # it: losing every verification email is a far worse failure than
+        # blocking a caller that, in these contexts, is not a real request.
+        # With SMTP unconfigured (which is when this path is reached) `send`
+        # only appends to OUTBOX, so nothing actually blocks.
+        logger.warning("no scheduler — delivering %r inline", message.subject)
+        try:
+            send_mail(message)
+        except Exception:
+            logger.exception("inline delivery of %r failed", message.subject)
+        return
+    _scheduler.add_job(_deliver, args=[message], misfire_grace_time=None)

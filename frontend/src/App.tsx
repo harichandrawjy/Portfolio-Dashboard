@@ -23,6 +23,14 @@ const PortfolioDetailPage = lazy(() =>
 const StockPage = lazy(() =>
   import("./pages/Stock").then((m) => ({ default: m.StockPage })),
 );
+// Where the emailed links land. Public by necessity — the visitor has no
+// session yet, and the token in the URL is what stands in for one.
+const VerifyPage = lazy(() =>
+  import("./pages/AuthLink").then((m) => ({ default: m.VerifyPage })),
+);
+const ResetPage = lazy(() =>
+  import("./pages/AuthLink").then((m) => ({ default: m.ResetPage })),
+);
 
 /** Holds the page's shape while its chunk arrives, inside the 1200 measure. */
 function PageFallback() {
@@ -90,6 +98,8 @@ export default function App() {
     <Suspense fallback={null}>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/verify" element={<VerifyPage />} />
+        <Route path="/reset" element={<ResetPage />} />
         <Route
           path="/" element={
             <RequireAuth>

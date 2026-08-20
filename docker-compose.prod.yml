@@ -52,6 +52,24 @@ services:
       # existing .env.prod written before this variable existed should keep
       # deploying, and "on" matches what a public showcase wants.
       DEMO_ENABLED: ${DEMO_ENABLED:-true}
+      # Outbound email. `:?` rather than a default, unlike DEMO_ENABLED above:
+      # verification is mandatory, so a deployment without these does not
+      # degrade — every new account is created unusable and every forgotten
+      # password is unrecoverable. Failing here names the missing variable;
+      # config.py repeats the check for anything that bypasses Compose.
+      #
+      # SMTP_PASSWORD is a Google App Password (16 characters, needs 2FA on
+      # the account). Gmail rejects plain account passwords for SMTP.
+      SMTP_USER: ${SMTP_USER:?set SMTP_USER in .env.prod — the Gmail address that sends verification mail}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:?set SMTP_PASSWORD in .env.prod — a Google App Password, not the account password}
+      SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      MAIL_FROM_NAME: ${MAIL_FROM_NAME:-Arus}
+      # Defaults to the origin Caddy already serves, because two variables
+      # that must agree are one that will not. Overridable because DOMAIN also
+      # accepts ":80" for an IP-only box, where "https://:80" is not a URL —
+      # such a deployment must set APP_BASE_URL to its own http://IP.
+      APP_BASE_URL: ${APP_BASE_URL:-https://${DOMAIN}}
       WATCHFILES_FORCE_POLLING: "false"
     # Only Caddy talks to the API. Again `!reset` rather than `[]`: without it
     # the base file's "8000:8000" survives the merge and the API answers

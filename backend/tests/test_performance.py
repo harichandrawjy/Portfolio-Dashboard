@@ -35,7 +35,7 @@ from datetime import date
 
 import pytest
 
-from tests.helpers import fund
+from tests.helpers import fund, register_verified
 
 pytestmark = pytest.mark.asyncio(loop_scope="session")
 
@@ -89,13 +89,8 @@ async def _seed_synthetic_market():
 
 
 async def _login(client, email):
-    await client.post(
-        "/auth/register", json={"email": email, "password": "password-123"}
-    )
-    r = await client.post(
-        "/auth/login", json={"email": email, "password": "password-123"}
-    )
-    return {"Authorization": f"Bearer {r.json()['access_token']}"}
+    """Register, verify and sign in. See helpers.register_verified."""
+    return await register_verified(client, email, "password-123")
 
 
 async def test_performance_series_and_metrics(client):

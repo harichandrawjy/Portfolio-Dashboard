@@ -1,4 +1,5 @@
 from functools import lru_cache
+from urllib.parse import urlparse
 
 from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -53,6 +54,37 @@ class Settings(BaseSettings):
     # index actually did.
     equity_risk_premium: float = 0.08
 
+    # ── Outbound email ────────────────────────────────────────────────────
+    # Gmail submission. Port 25 is blocked outbound on the Oracle Free Tier
+    # box (verified: "Network is unreachable"), so direct-to-MX is not an
+    # option and never will be — 587 and 465 are open and a relay is required.
+    #
+    # `smtp_password` is a Google App Password, not the account password:
+    # Gmail refuses plain account passwords for SMTP, and an App Password can
+    # be revoked on its own without touching the account.
+    smtp_host: str = "smtp.gmail.com"
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_password: str = ""
+    # Envelope sender. Empty means "use smtp_user", which is what Gmail
+    # requires anyway — it rewrites From to the authenticated account, so a
+    # different value here is silently ignored rather than honoured.
+    mail_from: str = ""
+    mail_from_name: str = "Arus"
+    # Absolute origin used to build the links inside emails. It cannot be
+    # derived from the request: a link built from a Host header is a
+    # redirect-poisoning vector, and the emails are sent off the request path
+    # anyway, where no request exists to read.
+    app_base_url: str = "http://localhost:5173"
+
+    @property
+    def mail_configured(self) -> bool:
+        return bool(self.smtp_user and self.smtp_password)
+
+    @property
+    def mail_sender(self) -> str:
+        return self.mail_from or self.smtp_user
+
     @model_validator(mode="after")
     def _reject_the_public_dev_key_in_production(self) -> "Settings":
         """Refuse to serve production traffic with a key from the repository.
@@ -71,6 +103,40 @@ class Settings(BaseSettings):
         """
         if self.app_env != "production":
             return self
+
+        # Verification is mandatory, so unconfigured mail is not a degraded
+        # feature — it is a locked front door. Every new registration would
+        # be issued an account it can never sign into, and every forgotten
+        # password would be unrecoverable. Fail at boot, where it is one
+        # variable to fix, rather than at the first person who tries to join.
+        if not self.mail_configured:
+            raise ValueError(
+                "SMTP_USER and SMTP_PASSWORD must be set while "
+                "APP_ENV=production: email verification is required to sign "
+                "in, so without them no new account can ever be used. Use a "
+                "Google App Password, not the account password."
+            )
+        # Every verification and reset link is built from this. A wrong value
+        # is not a broken page but an email nobody can act on, discovered by
+        # the recipient rather than by us — so it is checked at boot.
+        parsed = urlparse(self.app_base_url)
+        # `hostname`, not `netloc`: urlparse("https://:80") yields a netloc of
+        # ":80", which is truthy and would sail through. That is exactly the
+        # value the DOMAIN-derived default produces on an IP-only box.
+        if parsed.scheme not in ("http", "https") or not parsed.hostname:
+            raise ValueError(
+                f"APP_BASE_URL is not a usable origin: {self.app_base_url!r}. "
+                "It must look like https://arus.example.com. A common cause is "
+                "DOMAIN being set to ':80' for an IP-only box, which makes the "
+                "derived default 'https://:80' — set APP_BASE_URL explicitly "
+                "in that case."
+            )
+        if parsed.hostname in ("localhost", "127.0.0.1"):
+            raise ValueError(
+                "APP_BASE_URL is still localhost while APP_ENV=production. "
+                "Verification links would point at the recipient's own "
+                "machine. Set it to the public origin."
+            )
 
         key = self.secret_key.strip()
         if key == DEV_SECRET_KEY:

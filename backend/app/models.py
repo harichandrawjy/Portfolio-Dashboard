@@ -45,6 +45,44 @@ class User(Base):
     # Minted by POST /auth/demo and deleted by the nightly purge (migration
     # 0008). Registration never sets it, so a real account cannot be swept up.
     is_demo: Mapped[bool] = mapped_column(Boolean, server_default=text("false"))
+    # NULL until the address is confirmed. Demo rows stay NULL for good and
+    # are exempted on `is_demo` — their addresses are synthetic.
+    email_verified_at: Mapped[datetime | None] = mapped_column(
+        TIMESTAMP(timezone=True), nullable=True
+    )
+    # Bumped on every password reset. A token carries the version it was
+    # minted under and is refused once they disagree, which is what makes a
+    # reset actually end sessions the server never recorded. A counter rather
+    # than a timestamp because `iat` is whole-second and a reset issues its
+    # replacement token inside the same second — see `get_current_user`.
+    token_version: Mapped[int] = mapped_column(Integer, server_default=text("0"))
+    created_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True), server_default=text("now()")
+    )
+
+
+class AuthToken(Base):
+    """A single-use, expiring credential emailed to a user.
+
+    Holds the SHA-256 of the token, never the token itself: a reset link is a
+    bearer credential for the account, so a database leak that hands over live
+    links is barely better than one that hands over passwords.
+    """
+
+    __tablename__ = "auth_tokens"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()")
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE")
+    )
+    kind: Mapped[str] = mapped_column(Text)  # 'verify' | 'reset'
+    token_hash: Mapped[str] = mapped_column(Text, unique=True)
+    expires_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True))
+    used_at: Mapped[datetime | None] = mapped_column(
+        TIMESTAMP(timezone=True), nullable=True
+    )
     created_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True), server_default=text("now()")
     )

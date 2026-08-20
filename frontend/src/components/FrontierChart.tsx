@@ -452,12 +452,22 @@ export function FrontierChart({
           one curve rather than separate optimisations, so switching never
           moves the frontier — only the marker on it. */}
       <div className="mt-6 border-t border-line pt-5">
-        {/* inline-flex, not flex: the gap-px hairline bed is painted by the
-            container's own background, so a block-level flex row leaves that
-            grey running the full width past the last tab. max-w-full lets it
-            still wrap on a narrow screen. */}
+        {/* The hairline bed is painted by the container's OWN background, so
+            any part of a row the tabs do not cover shows up as a grey block
+            rather than as a 1px rule. `inline-flex` solves that for a single
+            row by shrinking the container to its content — but once the row
+            wraps, each line is short again and the leak returns, which on a
+            375px phone left 34px of grey on the first row and 231px on the
+            second.
+
+            A 2-column grid fits the four tabs exactly, two per row, with no
+            remainder for the bed to show through. Every other bed in the app
+            (SummaryCards, the Portfolios figure row) stays clean because its
+            cells are `flex-1` and grow to fill; that would work here too, but
+            it would leave Max Sharpe spanning the full width alone. From `sm`
+            the row fits on one line and the original inline-flex returns. */}
         <div
-          className="inline-flex max-w-full flex-wrap gap-px bg-line"
+          className="grid grid-cols-2 gap-px bg-line sm:inline-flex sm:max-w-full sm:flex-wrap"
           role="tablist"
         >
           {MODES.map((m) => (

@@ -18,6 +18,20 @@ async def test_register_login_me_flow(client):
     assert body["display_name"] == "Budi"
     assert "password" not in body and "password_hash" not in body
 
+    # Registration alone no longer opens the door — the address has to be
+    # confirmed first (migration 0009). The link normally arrives by email;
+    # with SMTP unconfigured it lands in mail.OUTBOX instead.
+    import re
+
+    from app import mail
+
+    sent = [m for m in mail.OUTBOX if m.to == "budi@example.com"]
+    assert len(sent) == 1
+    token = re.search(r"token=([\w\-]+)", sent[0].body).group(1)
+    assert (
+        await client.post("/auth/verify/confirm", json={"token": token})
+    ).status_code == 200
+
     r = await client.post(
         "/auth/login",
         json={"email": "budi@example.com", "password": "rahasia-123"},
@@ -34,6 +48,8 @@ async def test_register_login_me_flow(client):
 
 
 async def test_wrong_password_rejected(client):
+    # deliberately left unverified: the 401 below must come from the password
+    # check, which runs BEFORE the verification gate
     await client.post(
         "/auth/register",
         json={"email": "siti@example.com", "password": "correct-horse-1"},

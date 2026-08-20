@@ -26,11 +26,39 @@ class UserOut(BaseModel):
     email: EmailStr
     display_name: str | None
     created_at: datetime
+    email_verified_at: datetime | None
 
 
 class TokenOut(BaseModel):
     access_token: str
     token_type: str = "bearer"
+
+
+class EmailIn(BaseModel):
+    """Used by both `forgot password` and `resend verification`."""
+
+    email: EmailStr
+
+
+class TokenIn(BaseModel):
+    token: str = Field(min_length=1, max_length=512)
+
+
+class PasswordResetIn(BaseModel):
+    token: str = Field(min_length=1, max_length=512)
+    # same floor and 72-byte ceiling as registration — bcrypt reads no further
+    password: str = Field(min_length=8, max_length=72)
+
+
+class AcceptedOut(BaseModel):
+    """The deliberately uninformative reply to anything that takes an address.
+
+    `/auth/password/forgot` and the verification resend both answer this way
+    whether or not the account exists. Saying "no such user" would turn either
+    into a membership oracle for any address someone cares to try.
+    """
+
+    detail: str = "If that address has an account, an email is on its way."
 
 
 # ---------------------------------------------------------------------------

@@ -9,17 +9,14 @@ from datetime import date
 
 import pytest
 
+from tests.helpers import register_verified
+
 pytestmark = pytest.mark.asyncio(loop_scope="session")
 
 
 async def _login(client, email):
-    await client.post(
-        "/auth/register", json={"email": email, "password": "password-123"}
-    )
-    r = await client.post(
-        "/auth/login", json={"email": email, "password": "password-123"}
-    )
-    return {"Authorization": f"Bearer {r.json()['access_token']}"}
+    """Register, verify and sign in. See helpers.register_verified."""
+    return await register_verified(client, email, "password-123")
 
 
 async def _buy(client, auth, pid, lots, price, fee=0, executed_at="2026-07-01"):

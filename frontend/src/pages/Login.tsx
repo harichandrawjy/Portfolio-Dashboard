@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { ApiError } from "../api/client";
+import { api, ApiError } from "../api/client";
 import { useAuth } from "../auth";
 import { Button, ErrorNote, Field } from "../components/ui";
 
@@ -35,19 +35,85 @@ export function LoginPage() {
   // Shown until the server says otherwise. A deployment with demo sign-in
   // disabled answers 404, and there is no point offering it again.
   const [demoOffered, setDemoOffered] = useState(true);
+  // Three states the plain form cannot express, each the result of an action
+  // whose outcome is a message rather than a navigation.
+  //  - "sent"      registration succeeded; nothing more happens until the
+  //                visitor opens their inbox
+  //  - "unverified" login was refused with a 403; offer another link
+  //  - "forgot"    the reset form has taken over the panel
+  const [notice, setNotice] = useState<string | null>(null);
+  const [unverified, setUnverified] = useState(false);
+  const [forgot, setForgot] = useState(false);
+  const [linkBusy, setLinkBusy] = useState(false);
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
+    setNotice(null);
+    setUnverified(false);
     setBusy(true);
     try {
-      if (mode === "login") await login(email, password);
-      else await register(email, password, displayName || undefined);
-      navigate("/", { replace: true });
+      if (mode === "login") {
+        await login(email, password);
+        navigate("/", { replace: true });
+      } else {
+        // Registering no longer signs anyone in — the address has to be
+        // confirmed first, so there is nowhere to navigate to yet.
+        await register(email, password, displayName || undefined);
+        setPassword("");
+        setNotice(
+          `Check ${email} for a link to confirm the address. It expires in 24 hours.`,
+        );
+      }
+    } catch (err) {
+      // 403 from login means the account exists and the password was right,
+      // but the address is unconfirmed. Status alone distinguishes it from the
+      // 401 for bad credentials, so nothing here reads the message text.
+      if (err instanceof ApiError && err.status === 403 && mode === "login") {
+        setUnverified(true);
+        setError(err.message);
+      } else {
+        setError((err as Error).message);
+      }
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  /** Ask for another verification link. Deliberately reports success without
+   *  checking anything: the endpoint answers identically for an address with
+   *  no account, and echoing that back would turn this button into a way to
+   *  test whether someone is registered. */
+  const resend = async () => {
+    setLinkBusy(true);
+    setError(null);
+    try {
+      await api.resendVerification(email);
+      setUnverified(false);
+      setNotice(`If ${email} is waiting to be confirmed, a new link is on its way.`);
     } catch (err) {
       setError((err as Error).message);
     } finally {
-      setBusy(false);
+      setLinkBusy(false);
+    }
+  };
+
+  const sendReset = async (e: FormEvent) => {
+    e.preventDefault();
+    setLinkBusy(true);
+    setError(null);
+    try {
+      await api.forgotPassword(email);
+      setForgot(false);
+      // Same silence as above: this says what WILL happen if the account
+      // exists, never whether it does.
+      setNotice(
+        `If ${email} has an account, a reset link is on its way. It expires in an hour.`,
+      );
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setLinkBusy(false);
     }
   };
 
@@ -135,6 +201,15 @@ export function LoginPage() {
             {mode === "login" ? "Sign in to your portfolios" : "Create an account"}
           </h2>
 
+          {notice && (
+            <p
+              role="status"
+              className="mt-5 border-l-[3px] border-accent bg-accent/[0.07] px-3 py-2 text-[13px] leading-relaxed text-ink-2"
+            >
+              {notice}
+            </p>
+          )}
+
           <div className="mb-9 mt-5 flex gap-px bg-line">
             {(["login", "register"] as const).map((m) => (
               <button
@@ -143,6 +218,9 @@ export function LoginPage() {
                 onClick={() => {
                   setMode(m);
                   setError(null);
+                  setNotice(null);
+                  setUnverified(false);
+                  setForgot(false);
                 }}
                 className={
                   "flex-1 py-2.5 text-[11px] font-bold uppercase tracking-[0.12em] leading-none " +
@@ -157,6 +235,34 @@ export function LoginPage() {
             ))}
           </div>
 
+          {forgot ? (
+            <form onSubmit={sendReset} className="flex flex-col gap-4">
+              <p className="text-[13px] leading-relaxed text-ink-2">
+                Enter the address on the account and we will send a link to set
+                a new password.
+              </p>
+              <Field
+                label="Email" type="email" required autoFocus
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com" autoComplete="email"
+              />
+              {error && <ErrorNote message={error} />}
+              <Button type="submit" busy={linkBusy} className="mt-2 w-full">
+                Send reset link
+              </Button>
+              <button
+                type="button"
+                onClick={() => {
+                  setForgot(false);
+                  setError(null);
+                }}
+                className="w-wide self-start text-[11px] font-bold uppercase tracking-[0.12em] text-ink-3 underline underline-offset-4 outline-none hover:text-ink focus-visible:ring-2 focus-visible:ring-accent"
+              >
+                Back to sign in
+              </button>
+            </form>
+          ) : (
           <form onSubmit={submit} className="flex flex-col gap-4">
             {mode === "register" && (
               <Field
@@ -182,10 +288,32 @@ export function LoginPage() {
               autoComplete={mode === "login" ? "current-password" : "new-password"}
             />
             {error && <ErrorNote message={error} />}
+            {unverified && (
+              <Button
+                type="button" variant="ghost" busy={linkBusy} onClick={resend}
+              >
+                Send a new confirmation link
+              </Button>
+            )}
             <Button type="submit" busy={busy} className="mt-2 w-full">
               {mode === "login" ? "Sign in" : "Create account"}
             </Button>
+            {mode === "login" && (
+              <button
+                type="button"
+                onClick={() => {
+                  setForgot(true);
+                  setError(null);
+                  setNotice(null);
+                  setUnverified(false);
+                }}
+                className="w-wide self-start text-[11px] font-bold uppercase tracking-[0.12em] text-ink-3 underline underline-offset-4 outline-none hover:text-ink focus-visible:ring-2 focus-visible:ring-accent"
+              >
+                Forgot your password?
+              </button>
+            )}
           </form>
+          )}
 
           {demoOffered && (
             <div className="mt-8 border-t border-line-2 pt-6">

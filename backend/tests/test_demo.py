@@ -300,3 +300,37 @@ async def test_purge_takes_the_whole_tree_with_it(client, template):
 
 # The limiter's own unit tests live in test_ratelimit.py — they are synchronous
 # and this module's asyncio mark applies to everything in the file.
+
+
+# --------------------------------------------------------------------------
+# Verification does not apply to throwaway accounts
+#
+# These live here rather than in test_email_auth.py because minting a demo
+# needs the `template` fixture above. Demo addresses are synthetic and their
+# passwords deliberately unusable, so every part of the email flow has to
+# leave them alone — a mandatory-verification gate that caught them would
+# break the one entry point the public site actually offers.
+# --------------------------------------------------------------------------
+
+async def test_demo_accounts_skip_verification_entirely(client, template):
+    """They never touch /auth/login, but they do carry a JWT through the same
+    dependency, which must not reject them for an unconfirmed address."""
+    r = await client.post("/auth/demo")
+    assert r.status_code == 201
+    auth = {"Authorization": f"Bearer {r.json()['access_token']}"}
+    me = await client.get("/me", headers=auth)
+    assert me.status_code == 200
+    assert me.json()["email_verified_at"] is None
+
+
+async def test_demo_accounts_cannot_be_password_reset(client, template):
+    from app import mail
+
+    r = await client.post("/auth/demo")
+    auth = {"Authorization": f"Bearer {r.json()['access_token']}"}
+    demo_email = (await client.get("/me", headers=auth)).json()["email"]
+
+    mail.OUTBOX.clear()
+    resp = await client.post("/auth/password/forgot", json={"email": demo_email})
+    assert resp.status_code == 200  # silent, like any unknown address
+    assert [m for m in mail.OUTBOX if m.to == demo_email] == []

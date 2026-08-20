@@ -1,16 +1,15 @@
 import pytest
 
-from tests.helpers import fund
+from tests.helpers import fund, register_verified
 
 pytestmark = pytest.mark.asyncio(loop_scope="session")
 
 PASSWORD = "password-123"
 
 
-async def _login(client, email: str) -> dict:
-    await client.post("/auth/register", json={"email": email, "password": PASSWORD})
-    r = await client.post("/auth/login", json={"email": email, "password": PASSWORD})
-    return {"Authorization": f"Bearer {r.json()['access_token']}"}
+async def _login(client, email):
+    """Register, verify and sign in. See helpers.register_verified."""
+    return await register_verified(client, email, PASSWORD)
 
 
 async def _buy(client, auth, pid, ticker, lots, price, fee=0, day="2026-07-01"):
