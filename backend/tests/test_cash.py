@@ -429,3 +429,85 @@ async def test_cash_validation(client):
         headers=auth_b,
     )
     assert r.status_code == 404
+
+
+# ---------------------------------------------------------------------------
+# Total return is measured against money that came IN, not purchases made
+#
+# Real case: a portfolio deposited Rp 50jt, bought PANI, sold it, and bought
+# ESSA with the proceeds. Summing purchases reported ~98jt "committed" against
+# that single 50jt deposit and halved the return percentage. Round-tripping
+# the same money ten times would have divided the real figure by ten.
+# ---------------------------------------------------------------------------
+
+async def test_net_deposits_ignores_recycled_capital(client):
+    """Two purchases funded by one deposit must not count as two deposits."""
+    from .helpers import fund, register_verified
+
+    auth = await register_verified(client, "recycle@example.com", "password-123")
+    pid = (
+        await client.post("/portfolios", json={"name": "Round trip"}, headers=auth)
+    ).json()["id"]
+    await fund(client, auth, pid, 50_000_000)
+
+    async def trade(kind: str, lots: int, price: int, day: str):
+        r = await client.post(
+            f"/portfolios/{pid}/transactions",
+            json={
+                "ticker": "BBCA", "type": kind, "lots": lots,
+                "price_per_share": price, "fee": 0, "executed_at": day,
+            },
+            headers=auth,
+        )
+        assert r.status_code == 201, r.text
+
+    # buy, sell the whole position, then buy again with the same money
+    await trade("BUY", 10, 6000, "2026-07-02")   # 6,000,000
+    await trade("SELL", 10, 6000, "2026-07-03")  # back to cash
+    await trade("BUY", 10, 6000, "2026-07-04")   # 6,000,000 again
+
+    totals = (
+        await client.get(f"/portfolios/{pid}/holdings", headers=auth)
+    ).json()["totals"]
+
+    # Purchases total 12,000,000 across the two buys...
+    assert totals["cost_basis"] + totals["realized_cost_basis"] == 12_000_000
+    # ...but only 50,000,000 ever entered from outside, and trades never
+    # change that however many times the money goes round.
+    assert totals["net_deposits"] == 50_000_000
+
+
+async def test_net_deposits_nets_off_withdrawals(client):
+    from .helpers import fund, register_verified
+
+    auth = await register_verified(client, "withdrawn@example.com", "password-123")
+    pid = (
+        await client.post("/portfolios", json={"name": "In and out"}, headers=auth)
+    ).json()["id"]
+    await fund(client, auth, pid, 10_000_000)
+    r = await client.post(
+        f"/portfolios/{pid}/cash",
+        json={"type": "WITHDRAW", "amount": 4_000_000, "occurred_at": "2026-02-01"},
+        headers=auth,
+    )
+    assert r.status_code == 201, r.text
+
+    totals = (
+        await client.get(f"/portfolios/{pid}/holdings", headers=auth)
+    ).json()["totals"]
+    assert totals["net_deposits"] == 6_000_000
+
+
+async def test_net_deposits_is_zero_without_a_cash_ledger(client):
+    """The UI falls back to committed capital here, so this must not guess."""
+    from .helpers import register_verified
+
+    auth = await register_verified(client, "noledger@example.com", "password-123")
+    pid = (
+        await client.post("/portfolios", json={"name": "No ledger"}, headers=auth)
+    ).json()["id"]
+    totals = (
+        await client.get(f"/portfolios/{pid}/holdings", headers=auth)
+    ).json()["totals"]
+    assert totals["net_deposits"] == 0
+    assert totals["cash_tracked"] is False

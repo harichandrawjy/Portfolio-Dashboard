@@ -59,6 +59,35 @@ async def _get_owned_portfolio(
     return portfolio
 
 
+async def _net_deposits(session: AsyncSession, portfolio_id: uuid.UUID) -> int:
+    """External capital put into the portfolio: deposits minus withdrawals.
+
+    This is the honest denominator for a total-return percentage, and it
+    replaced `cost_basis + realized_cost_basis` (the sum of every purchase
+    ever made). That sum double-counts recycled capital: buying PANI for
+    ~50jt, selling it, and buying ESSA with the proceeds reported ~98jt
+    "committed" against a single 50jt deposit, halving the percentage. A
+    portfolio that round-trips the same money ten times would have read a
+    tenth of its real return.
+
+    Trades are deliberately excluded — moving money between cash and shares
+    is internal, and only deposits and withdrawals cross the boundary.
+    """
+    return int(
+        await session.scalar(
+            sa_text(
+                """
+                SELECT COALESCE(SUM(CASE WHEN type = 'DEPOSIT'
+                                         THEN amount ELSE -amount END), 0)
+                FROM cash_flows WHERE portfolio_id = :p
+                """
+            ),
+            {"p": portfolio_id},
+        )
+        or 0
+    )
+
+
 async def _cash_state(
     session: AsyncSession, portfolio_id: uuid.UUID
 ) -> tuple[int, bool]:
@@ -684,15 +713,35 @@ async def get_holdings(
         total_realized_cost += cost_sold
     total_realized = sum(realized_by_sec.values())
 
-    # Price preference: delayed quote, else the most recent stored close
-    # (as_of stays NULL then — the row is priced "at last close", and the
-    # UI labels it that way instead of faking a quote timestamp).
+    # Price preference: the delayed quote, but ONLY while it is newer than the
+    # last published bar; otherwise the most recent stored close. When the
+    # close wins, as_of stays NULL — the row is priced "at last close" and the
+    # UI labels it that way instead of faking a quote timestamp.
+    #
+    # This used to be COALESCE(q.price, ph.close), which preferred the quote
+    # whenever a row existed no matter how old it was. `latest_quotes` is only
+    # refreshed for tickers someone HOLDS, while `price_history` covers
+    # anything with history — so selling a position freezes its quote while
+    # its bars keep arriving. Recording a sell and then cancelling it left
+    # PACK showing a six-day-old 466 against a current close of 560, and the
+    # stock page (which does apply this rule) disagreed with the holdings
+    # table about the same stock at the same moment.
+    #
+    # Strictly greater, not >=: between the 18:30 bar job and the next
+    # morning's first quote, the settled close and the last intraday quote
+    # share a date, and the settled close is the better number.
     rows = await session.execute(
         sa_text(
             """
             SELECT s.ticker, s.name, h.security_id, h.shares, h.avg_cost_per_share,
-                   COALESCE(q.price, ph.close) AS last_price,
-                   q.as_of,
+                   CASE WHEN q.trade_date IS NOT NULL
+                             AND (ph.trade_date IS NULL
+                                  OR q.trade_date > ph.trade_date)
+                        THEN q.price ELSE ph.close END AS last_price,
+                   CASE WHEN q.trade_date IS NOT NULL
+                             AND (ph.trade_date IS NULL
+                                  OR q.trade_date > ph.trade_date)
+                        THEN q.as_of END AS as_of,
                    ph.trade_date AS last_close_date
             FROM holdings h
             JOIN securities s ON s.id = h.security_id
@@ -756,6 +805,7 @@ async def get_holdings(
 
     priced_any = len(holdings) > unpriced
     cash_balance, cash_tracked = await _cash_state(session, portfolio.id)
+    net_deposits = await _net_deposits(session, portfolio.id)
     cash_uncounted, _ = await _uncounted_trades(session, portfolio.id)
     return HoldingsOut(
         portfolio_id=portfolio.id,
@@ -766,6 +816,7 @@ async def get_holdings(
             unrealized_pnl=total_pnl if priced_any else None,
             realized_pnl=total_realized,
             realized_cost_basis=total_realized_cost,
+            net_deposits=net_deposits,
             unpriced_holdings=unpriced,
             cash_balance=cash_balance,
             cash_tracked=cash_tracked,

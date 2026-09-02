@@ -131,6 +131,9 @@ export interface Holdings {
     realized_pnl: number;
     /** cost of shares already sold; cost_basis covers open positions only */
     realized_cost_basis: number;
+    /** Deposits minus withdrawals — the total-return denominator. 0 when the
+     *  portfolio has no cash ledger, where callers fall back to committed. */
+    net_deposits: number;
     unpriced_holdings: number;
     cash_balance: number;
     cash_tracked: boolean;

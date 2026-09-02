@@ -52,9 +52,25 @@ RANGE_DAYS: dict[str, int] = {"1mo": 30, "6mo": 182, "1y": 365}
 @dataclass
 class SeriesPoint:
     date: date
-    value: int          # market value, whole rupiah
+    value: int          # market value of HOLDINGS, whole rupiah
     net_flow: int       # external cash flow that day (buys +, sells -)
     ihsg_close: int | None
+    # Sale proceeds not yet redeployed — cash that has been THROUGH the
+    # market and is waiting to go back in.
+    #
+    # Deliberately not the cash balance. A deposit that has never bought
+    # anything is not part of the investment programme, and counting it would
+    # make funding an account look like a gain and dilute the benchmark
+    # overlay. Money enters this pool only by being invested and then sold.
+    #
+    # The chart plots value + idle_proceeds; TWR and the risk metrics keep
+    # using `value` alone, which is the documented decision above.
+    #
+    # Both directions were wrong before. Holdings alone made a sale look like
+    # a loss and liquidation look like ruin, because the proceeds stopped
+    # being plotted. Holdings plus the whole cash balance fixed that but made
+    # a deposit look like a gain. Counting only recycled money does neither.
+    idle_proceeds: int = 0
 
 
 async def build_series(
@@ -116,6 +132,7 @@ async def build_series(
     pointers: dict[uuid.UUID, int] = {sid: 0 for sid in all_ids}
     carried: dict[uuid.UUID, int | None] = {sid: None for sid in all_ids}
     txn_i = 0
+    idle = 0  # sale proceeds awaiting redeployment
     points: list[SeriesPoint] = []
 
     for day in calendar:
@@ -128,10 +145,17 @@ async def build_series(
             t = txns[txn_i]
             if t.type == "BUY":
                 positions[t.security_id] += t.shares
-                flow += t.shares * t.price_per_share + t.fee
+                cost = t.shares * t.price_per_share + t.fee
+                flow += cost
+                # Spend recycled proceeds first; the shortfall is fresh money
+                # entering the programme, which needs no tracking here since
+                # it arrives as holdings on the same day.
+                idle -= min(idle, cost)
             else:
                 positions[t.security_id] -= t.shares
-                flow -= t.shares * t.price_per_share - t.fee
+                proceeds = t.shares * t.price_per_share - t.fee
+                flow -= proceeds
+                idle += proceeds
             last_txn_price[t.security_id] = t.price_per_share
             txn_i += 1
 
@@ -165,7 +189,7 @@ async def build_series(
                 pointers[bid] += 1
             ihsg_close = carried[bid]
 
-        points.append(SeriesPoint(day, value, flow, ihsg_close))
+        points.append(SeriesPoint(day, value, flow, ihsg_close, idle))
 
     return points
 

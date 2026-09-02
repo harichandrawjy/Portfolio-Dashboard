@@ -63,12 +63,19 @@ async def test_buy_sell_holdings_math(client):
     # avg cost over buys only: (500*6000 + 300*6400) / 800 = 6150
     assert h["avg_cost_per_share"] == 6150.0
     assert h["cost_basis"] == 600 * 6150  # 3_690_000
-    # seeded quote: 7000
+    # 7000 either way: conftest seeds a 7000 bar and a 7000 quote.
     assert h["last_price"] == 7000
     assert h["market_value"] == 600 * 7000  # 4_200_000
     assert h["unrealized_pnl"] == 510_000
     assert h["unrealized_pnl_pct"] == pytest.approx(13.82, abs=0.01)
-    assert h["as_of"] is not None
+    # ...but the price came from the BAR, so there is no quote timestamp to
+    # report. The seeded quote carries no trade_date, so it cannot be shown to
+    # be newer than the last bar, and an unplaceable quote is not trusted —
+    # the same rule Stock.tsx applies via `quote_trade_date != null && ...`.
+    # A null here is the holdings table saying "priced at last close", which
+    # is what the UI labels it. See test_quote_freshness for the rule itself.
+    assert h["as_of"] is None
+    assert h["last_close_date"] == "2026-07-17"
 
     totals = body["totals"]
     assert totals["cost_basis"] == 3_690_000

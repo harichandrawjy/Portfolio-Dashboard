@@ -146,3 +146,75 @@ async def test_quote_trade_date_is_null_when_there_is_no_quote(client):
         assert body["last_close"] == 3050
     finally:
         await _cleanup()
+
+
+# ---------------------------------------------------------------------------
+# The holdings table must apply the rule, not just report enough to apply it
+#
+# Everything above pins what the DETAIL endpoint exposes. The holdings query
+# was a plain COALESCE(q.price, ph.close), which preferred the quote whenever
+# a row existed regardless of age — so the two views disagreed about the same
+# stock at the same moment.
+#
+# Real case: PACK was sold, which took it out of the quote refresh set (that
+# job covers held tickers only) while sync_daily kept its bars current. The
+# holdings table went on showing a six-day-old 466 next to a 560 close, and
+# the stock page showed 560. Cancelling the sell put it back in the refresh
+# set, but the stale row stayed until the next morning's run.
+# ---------------------------------------------------------------------------
+
+async def test_holdings_ignore_a_quote_older_than_the_last_bar(client):
+    from .helpers import funded_portfolio, register_verified
+
+    # Bars first: with history present the buy skips the lazy-backfill path.
+    await _seed(bar_date=date(2026, 7, 17), quote_date=date(2026, 7, 12), quote_price=2800)
+    try:
+        auth = await register_verified(client, "stale@quotes.example.com", "password-123")
+        pid = await funded_portfolio(client, auth, "Stale quote")
+        r = await client.post(
+            f"/portfolios/{pid}/transactions",
+            json={
+                "ticker": TICKER, "type": "BUY", "lots": 1,
+                "price_per_share": 3000, "fee": 0, "executed_at": "2026-07-17",
+            },
+            headers=auth,
+        )
+        assert r.status_code == 201, r.text
+
+        body = (await client.get(f"/portfolios/{pid}/holdings", headers=auth)).json()
+        row = next(h for h in body["holdings"] if h["ticker"] == TICKER)
+
+        # The settled close, not the five-day-old quote.
+        assert row["last_price"] == 3050, row
+        # And no quote timestamp, because no quote was used — the UI reads a
+        # null here as "priced at last close" and labels it honestly.
+        assert row["as_of"] is None, row
+        assert row["last_close_date"] == "2026-07-17"
+    finally:
+        await _cleanup()
+
+
+async def test_holdings_use_the_quote_while_it_leads_the_bar(client):
+    """The other side of the rule: mid-session the quote is the better price."""
+    from .helpers import funded_portfolio, register_verified
+
+    await _seed(bar_date=date(2026, 7, 17), quote_date=date(2026, 7, 18), quote_price=3200)
+    try:
+        auth = await register_verified(client, "live@quotes.example.com", "password-123")
+        pid = await funded_portfolio(client, auth, "Live quote")
+        r = await client.post(
+            f"/portfolios/{pid}/transactions",
+            json={
+                "ticker": TICKER, "type": "BUY", "lots": 1,
+                "price_per_share": 3000, "fee": 0, "executed_at": "2026-07-17",
+            },
+            headers=auth,
+        )
+        assert r.status_code == 201, r.text
+
+        body = (await client.get(f"/portfolios/{pid}/holdings", headers=auth)).json()
+        row = next(h for h in body["holdings"] if h["ticker"] == TICKER)
+        assert row["last_price"] == 3200, row
+        assert row["as_of"] is not None, row
+    finally:
+        await _cleanup()

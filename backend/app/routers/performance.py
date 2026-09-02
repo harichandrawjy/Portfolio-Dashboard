@@ -63,9 +63,15 @@ async def portfolio_performance(
     portfolio = await _get_owned_portfolio(portfolio_id, user, session)
     points = await build_series(session, portfolio.id, range_key)
 
+    # The chart plots holdings PLUS proceeds not yet redeployed: the value of
+    # the money actually at work. Holdings alone made a sale look like a loss
+    # and liquidation look like ruin; adding the whole cash balance instead
+    # would have made a deposit look like a gain. An idle deposit is not part
+    # of the programme until it buys something. TWR and the risk metrics still
+    # use holdings alone — see performance.SeriesPoint.
     out: list[PerformancePoint] = []
     if points:
-        v0 = points[0].value
+        v0 = points[0].value + points[0].idle_proceeds
         i0 = points[0].ihsg_close
         for p in points:
             normalized = None
@@ -75,7 +81,9 @@ async def portfolio_performance(
                 normalized = round(p.ihsg_close / i0 * v0)
             out.append(
                 PerformancePoint(
-                    date=p.date, portfolio_value=p.value, ihsg_normalized=normalized
+                    date=p.date,
+                    portfolio_value=p.value + p.idle_proceeds,
+                    ihsg_normalized=normalized,
                 )
             )
 

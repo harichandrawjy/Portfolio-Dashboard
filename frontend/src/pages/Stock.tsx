@@ -199,16 +199,22 @@ export function StockPage() {
               <p className="mt-2 flex flex-wrap items-center gap-2 text-[13px] sm:justify-end">
                 {/* no quote means no change to show — a bare em-dash in front
                     of "close, 30 Jul" just reads as stray punctuation */}
-                {d.quote_change_pct != null && (
+                {/* Both of these belong to the QUOTE, so both are gated on
+                    the quote actually being the price shown. Previously they
+                    were gated only on a quote existing, so a stale one put
+                    its own "0,00%" and its own timestamp next to a figure
+                    that had come from last_close — PACK read "Rp 560 · 0,00%
+                    as of 27 Agu" while 560 was the 1 Sep close. */}
+                {quoteIsLive && d.quote_change_pct != null && (
                   <span className={`tnum ${signClass(d.quote_change_pct)}`}>
                     {fmtPct(d.quote_change_pct, true)}
                   </span>
                 )}
                 <span className="text-ink-3">
-                  {d.quote_as_of
+                  {quoteIsLive && d.quote_as_of
                     ? `as of ${fmtAsOf(d.quote_as_of)}`
                     : d.last_close_date
-                      ? `${d.quote_change_pct != null ? "close" : "Close"}, ${fmtDate(d.last_close_date)}`
+                      ? `${quoteIsLive && d.quote_change_pct != null ? "close" : "Close"}, ${fmtDate(d.last_close_date)}`
                       : "No price yet"}
                 </span>
               </p>

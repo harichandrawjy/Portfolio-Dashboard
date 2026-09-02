@@ -80,16 +80,28 @@ export function SummaryCards({
   // Total return weighs every holding by the rupiah behind it — aggregating
   // amounts does that by construction, where averaging the per-row percentages
   // would let a tiny position swing the number as hard as a large one.
-  // Denominator is all capital committed to positions, open and closed, so
-  // taking a profit cannot make the figure worse.
-  const investedCost = totals ? totals.cost_basis + totals.realized_cost_basis : 0;
+  //
+  // The denominator is NET DEPOSITS: money that actually crossed in from
+  // outside. It used to be cost_basis + realized_cost_basis, the sum of every
+  // purchase ever made, which double-counts recycled capital — buying PANI
+  // for ~50jt, selling it, and buying ESSA with the proceeds reported ~98jt
+  // "committed" against a single 50jt deposit and halved the percentage. A
+  // portfolio that round-trips the same money ten times read a tenth of its
+  // real return, which is worst for exactly the short-term portfolios most
+  // likely to do it.
+  //
+  // Committed capital stays as the fallback for portfolios with no cash
+  // ledger, where net deposits is 0 and dividing by it would be undefined.
+  const committed = totals ? totals.cost_basis + totals.realized_cost_basis : 0;
+  const usingDeposits = !!totals && totals.net_deposits > 0;
+  const returnBase = usingDeposits ? totals.net_deposits : committed;
   const totalReturnRp =
     totals && totals.unrealized_pnl != null
       ? totals.unrealized_pnl + totals.realized_pnl
       : null;
   const totalReturnPct =
-    totalReturnRp != null && investedCost > 0
-      ? (totalReturnRp / investedCost) * 100
+    totalReturnRp != null && returnBase > 0
+      ? (totalReturnRp / returnBase) * 100
       : null;
 
   const vsIhsg =
@@ -160,7 +172,9 @@ export function SummaryCards({
           note={
             totalReturnRp == null
               ? "appears once a holding is priced"
-              : `${fmtSignedRp(totalReturnRp)} on ${fmtRp(investedCost)} committed, incl. closed`
+              : usingDeposits
+                ? `${fmtSignedRp(totalReturnRp)} on ${fmtRp(returnBase)} deposited`
+                : `${fmtSignedRp(totalReturnRp)} on ${fmtRp(returnBase)} committed, incl. closed`
           }
         />
         <Cell

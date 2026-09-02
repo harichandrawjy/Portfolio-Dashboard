@@ -148,9 +148,14 @@ class HoldingsTotals(BaseModel):
     # positions that no longer appear in the holdings rows
     realized_pnl: int
     # cost basis of every share already sold. cost_basis covers open positions
-    # only, so the two together are the capital actually committed to
-    # positions — the honest denominator for a total-return percentage.
+    # only, so the two together are the capital committed to positions.
     realized_cost_basis: int
+    # Deposits minus withdrawals: the money that actually entered from
+    # outside. This is the total-return denominator, NOT the two above —
+    # summing purchases counts recycled capital twice, so one round trip
+    # roughly halves the reported percentage. Zero on a portfolio with no
+    # cash ledger, where the caller falls back to committed capital.
+    net_deposits: int
     unpriced_holdings: int  # how many holdings had no quote
     # cash ledger (0 / false until the portfolio's first deposit)
     cash_balance: int
