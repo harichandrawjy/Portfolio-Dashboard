@@ -141,10 +141,17 @@ cached in `security_stats`, rebuilt nightly and immediately after a first
 backfill — page reads are a primary-key lookup, and the analytics
 functions themselves are pure and unit-tested with hand-computed values.
 
-**Performance methodology.** The chart shows raw market value; metrics use
-time-weighted returns so deposits never masquerade as gains (documented in
-`app/performance.py`). Sharpe uses Bank Indonesia's policy rate from
-config as the risk-free assumption.
+**Performance methodology.** Everything reported is a time-weighted return,
+so no movement of money can register as a gain — the chart plots cumulative
+TWR against IHSG's own return over the same window, and its last point is
+the total return the summary card states. It arrived there the long way: four
+versions plotted rupiah, and each one fixed the previous artifact and
+introduced its own (selling read as a loss, then funding read as a gain, then
+same-day rotations counted twice). All four are written up in
+`app/performance.py`, because the failure is instructive — a value line
+answers "what is this worth", which moves when money moves, so a benchmark
+laid over it compares an amount of money against an index. Sharpe uses Bank
+Indonesia's policy rate from config as the risk-free assumption.
 
 **Cash funds every buy.** Deposits and withdrawals live in `cash_flows` and
 the balance is derived, never stored: deposits − withdrawals − buy costs

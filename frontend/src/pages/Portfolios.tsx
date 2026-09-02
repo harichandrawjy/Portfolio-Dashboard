@@ -229,7 +229,10 @@ function PortfolioCard({ row, index }: { row: Enriched; index: number }) {
     pnl != null && t && t.cost_basis > 0 ? (pnl / t.cost_basis) * 100 : null;
   const count = holdings?.holdings.length ?? 0;
 
-  const curve = perf?.points.map((pt) => pt.portfolio_value) ?? [];
+  // Cumulative return, so the columns are the same shape the detail chart
+  // draws and `up` means the programme is ahead — not merely that more money
+  // has been paid into it, which is what a value curve used to answer.
+  const curve = perf?.points.map((pt) => pt.return_pct) ?? [];
   const up = curve.length >= 2 ? curve[curve.length - 1] >= curve[0] : (pnl ?? 0) >= 0;
 
   return (

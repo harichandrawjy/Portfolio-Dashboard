@@ -206,9 +206,18 @@ class CashSummaryOut(BaseModel):
 # ---------------------------------------------------------------------------
 
 class PerformancePoint(BaseModel):
+    """One day of the chart, as CUMULATIVE RETURN rather than rupiah.
+
+    Both series start at 0.0 on the first point and are measured from it, so
+    they overlay on one axis without either being rescaled to the other. The
+    portfolio leg is time-weighted, which is what keeps deposits, sales and
+    rotations off the line — see app/performance.py for the four rupiah
+    versions of this chart that did not manage it.
+    """
+
     date: date
-    portfolio_value: int  # whole rupiah
-    ihsg_normalized: int | None  # IHSG rebased to the portfolio's start value
+    return_pct: float  # time-weighted, since the start of the window
+    ihsg_return_pct: float | None
 
 
 class PerformanceOut(BaseModel):

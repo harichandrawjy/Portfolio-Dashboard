@@ -15,6 +15,7 @@ from app.performance import (
     RangeKey,
     aligned_benchmark_pairs,
     build_series,
+    cumulative_returns,
     time_weighted_returns,
 )
 from app.optimize import (
@@ -63,27 +64,31 @@ async def portfolio_performance(
     portfolio = await _get_owned_portfolio(portfolio_id, user, session)
     points = await build_series(session, portfolio.id, range_key)
 
-    # The chart plots holdings PLUS proceeds not yet redeployed: the value of
-    # the money actually at work. Holdings alone made a sale look like a loss
-    # and liquidation look like ruin; adding the whole cash balance instead
-    # would have made a deposit look like a gain. An idle deposit is not part
-    # of the programme until it buys something. TWR and the risk metrics still
-    # use holdings alone — see performance.SeriesPoint.
+    # The chart plots CUMULATIVE RETURN, not rupiah, and the benchmark is the
+    # index's own return over the same window — two percentages on one axis
+    # rather than a quantity of money with an index rescaled to sit beside it.
+    # That is what makes the overlay mean anything, and what keeps deposits,
+    # sales and same-day rotations off the line. app/performance.py records
+    # the four rupiah attempts this replaced.
+    #
+    # The last point equals `total_return_pct` from /metrics by construction:
+    # same chain, same flows, same formula.
     out: list[PerformancePoint] = []
     if points:
-        v0 = points[0].value + points[0].idle_proceeds
         i0 = points[0].ihsg_close
-        for p in points:
-            normalized = None
-            if p.ihsg_close and i0:
-                # Rebase IHSG to the portfolio's starting value so both
-                # series overlay on one chart axis.
-                normalized = round(p.ihsg_close / i0 * v0)
+        for p, r in zip(points, cumulative_returns(points)):
             out.append(
                 PerformancePoint(
                     date=p.date,
-                    portfolio_value=p.value + p.idle_proceeds,
-                    ihsg_normalized=normalized,
+                    # 4dp on a percentage is 1e-6 on the underlying fraction:
+                    # far finer than anything the chart can draw, and it keeps
+                    # float noise out of the wire format.
+                    return_pct=round(r * 100, 4),
+                    ihsg_return_pct=(
+                        round((p.ihsg_close / i0 - 1) * 100, 4)
+                        if p.ihsg_close and i0
+                        else None
+                    ),
                 )
             )
 

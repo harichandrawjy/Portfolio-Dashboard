@@ -69,6 +69,17 @@ export function fmtPct(n: number | null | undefined, signed = false): string {
 }
 
 /**
+ * Percentages on a chart axis, where the two decimals `fmtPct` gives are
+ * noise and the column they need is width the plot could have used. Signed,
+ * because a return axis crosses zero and "-3" and "3" must not look alike.
+ */
+export function fmtPctAxis(n: number): string {
+  return (n > 0 ? "+" : "") + n.toLocaleString("id-ID", {
+    maximumFractionDigits: 1,
+  }) + "%";
+}
+
+/**
  * Ratios, multiples, betas and scores. Everything else on screen is formatted
  * id-ID, so a raw `toFixed` puts "1.25×" next to "Rp 27.742.500" and "-3,93%"
  * and the locale visibly breaks. Route every user-facing decimal through here.

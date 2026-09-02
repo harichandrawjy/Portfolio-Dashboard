@@ -2,6 +2,7 @@ import {
   CartesianGrid,
   Line,
   LineChart,
+  ReferenceLine,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -10,7 +11,7 @@ import {
 
 import type { Performance, RangeKey } from "../api/client";
 import { CHART_NEUTRAL, SERIES, token } from "../colors";
-import { fmtDateShort, fmtRp, fmtRpCompact } from "../lib/format";
+import { fmtDateShort, fmtPct, fmtPctAxis } from "../lib/format";
 import { EmptyState, ErrorNote, Panel, Segmented, Skeleton } from "./ui";
 
 const PORTFOLIO_COLOR = SERIES[0];
@@ -46,7 +47,7 @@ function ChartTooltip({
           />
           <span className="text-ink-3">Portfolio</span>
           <span className="tnum ml-auto pl-4 text-ink">
-            {fmtRp(rows.value)}
+            {fmtPct(rows.value, true)}
           </span>
         </p>
         {rows.ihsg != null && (
@@ -56,7 +57,7 @@ function ChartTooltip({
             />
             <span className="text-ink-3">IHSG</span>
             <span className="tnum ml-auto pl-4 text-ink">
-              {fmtRp(rows.ihsg)}
+              {fmtPct(rows.ihsg, true)}
             </span>
           </p>
         )}
@@ -93,10 +94,14 @@ export function PerformanceChart({
   onRangeChange: (r: RangeKey) => void;
 }) {
   const points = performance?.points ?? [];
+  // Cumulative return, both legs, both starting at 0 on the first day of the
+  // range. Nothing is rescaled to anything: two percentages share one axis
+  // because they are the same quantity. The rupiah the portfolio is worth is
+  // the largest figure on the page already, in the summary above.
   const data = points.map((p) => ({
     date: p.date,
-    value: p.portfolio_value,
-    ihsg: p.ihsg_normalized,
+    value: p.return_pct,
+    ihsg: p.ihsg_return_pct,
   }));
 
   // A line needs two points. With one — a portfolio funded and traded on the
@@ -113,19 +118,17 @@ export function PerformanceChart({
 
   // A flat series collapses the Y domain — min === max makes Recharts print
   // one tick value down the whole axis. This is NOT only a first-run problem:
-  // any stretch without price movement reproduces it. Pad the range so the
-  // ticks separate. The zero case is guarded because 0 * 0.98 is still 0.
+  // any stretch without price movement reproduces it. Pad by a fixed
+  // percentage point rather than a proportion of the value, which was safe
+  // while these were rupiah and is not now: 2% of a negative return inverts
+  // the domain, and 2% of a flat 0% is still 0%.
   const plotted = data
     .flatMap((d) => [d.value, d.ihsg])
     .filter((v): v is number => typeof v === "number");
   const lo = plotted.length ? Math.min(...plotted) : 0;
   const hi = plotted.length ? Math.max(...plotted) : 0;
   const yDomain: [number | string, number | string] =
-    plotted.length > 0 && lo === hi
-      ? lo === 0
-        ? [-1, 1]
-        : [lo * 0.98, hi * 1.02]
-      : ["auto", "auto"];
+    plotted.length > 0 && lo === hi ? [lo - 1, hi + 1] : ["auto", "auto"];
 
   return (
     <Panel>
@@ -140,7 +143,7 @@ export function PerformanceChart({
             <span className="w-wide">Performance</span>
           </h2>
           <LegendChip color={PORTFOLIO_COLOR} label="Portfolio" />
-          <LegendChip color={CHART_NEUTRAL} label="IHSG, rebased" dashed />
+          <LegendChip color={CHART_NEUTRAL} label="IHSG" dashed />
         </div>
         <Segmented
           label="Performance range" options={RANGES}
@@ -160,23 +163,19 @@ export function PerformanceChart({
             title="No performance yet" body="The chart appears once this portfolio has a transaction inside the selected range."
           />
         ) : singlePoint ? (
-          // One day recorded: state the figure plainly and say what unlocks
-          // the line, rather than drawing a chart that cannot mean anything.
+          // One day recorded: a return needs two closes, so there is no
+          // figure to state yet. Say what unlocks the line rather than
+          // drawing a chart that cannot mean anything.
           <div className="flex flex-col items-start gap-3 px-4 py-12 sm:px-5">
             <p className="w-wide text-[13px] font-bold uppercase tracking-[0.12em] text-ink">
               One day recorded
             </p>
-            <div>
-              <p className="w-wide text-[10px] font-bold uppercase leading-none tracking-[0.14em] text-ink-3">
-                {fmtDateShort(data[0].date)}
-              </p>
-              <p className="tnum w-condensed mt-2 text-[30px] font-extrabold leading-none tracking-[-0.02em] text-ink">
-                {fmtRp(data[0].value)}
-              </p>
-            </div>
+            <p className="w-wide text-[10px] font-bold uppercase leading-none tracking-[0.14em] text-ink-3">
+              {fmtDateShort(data[0].date)}
+            </p>
             <p className="max-w-[46ch] text-[13px] leading-relaxed text-ink-2">
-              A performance line needs two days to draw. Yours appears after the
-              next market close, or widen the range if this portfolio has older
+              A return is measured between two closes, so the line appears
+              after the next one. Widen the range if this portfolio has older
               transactions.
             </p>
           </div>
@@ -184,6 +183,10 @@ export function PerformanceChart({
           <ResponsiveContainer width="100%" height={280}>
             <LineChart data={data} margin={{ top: 8, right: 12, left: 4, bottom: 0 }}>
               <CartesianGrid vertical={false} stroke="rgb(10 12 16 / 0.1)" />
+              {/* break-even. On a return chart zero is the line that matters
+                  and it is not one of the grid's — darker than a gridline,
+                  lighter than a series, drawn under both. */}
+              <ReferenceLine y={0} stroke="rgb(10 12 16 / 0.32)" strokeWidth={1} />
               <XAxis
                 dataKey="date" tickFormatter={fmtDateShort}
                 stroke="transparent" tick={{ fill: token("ink-3", "#5c6373"), fontSize: 10 }}
@@ -191,10 +194,10 @@ export function PerformanceChart({
                 minTickGap={48}
               />
               <YAxis
-                tickFormatter={(v: number) => fmtRpCompact(v)}
+                tickFormatter={fmtPctAxis}
                 stroke="transparent" tick={{ fill: token("ink-3", "#5c6373"), fontSize: 10 }}
                 tickLine={false}
-                width={78}
+                width={56}
                 domain={yDomain}
               />
               <Tooltip

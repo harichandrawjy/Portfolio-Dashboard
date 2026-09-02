@@ -21,6 +21,32 @@ flows, measuring how the investments themselves performed — which is what
 makes volatility, Sharpe and beta on this series meaningful, and is how
 funds report performance (GIPS standard).
 
+THE CHART PLOTS RETURN, NOT RUPIAH, and that took four attempts to get
+right. Every one of them failed the same way: a rupiah line answers "what is
+this worth", which moves when money moves, so laying a benchmark over it
+compares a quantity of money against an index.
+
+    holdings alone            a sale moved money somewhere unplotted, so
+                              selling read as a loss and liquidating drew a
+                              line to zero
+    holdings + cash           fixed that, and then funding the account made
+                              the line jump, which is not performance either
+    + recycled proceeds       counted only money that had been through the
+                              market, but applying trades one at a time made
+                              the recorded order of same-day trades
+                              load-bearing: a buy entered before the sale
+                              that funded it showed the holding AND the
+                              proceeds that bought it
+    + netting the day         closed that, and new capital still stepped the
+                              line, because it arrives as holdings
+
+Cumulative TWR has no such seam. Deposits, withdrawals, sales and rotations
+are all netted out of the day they land on, by the same formula the metrics
+already use — so the chart's last point IS the reported total return, and
+the benchmark overlay compares two returns rather than a value against an
+index. The rupiah figure was never lost: it is the largest number on the
+page, in the portfolio's own summary.
+
 Series rules:
   - Trading calendar = the IHSG's trade dates (it is always synced, Step 3);
     if the benchmark is missing entirely, the union of the held tickers'
@@ -55,22 +81,6 @@ class SeriesPoint:
     value: int          # market value of HOLDINGS, whole rupiah
     net_flow: int       # external cash flow that day (buys +, sells -)
     ihsg_close: int | None
-    # Sale proceeds not yet redeployed — cash that has been THROUGH the
-    # market and is waiting to go back in.
-    #
-    # Deliberately not the cash balance. A deposit that has never bought
-    # anything is not part of the investment programme, and counting it would
-    # make funding an account look like a gain and dilute the benchmark
-    # overlay. Money enters this pool only by being invested and then sold.
-    #
-    # The chart plots value + idle_proceeds; TWR and the risk metrics keep
-    # using `value` alone, which is the documented decision above.
-    #
-    # Both directions were wrong before. Holdings alone made a sale look like
-    # a loss and liquidation look like ruin, because the proceeds stopped
-    # being plotted. Holdings plus the whole cash balance fixed that but made
-    # a deposit look like a gain. Counting only recycled money does neither.
-    idle_proceeds: int = 0
 
 
 async def build_series(
@@ -132,7 +142,6 @@ async def build_series(
     pointers: dict[uuid.UUID, int] = {sid: 0 for sid in all_ids}
     carried: dict[uuid.UUID, int | None] = {sid: None for sid in all_ids}
     txn_i = 0
-    idle = 0  # sale proceeds awaiting redeployment
     points: list[SeriesPoint] = []
 
     for day in calendar:
@@ -140,38 +149,21 @@ async def build_series(
         # Flows land on the first trading day on/after their executed_at;
         # the very first point's flow bucket is never used by TWR (there is
         # no prior value to compute a return against).
+        #
+        # One bucket for the whole day, not one per trade. `executed_at` is a
+        # DATE, so a sell and the buy it funded are simultaneous here and the
+        # recorded order is only whatever order the user typed them in.
         flow = 0
-        day_in = 0   # proceeds from this day's sells
-        day_out = 0  # cost of this day's buys
         while txn_i < len(txns) and txns[txn_i].executed_at <= day:
             t = txns[txn_i]
             if t.type == "BUY":
                 positions[t.security_id] += t.shares
-                cost = t.shares * t.price_per_share + t.fee
-                flow += cost
-                day_out += cost
+                flow += t.shares * t.price_per_share + t.fee
             else:
                 positions[t.security_id] -= t.shares
-                proceeds = t.shares * t.price_per_share - t.fee
-                flow -= proceeds
-                day_in += proceeds
+                flow -= t.shares * t.price_per_share - t.fee
             last_txn_price[t.security_id] = t.price_per_share
             txn_i += 1
-
-        # Net the whole day before touching the pool, rather than applying
-        # each trade as it comes. `executed_at` is a DATE, so a sell and the
-        # buy it funded are simultaneous as far as this series is concerned,
-        # and the recorded order is whatever order the user typed them in.
-        #
-        # Applying them one at a time made that ordering load-bearing: an
-        # ESSA buy entered before the PANI sale that funded it consumed an
-        # empty pool, then the sale dropped 48jt into a pool nothing spent.
-        # The chart showed the new holding AND the proceeds that bought it —
-        # about 100jt for a portfolio worth 57jt.
-        #
-        # Clamped at zero because a day that buys more than it sells is
-        # drawing on deposits, and that money arrives as holdings instead.
-        idle = max(0, idle + day_in - day_out)
 
         # Advance each security's carried close to this day, then value it.
         value = 0
@@ -203,7 +195,7 @@ async def build_series(
                 pointers[bid] += 1
             ihsg_close = carried[bid]
 
-        points.append(SeriesPoint(day, value, flow, ihsg_close, idle))
+        points.append(SeriesPoint(day, value, flow, ihsg_close))
 
     return points
 
@@ -218,6 +210,29 @@ def time_weighted_returns(points: list[SeriesPoint]) -> list[float]:
     for prev, cur in zip(points, points[1:]):
         if prev.value > 0:
             out.append((cur.value - cur.net_flow) / prev.value - 1)
+    return out
+
+
+def cumulative_returns(points: list[SeriesPoint]) -> list[float]:
+    """Growth of the invested money since the first point, as a fraction.
+
+    One value per point, starting at 0.0 — this is the chart series, so every
+    date needs a value. It is the same chain the metrics endpoint builds from
+    `time_weighted_returns`, which means the last element of this list IS the
+    reported total return, and the two can never disagree on screen.
+
+    A day whose predecessor held nothing carries the line forward flat rather
+    than being dropped. After a full liquidation there is no return to earn:
+    the money is out of the market, and holding the last level says exactly
+    that. `time_weighted_returns` omits those days instead, because a run of
+    zeroes would deflate the volatility it feeds.
+    """
+    out = [0.0]
+    index = 1.0
+    for prev, cur in zip(points, points[1:]):
+        if prev.value > 0:
+            index *= (cur.value - cur.net_flow) / prev.value
+        out.append(index - 1)
     return out
 
 

@@ -161,10 +161,12 @@ export interface CashSummary {
 
 export type RangeKey = "1mo" | "6mo" | "1y" | "all";
 
+/** Both legs are CUMULATIVE RETURN in percent, measured from the first point
+ *  of the requested range, which is therefore always 0. */
 export interface PerformancePoint {
   date: string;
-  portfolio_value: number;
-  ihsg_normalized: number | null;
+  return_pct: number;
+  ihsg_return_pct: number | null;
 }
 
 export interface Performance {
