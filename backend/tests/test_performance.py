@@ -204,80 +204,92 @@ async def test_performance_invalid_range_rejected(client):
 # ---------------------------------------------------------------------------
 # Selling must not look like losing, and depositing must not look like winning
 #
-# The chart plots holdings plus proceeds not yet redeployed. Two failures had
-# to be closed at once, in opposite directions:
+# The chart plots holdings plus proceeds not yet redeployed. Three failures
+# had to be closed, and the first two pull in opposite directions:
 #
 #   holdings alone            a sale moved money somewhere unplotted, so
 #                             selling read as a loss and liquidating a
 #                             portfolio drew a line to zero
-#   holdings + cash balance   fixed that, but then funding an account made
+#   holdings + cash balance   fixed that, but funding an account then made
 #                             the line jump, which is not performance either
+#   per-trade pool accounting fixed both, but made the recorded order of
+#                             same-day trades load-bearing: a buy entered
+#                             before the sale that funded it consumed an
+#                             empty pool, and the sale then credited a pool
+#                             nothing spent — the chart showed the holding
+#                             AND the money that bought it
 #
-# Counting only money that has been THROUGH the market does neither.
+# These use the synthetic June market seeded above, which has ten trading
+# days. Using BBCA and July dates looked fine but collapsed onto a single
+# calendar point, because the only IHSG bar in that range is 17 July.
 # ---------------------------------------------------------------------------
 
-async def test_selling_everything_does_not_send_the_chart_to_zero(client):
+async def _funded(client, email: str, name: str, amount: int):
     from .helpers import fund, register_verified
 
-    auth = await register_verified(client, "liquidate@example.com", "password-123")
+    auth = await register_verified(client, email, "password-123")
     pid = (
-        await client.post("/portfolios", json={"name": "Liquidated"}, headers=auth)
+        await client.post("/portfolios", json={"name": name}, headers=auth)
     ).json()["id"]
-    await fund(client, auth, pid, 10_000_000)
-
-    async def trade(kind: str, price: int, day: str):
-        r = await client.post(
-            f"/portfolios/{pid}/transactions",
-            json={
-                "ticker": "BBCA", "type": kind, "lots": 10,
-                "price_per_share": price, "fee": 0, "executed_at": day,
-            },
-            headers=auth,
-        )
-        assert r.status_code == 201, r.text
-
-    await trade("BUY", 6000, "2026-07-06")   # 6,000,000 into the market
-    await trade("SELL", 7000, "2026-07-15")  # all of it out, for 7,000,000
-
-    body = (
-        await client.get(f"/portfolios/{pid}/performance?range=all", headers=auth)
-    ).json()
-    values = {p["date"]: p["portfolio_value"] for p in body["points"]}
-    assert values, body
-
-    # Holdings are zero, but the programme is worth the 7,000,000 it returned
-    # — the gain stays visible instead of the line falling off a cliff.
-    assert values[max(values)] == 7_000_000, values
-    assert min(values.values()) > 0, values
+    await fund(client, auth, pid, amount)
+    return auth, pid
 
 
-async def test_an_idle_deposit_does_not_move_the_chart(client):
-    """Funding an account is not performance. Only money that has actually
-    bought something counts, so a large idle balance stays invisible."""
-    from .helpers import fund, register_verified
-
-    auth = await register_verified(client, "idlecash@example.com", "password-123")
-    pid = (
-        await client.post("/portfolios", json={"name": "Mostly idle"}, headers=auth)
-    ).json()["id"]
-    await fund(client, auth, pid, 500_000_000)   # deposit far more than is used
-
+async def _trade(client, auth, pid, ticker, kind, lots, price, day):
     r = await client.post(
         f"/portfolios/{pid}/transactions",
         json={
-            "ticker": "BBCA", "type": "BUY", "lots": 10,
-            "price_per_share": 6000, "fee": 0, "executed_at": "2026-07-06",
+            "ticker": ticker, "type": kind, "lots": lots,
+            "price_per_share": price, "fee": 0, "executed_at": day,
         },
         headers=auth,
     )
     assert r.status_code == 201, r.text
 
+
+async def _chart(client, auth, pid):
     body = (
         await client.get(f"/portfolios/{pid}/performance?range=all", headers=auth)
     ).json()
-    values = [p["portfolio_value"] for p in body["points"]]
-    assert values, body
-    # 10 lots priced at the seeded 7000 close = 7,000,000. The other
-    # 494,000,000 sitting in cash contributes nothing.
-    assert max(values) == 7_000_000, values
-    assert all(v < 10_000_000 for v in values), values
+    return {p["date"]: p["portfolio_value"] for p in body["points"]}
+
+
+async def test_selling_everything_does_not_send_the_chart_to_zero(client):
+    auth, pid = await _funded(client, "liquidate@example.com", "Liquidated", 10_000_000)
+    await _trade(client, auth, pid, "AAAA", "BUY", 1, 1000, "2026-06-01")
+    await _trade(client, auth, pid, "AAAA", "SELL", 1, 1070, "2026-06-10")
+
+    values = await _chart(client, auth, pid)
+    assert values, "no points"
+    # Holdings are zero from Jun 10, but the 107_000 the position returned is
+    # still money at work — the line holds instead of falling off a cliff.
+    assert values["2026-06-12"] == 107_000, values
+    assert min(values.values()) > 0, values
+
+
+async def test_a_same_day_sell_and_rebuy_is_not_counted_twice(client):
+    """The reported bug. Selling PANI and buying ESSA on one day, with the
+    buy recorded FIRST, showed the new holding plus the proceeds that paid
+    for it. Netting the day makes the recorded order irrelevant."""
+    auth, pid = await _funded(client, "sameday@example.com", "Rotated", 10_000_000)
+    await _trade(client, auth, pid, "AAAA", "BUY", 1, 1000, "2026-06-01")
+    # Recorded buy-first, exactly as the real portfolio was entered.
+    await _trade(client, auth, pid, "BBBB", "BUY", 1, 2000, "2026-06-10")
+    await _trade(client, auth, pid, "AAAA", "SELL", 1, 1070, "2026-06-10")
+
+    values = await _chart(client, auth, pid)
+    # After the rotation the portfolio holds only BBBB, worth 200_000. The
+    # 107_000 of proceeds went into it, so it must NOT also be added on top.
+    assert values["2026-06-12"] == 200_000, values
+
+
+async def test_an_idle_deposit_does_not_move_the_chart(client):
+    """Funding an account is not performance, so a large idle balance stays
+    invisible until it actually buys something."""
+    auth, pid = await _funded(client, "idlecash@example.com", "Mostly idle", 500_000_000)
+    await _trade(client, auth, pid, "AAAA", "BUY", 1, 1000, "2026-06-01")
+
+    values = await _chart(client, auth, pid)
+    # One lot of AAAA, which closes between 1000 and 1110 across the window.
+    # The other ~499,900,000 sitting in cash contributes nothing.
+    assert max(values.values()) <= 111_000, values

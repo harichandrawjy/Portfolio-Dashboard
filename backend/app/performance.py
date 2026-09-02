@@ -141,23 +141,37 @@ async def build_series(
         # the very first point's flow bucket is never used by TWR (there is
         # no prior value to compute a return against).
         flow = 0
+        day_in = 0   # proceeds from this day's sells
+        day_out = 0  # cost of this day's buys
         while txn_i < len(txns) and txns[txn_i].executed_at <= day:
             t = txns[txn_i]
             if t.type == "BUY":
                 positions[t.security_id] += t.shares
                 cost = t.shares * t.price_per_share + t.fee
                 flow += cost
-                # Spend recycled proceeds first; the shortfall is fresh money
-                # entering the programme, which needs no tracking here since
-                # it arrives as holdings on the same day.
-                idle -= min(idle, cost)
+                day_out += cost
             else:
                 positions[t.security_id] -= t.shares
                 proceeds = t.shares * t.price_per_share - t.fee
                 flow -= proceeds
-                idle += proceeds
+                day_in += proceeds
             last_txn_price[t.security_id] = t.price_per_share
             txn_i += 1
+
+        # Net the whole day before touching the pool, rather than applying
+        # each trade as it comes. `executed_at` is a DATE, so a sell and the
+        # buy it funded are simultaneous as far as this series is concerned,
+        # and the recorded order is whatever order the user typed them in.
+        #
+        # Applying them one at a time made that ordering load-bearing: an
+        # ESSA buy entered before the PANI sale that funded it consumed an
+        # empty pool, then the sale dropped 48jt into a pool nothing spent.
+        # The chart showed the new holding AND the proceeds that bought it —
+        # about 100jt for a portfolio worth 57jt.
+        #
+        # Clamped at zero because a day that buys more than it sells is
+        # drawing on deposits, and that money arrives as holdings instead.
+        idle = max(0, idle + day_in - day_out)
 
         # Advance each security's carried close to this day, then value it.
         value = 0
