@@ -116,6 +116,34 @@ def enqueue_backfill(ticker: str) -> None:
     )
 
 
+def enqueue_quote_refresh(ticker: str) -> None:
+    """One-shot refresh of a single ticker's `latest_quotes` row, used by the
+    API right after a transaction changes what a portfolio holds.
+
+    The scheduled `sync_quotes` only looks at tickers someone currently
+    holds (see its docstring), so a ticker that drops out of `holdings` and
+    back in within one 15-minute window — a sell that gets edited or
+    deleted, say — sits on a quote frozen from before it left, until the
+    next tick happens to notice it is held again. That produced exactly the
+    bug this closes: cancelling a sell left the ticker's price and its
+    provisional candle reading yesterday's close for up to 15 minutes after
+    the position was back.
+
+    A distinct job id from the periodic "quote-refresh" job, so triggering
+    this never touches that one's schedule; keyed by ticker so repeated
+    triggers for the same ticker replace each other instead of queuing up.
+    """
+    if _scheduler is None or not _scheduler.running:
+        raise RuntimeError("scheduler is not running")
+    _scheduler.add_job(
+        sync_quotes,
+        args=[[ticker]],
+        id=f"quote-refresh-now-{ticker}",
+        replace_existing=True,
+        misfire_grace_time=None,
+    )
+
+
 async def _deliver(message: Message) -> None:
     """Send one message, swallowing failure.
 

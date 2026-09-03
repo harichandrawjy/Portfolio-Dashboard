@@ -21,7 +21,7 @@ from app.models import (
     User,
 )
 from app.pnl import realized_pnl_and_cost
-from app.scheduler import enqueue_backfill
+from app.scheduler import enqueue_backfill, enqueue_quote_refresh
 from app.schemas import (
     CashFlowIn,
     CashFlowOut,
@@ -57,6 +57,18 @@ async def _get_owned_portfolio(
         # 404 for "not yours" too — never reveal that someone else's exists
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Portfolio not found")
     return portfolio
+
+
+def _nudge_quote(ticker: str) -> None:
+    """Ask for a fresh quote right away rather than waiting on the next
+    15-minute tick — see `enqueue_quote_refresh`'s docstring for why a
+    transaction write is exactly when that gap opens. Best-effort: a
+    transaction that already committed must not fail because the scheduler
+    happens to be down."""
+    try:
+        enqueue_quote_refresh(ticker)
+    except RuntimeError:
+        logger.error("scheduler unavailable — quote refresh for %s NOT enqueued", ticker)
 
 
 async def _net_deposits(session: AsyncSession, portfolio_id: uuid.UUID) -> int:
@@ -398,6 +410,11 @@ async def add_transaction(
                 "run: python -m app.sync backfill --ticker %s",
                 security.ticker, security.ticker,
             )
+    else:
+        # Already priced: has_history covers backfill, this covers the
+        # quote — a buy or sell just changed whether this ticker is held,
+        # which is exactly the condition `sync_quotes` scopes itself to.
+        _nudge_quote(security.ticker)
 
     return _txn_out(txn, security.ticker)
 
@@ -519,6 +536,9 @@ async def update_transaction(
 
     await session.commit()
     await session.refresh(txn)
+    # Whatever changed — side, size, date — this ticker's holding status may
+    # have just flipped, which is the condition `sync_quotes` scopes to.
+    _nudge_quote(ticker)
     return _txn_out(txn, ticker)
 
 
@@ -567,8 +587,38 @@ async def delete_transaction(
                 "Deleting this buy would leave sells exceeding buys for the ticker",
             )
 
+    security = await session.get(Security, txn.security_id)
+    ticker = security.ticker  # capture before delete expires the row
+    is_sell = txn.type == "SELL"
+
     await session.delete(txn)
+    await session.flush()
+
+    if is_sell:
+        # Deleting a sell also deletes the proceeds it added to the ledger.
+        # If a later buy already spent them — this app's only way to
+        # "cancel" a sell is deleting it, and the shares it zeroed out come
+        # straight back with nothing spent to get them — the balance must be
+        # re-checked the same way an edit already is, and rolled back rather
+        # than left negative and unmentioned. Without this, deleting an old
+        # sell refunded the shares it had funded a later buy with, showing
+        # more stock than the portfolio was ever funded to hold.
+        balance, _ = await _cash_state(session, portfolio.id)
+        if balance < 0:
+            await session.rollback()
+            raise HTTPException(
+                status.HTTP_422_UNPROCESSABLE_CONTENT,
+                f"Deleting this sell would overdraw cash by Rp {abs(balance):,}: "
+                "its proceeds already funded a later buy. Delete or reduce "
+                "that buy first, or deposit more, then delete this sell.",
+            )
+
     await session.commit()
+    # Deleting a sell is how this app "cancels" one — the position it had
+    # zeroed out is back, and its quote may have sat frozen for however long
+    # it was gone. Nudge it rather than leaving the price and the today
+    # candle stale until the next scheduled tick.
+    _nudge_quote(ticker)
 
 
 # ---------------------------------------------------------------------------

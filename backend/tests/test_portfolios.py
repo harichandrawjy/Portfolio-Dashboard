@@ -174,6 +174,59 @@ async def test_first_use_ticker_enqueues_backfill(client, monkeypatch):
     assert calls == ["TLKM"]
 
 
+async def test_transaction_writes_nudge_the_ticker_quote(client, monkeypatch):
+    """Add, edit and delete all changed what this portfolio holds, and a held
+    ticker is exactly what `sync_quotes` scopes its 15-minute refresh to.
+    Reported as a real bug: cancelling (deleting) a sell left the ticker's
+    price and its today-candle stuck on a frozen quote until the next tick."""
+    import app.routers.portfolios as portfolios_router
+
+    calls: list[str] = []
+    monkeypatch.setattr(portfolios_router, "enqueue_quote_refresh", calls.append)
+
+    auth = await _login(client, "essa@example.com")
+    pid = (
+        await client.post("/portfolios", json={"name": "Watched"}, headers=auth)
+    ).json()["id"]
+    await fund(client, auth, pid)
+
+    # BBCA already has history, so this is a quote nudge, not a backfill.
+    r = await _buy(client, auth, pid, "BBCA", 1, 6000)
+    assert r.status_code == 201
+    txn_id = r.json()["id"]
+    assert calls == ["BBCA"]
+
+    r = await client.patch(
+        f"/portfolios/{pid}/transactions/{txn_id}",
+        json={
+            "type": "BUY", "lots": 2, "price_per_share": 6000, "fee": 0,
+            "executed_at": "2026-07-01", "note": None,
+        },
+        headers=auth,
+    )
+    assert r.status_code == 200
+    assert calls == ["BBCA", "BBCA"]
+
+    # The reported scenario: selling, then deleting that sell — "cancelling"
+    # it — must nudge the quote again once the position is back.
+    sell = await client.post(
+        f"/portfolios/{pid}/transactions",
+        json={
+            "ticker": "BBCA", "type": "SELL", "lots": 1,
+            "price_per_share": 6100, "fee": 0, "executed_at": "2026-07-02",
+        },
+        headers=auth,
+    )
+    assert sell.status_code == 201
+    assert calls == ["BBCA", "BBCA", "BBCA"]
+
+    r = await client.delete(
+        f"/portfolios/{pid}/transactions/{sell.json()['id']}", headers=auth
+    )
+    assert r.status_code == 204
+    assert calls == ["BBCA", "BBCA", "BBCA", "BBCA"]
+
+
 async def test_edit_transaction(client):
     auth = await _login(client, "edit@example.com")
     pid = (
@@ -333,3 +386,65 @@ async def test_list_pagination_and_delete_integrity(client):
     ).status_code == 204
     r = await client.get(f"/portfolios/{pid}/holdings", headers=auth)
     assert r.json()["holdings"] == []
+
+
+async def test_deleting_a_sell_that_funded_a_later_buy_is_refused(client):
+    """Reported as a real bug: 100jt deposited, sold BBCA for 50jt and spent
+    all 100jt (the leftover deposit plus that 50jt) buying TLKM, then deleted
+    the old BBCA sell. Deleting it put the BBCA shares back — that is what
+    deleting a sell always does — but nothing took the 50jt back out of
+    TLKM, so the portfolio read as 150jt of stock funded by a 100jt deposit.
+    Symmetric with the existing "deleting a buy must not orphan a sell"
+    guard, just on the cash side instead of the share side."""
+    auth = await _login(client, "delete-sell-overdraw@example.com")
+    pid = (
+        await client.post("/portfolios", json={"name": "Overdraft"}, headers=auth)
+    ).json()["id"]
+    await fund(client, auth, pid, 100_000_000)
+
+    buy_bbca = await _buy(client, auth, pid, "BBCA", 100, 5_000)  # 50jt
+    assert buy_bbca.status_code == 201
+    sell_bbca = await client.post(
+        f"/portfolios/{pid}/transactions",
+        json={
+            "ticker": "BBCA", "type": "SELL", "lots": 100,
+            "price_per_share": 5_000, "fee": 0, "executed_at": "2026-07-01",
+        },
+        headers=auth,
+    )
+    assert sell_bbca.status_code == 201  # cash back to 100jt, BBCA at 0
+    buy_tlkm = await _buy(client, auth, pid, "TLKM", 100, 10_000)  # 100jt
+    assert buy_tlkm.status_code == 201  # cash to 0
+
+    # Deleting the sell would restore BBCA (50jt) on top of the TLKM already
+    # bought with its proceeds (100jt) — 150jt of stock on a 100jt deposit.
+    r = await client.delete(
+        f"/portfolios/{pid}/transactions/{sell_bbca.json()['id']}", headers=auth
+    )
+    assert r.status_code == 422
+    assert "overdraw" in r.json()["detail"]
+
+    # Nothing moved: the sell is still there, BBCA still at 0, cash still 0.
+    holdings = (
+        await client.get(f"/portfolios/{pid}/holdings", headers=auth)
+    ).json()
+    tickers = {h["ticker"] for h in holdings["holdings"]}
+    assert tickers == {"TLKM"}
+    assert holdings["totals"]["cash_balance"] == 0
+
+    # Freeing the cash first makes the same delete legitimate.
+    assert (
+        await client.delete(
+            f"/portfolios/{pid}/transactions/{buy_tlkm.json()['id']}", headers=auth
+        )
+    ).status_code == 204
+    assert (
+        await client.delete(
+            f"/portfolios/{pid}/transactions/{sell_bbca.json()['id']}", headers=auth
+        )
+    ).status_code == 204
+    holdings = (
+        await client.get(f"/portfolios/{pid}/holdings", headers=auth)
+    ).json()
+    assert {h["ticker"] for h in holdings["holdings"]} == {"BBCA"}
+    assert holdings["totals"]["cash_balance"] == 50_000_000
