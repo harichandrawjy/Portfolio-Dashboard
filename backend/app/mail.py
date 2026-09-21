@@ -177,16 +177,15 @@ def contact_notification(
         reply_to=email,
         body=(
             f"""Topic: {label}
-From: {clean}{f" — {org}" if org else ""}
+From: {clean}{f", {org}" if org else ""}
 Email: {email}
 {rule}
 
 {message}
 
 {rule}
-Left on the Arus contact page. Reply to this email and it goes straight
-back to them. The message is also stored in `contact_messages`, so it
-survives this email going astray."""
+Sent from the Arus contact page. Reply to this email to answer them
+directly. A copy is stored in the contact_messages table."""
         ),
     )
 

@@ -65,8 +65,8 @@ async def submit_contact(
     if not contact_limiter.allow(client_key(request)):
         raise HTTPException(
             status.HTTP_429_TOO_MANY_REQUESTS,
-            "That is a few messages in a short time. Try again in an hour, or "
-            "email aruscapitalteam@gmail.com directly in the meantime.",
+            "Too many messages in a short time. Try again in an hour, or "
+            "email aruscapitalteam@gmail.com.",
         )
 
     org = (payload.organisation or "").strip() or None

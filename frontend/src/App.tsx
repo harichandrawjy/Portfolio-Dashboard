@@ -78,6 +78,16 @@ function Shell({ children }: { children: React.ReactNode }) {
               {user && <TickerSearch />}
             </div>
             <div className="flex shrink-0 items-center gap-3">
+              {/* Set in ink, not ink-3. Sign out is a quiet exit and belongs
+                  in the grey; Contact is the way in for anyone who does not
+                  have an account, so it reads as a nav item rather than as
+                  chrome. Top-right is where people look for it. */}
+              <Link
+                to="/contact"
+                className="px-2.5 py-2 text-[11px] font-bold uppercase tracking-[0.12em] text-ink outline-none transition-colors hover:bg-ink hover:text-bg focus-visible:ring-2 focus-visible:ring-accent"
+              >
+                Contact
+              </Link>
               {user ? (
                 <>
                   <span className="tnum hidden text-[11px] uppercase tracking-[0.1em] text-ink-3 sm:inline">

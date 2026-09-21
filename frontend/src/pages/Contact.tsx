@@ -31,8 +31,8 @@ import {
   TextArea,
 } from "../components/ui";
 
-/** The public mailbox. Shown as well as posted to, because someone who
- *  distrusts a form — or wants to attach something — should not be stuck. */
+/** The public mailbox. Shown as well as posted to, so someone who distrusts
+ *  a form, or wants to attach something, is not stuck. */
 const INBOX = "aruscapitalteam@gmail.com";
 
 /** Wire value ↔ label. The values match the CHECK constraint in migration
@@ -47,11 +47,10 @@ const TOPICS: { value: ContactTopic; label: string }[] = [
  *  is informed rather than guessed. */
 const TOPIC_BLURB: Record<ContactTopic, string> = {
   consulting:
-    "Advisory on finance, business and investment — for individuals and for companies.",
-  research:
-    "Market research and analysis: sector work, screening, and the reasoning behind a position.",
+    "Advice on finance, business and investment, for individuals and companies.",
+  research: "Market research and analysis, including sector work and screening.",
   platform:
-    "The tracker itself — a question about how something works, or something that looks broken.",
+    "The tracker itself. A question about how it works, or something that looks broken.",
 };
 
 const ELSEWHERE = [
@@ -64,14 +63,14 @@ const ELSEWHERE = [
   },
   {
     label: "LinkedIn",
-    detail: "Background, and what we have written up",
+    detail: "Profile and posts",
     href: "https://www.linkedin.com/in/harichandrawjy",
     Icon: LinkedinLogo,
     external: true,
   },
   {
     label: "GitHub",
-    detail: "The platform's source and its commit history",
+    detail: "Source code for the platform",
     href: "https://github.com/harichandrawjy/Portfolio-Dashboard",
     Icon: GithubLogo,
     external: true,
@@ -121,7 +120,7 @@ export function ContactPage() {
       setError(
         err instanceof ApiError
           ? err.message
-          : `Could not reach the server. Try again, or email ${INBOX} directly.`,
+          : `Could not reach the server. Try again, or email ${INBOX}.`,
       );
     } finally {
       setBusy(false);
@@ -142,10 +141,9 @@ export function ContactPage() {
               from the jump to the display headline above, not from nudging
               the lede up a point. */}
           <p className="mt-6 max-w-[56ch] text-[13px] leading-relaxed text-on-accent/70">
-            Arus began as a portfolio tracker and optimiser, and now works
-            alongside it: consulting on finance, business and investment for
-            individuals and companies, and market research and analysis.
-            Tell us what you are working on.
+            Arus started as a portfolio tracker and optimiser. We now also do
+            consulting on finance, business and investment, and market
+            research, for individuals and for companies.
           </p>
         </div>
       </section>
@@ -163,10 +161,9 @@ export function ContactPage() {
                   Message sent
                 </p>
                 <p className="max-w-[52ch] text-[13px] leading-relaxed text-ink-2">
-                  It landed. We&rsquo;ll reply to{" "}
-                  <span className="font-semibold text-ink">{email.trim()}</span>
-                  {" "}— if nothing arrives, check spam before assuming it went
-                  astray, then write to{" "}
+                  We got it. We will reply to{" "}
+                  <span className="font-semibold text-ink">{email.trim()}</span>.
+                  {" "}If nothing arrives, check your spam folder, or write to{" "}
                   <span className="font-semibold text-ink">{INBOX}</span>.
                 </p>
                 <Button
@@ -219,7 +216,7 @@ export function ContactPage() {
                     onChange={(e) => setOrganisation(e.target.value)}
                     maxLength={150}
                     autoComplete="organization"
-                    hint="Optional — individuals welcome"
+                    hint="Optional"
                   />
                 </div>
 
@@ -230,7 +227,7 @@ export function ContactPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   maxLength={254}
                   autoComplete="email"
-                  hint="So a reply has somewhere to go"
+                  hint="Where we should reply"
                   required
                 />
 
@@ -240,7 +237,7 @@ export function ContactPage() {
                   onChange={(e) => setMessage(e.target.value)}
                   rows={8}
                   maxLength={MESSAGE_MAX}
-                  error={tooShort ? "A little more than that" : undefined}
+                  error={tooShort ? "Please write a bit more" : undefined}
                   hint={
                     tooShort
                       ? undefined
@@ -272,8 +269,8 @@ export function ContactPage() {
                     Send message
                   </Button>
                   <p className="max-w-[40ch] text-[12px] leading-relaxed text-ink-3">
-                    Goes straight to {INBOX}. Nothing is shared, and there is no
-                    list to be added to.
+                    This goes to {INBOX}. We do not share it or add you to a
+                    mailing list.
                   </p>
                 </div>
               </form>
@@ -286,19 +283,16 @@ export function ContactPage() {
               {[
                 [
                   "Consulting",
-                  "Finance, business and investment — individuals and companies.",
+                  "Finance, business and investment, for individuals and companies.",
                 ],
-                [
-                  "Market research",
-                  "Sector analysis, screening, and the reasoning written out rather than asserted.",
-                ],
+                ["Market research", "Sector analysis and screening."],
                 [
                   "The platform",
                   "A mock IDX portfolio tracker with time-weighted performance and a mean-variance frontier. No real orders are placed.",
                 ],
                 [
                   "Response time",
-                  "Usually a day or two. Say a little about scope and timing and the first reply will be more useful.",
+                  "Usually a day or two. It helps if you mention scope and timing.",
                 ],
               ].map(([label, body]) => (
                 <div key={label} className="bg-bg px-4 py-4">

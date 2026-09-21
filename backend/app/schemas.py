@@ -92,7 +92,7 @@ class ContactIn(BaseModel):
 
 
 class ContactAcceptedOut(BaseModel):
-    detail: str = "Thanks — your message is in. We'll reply to the address you gave."
+    detail: str = "Thanks. We will reply to the address you gave."
 
 
 # ---------------------------------------------------------------------------

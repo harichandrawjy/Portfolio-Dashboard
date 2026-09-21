@@ -160,19 +160,34 @@ export function Colophon() {
           ))}
         </dl>
 
-        <div className="flex flex-wrap items-baseline justify-between gap-x-8 gap-y-4 border-t border-on-accent/25 pt-5">
-          <p className="w-wide max-w-[52ch] text-[11px] font-bold uppercase leading-relaxed tracking-[0.12em] text-on-accent/70">
-            Mock portfolios only. No real orders are placed.
-          </p>
-          {/* Knockout underline rather than the accent, which is the ground
-              here — an accent link on an accent field would be invisible. */}
+        {/* An 11px underlined link here was invisible in practice. Someone
+            scanning a footer for a way to reach a company looks for a block
+            with an address in it, so this is that: the services named, the
+            mailbox spelled out, and a control that inverts on hover the same
+            hard way the segmented control does. */}
+        <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-6 border-t border-on-accent/25 py-8">
+          <div className="min-w-0">
+            <p className="w-wide text-[10px] font-bold uppercase tracking-[0.14em] text-on-accent/70">
+              Consulting · Market research
+            </p>
+            <a
+              href="mailto:aruscapitalteam@gmail.com"
+              className="mt-2 block break-all text-[19px] font-bold leading-none text-on-accent underline decoration-on-accent/40 underline-offset-4 outline-none transition-colors hover:decoration-on-accent focus-visible:ring-2 focus-visible:ring-on-accent"
+            >
+              aruscapitalteam@gmail.com
+            </a>
+          </div>
           <Link
             to="/contact"
-            className="w-wide shrink-0 text-[11px] font-bold uppercase tracking-[0.12em] text-on-accent underline decoration-on-accent/40 underline-offset-4 outline-none transition-colors hover:decoration-on-accent focus-visible:ring-2 focus-visible:ring-on-accent"
+            className="w-wide shrink-0 bg-on-accent px-5 py-3 text-[11px] font-bold uppercase tracking-[0.12em] text-accent outline-none transition-colors hover:bg-accent hover:text-on-accent hover:ring-2 hover:ring-on-accent focus-visible:ring-2 focus-visible:ring-on-accent"
           >
             Get in touch
           </Link>
         </div>
+
+        <p className="w-wide max-w-[52ch] border-t border-on-accent/25 pt-5 text-[11px] font-bold uppercase leading-relaxed tracking-[0.12em] text-on-accent/70">
+          Mock portfolios only. No real orders are placed.
+        </p>
 
         {/* Source credit. IDX's terms permit non-commercial use of their data
             on condition that the source is cited "accompanied with the date of
