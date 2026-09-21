@@ -152,10 +152,11 @@ export function ContactPage() {
           <h1 className="w-condensed text-[clamp(2.75rem,7vw,5.5rem)] font-extrabold uppercase leading-[0.88] tracking-[-0.03em]">
             Hubungi kami
           </h1>
-          {/* Body, 13px. The ramp has no 14px step — hierarchy here comes
-              from the jump to the display headline above, not from nudging
-              the lede up a point. */}
-          <p className="mt-6 max-w-[56ch] text-[13px] leading-relaxed text-on-accent/70">
+          {/* The `lede` step, 15px. Not a nudge up from body — there is no
+              14px in the ramp and there must not be one. This is the named
+              token for an opening paragraph, and the hierarchy still comes
+              from the jump to the display headline above it. */}
+          <p className="mt-6 max-w-[56ch] text-[15px] leading-relaxed text-on-accent/70">
             Arus started as a portfolio tracker and optimiser. We now also do
             consulting on finance, business and investment, and market
             research, for individuals and for companies.
@@ -163,7 +164,7 @@ export function ContactPage() {
         </div>
       </section>
 
-      <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-12 px-4 py-10">
+      <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-14 px-4 pb-10 pt-10 lg:gap-20">
         <section>
           <SectionHead seq="01" title="Send a message" />
           <div className="mt-6 grid gap-10 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
@@ -172,10 +173,10 @@ export function ContactPage() {
                  filled-in form on screen next to a success note invites the
                  reader to wonder whether it actually went. */
               <div className="flex flex-col items-start gap-4 border-t-[3px] border-accent pt-6">
-                <p className="w-wide text-[13px] font-bold uppercase tracking-[0.12em] text-ink">
+                <p className="w-condensed text-[clamp(1.75rem,3.4vw,2.25rem)] font-extrabold uppercase leading-[0.95] tracking-[-0.02em] text-ink">
                   Message sent
                 </p>
-                <p className="max-w-[52ch] text-[13px] leading-relaxed text-ink-2">
+                <p className="max-w-[52ch] text-[15px] leading-relaxed text-ink-2">
                   We got it. We will reply to{" "}
                   <span className="font-semibold text-ink">{email.trim()}</span>.
                   {" "}If nothing arrives, check your spam folder, or write to{" "}
@@ -327,7 +328,7 @@ export function ContactPage() {
           <SectionHead seq="02" title="Elsewhere" />
           {/* Hairline bed rather than boxes — the system rules regions, it
               does not fence them. */}
-          <div className="mt-6 grid gap-px bg-line sm:grid-cols-3">
+          <div className="mt-px grid gap-px bg-line sm:grid-cols-3">
             {ELSEWHERE.map(({ label, detail, href, Icon, external }) => (
               <a
                 key={label}
@@ -335,21 +336,19 @@ export function ContactPage() {
                 {...(external
                   ? { target: "_blank", rel: "noreferrer noopener" }
                   : {})}
-                className="group flex items-start gap-4 bg-bg px-5 py-5 outline-none transition-colors hover:bg-panel-2 focus-visible:ring-2 focus-visible:ring-accent"
+                className="group flex flex-col bg-bg px-5 pb-6 pt-5 outline-none transition-colors duration-[180ms] hover:bg-panel-2 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent"
               >
                 <Icon
-                  size={20}
+                  size={22}
                   weight="fill"
                   aria-hidden
-                  className="mt-0.5 shrink-0 text-ink-3 transition-colors group-hover:text-accent"
+                  className="shrink-0 text-ink-3 transition-colors duration-[180ms] group-hover:text-accent"
                 />
-                <span className="min-w-0">
-                  <span className="w-wide block text-[12px] font-bold uppercase tracking-[0.12em] text-ink transition-colors group-hover:text-accent">
-                    {label}
-                  </span>
-                  <span className="mt-1.5 block break-words text-[13px] leading-relaxed text-ink-2">
-                    {detail}
-                  </span>
+                <span className="w-condensed mt-4 block text-[clamp(1.375rem,2.2vw,1.75rem)] font-extrabold uppercase leading-[0.95] tracking-[-0.02em] text-ink transition-colors duration-[180ms] group-hover:text-accent">
+                  {label}
+                </span>
+                <span className="mt-2.5 block break-words text-[15px] leading-relaxed text-ink-2">
+                  {detail}
                 </span>
               </a>
             ))}

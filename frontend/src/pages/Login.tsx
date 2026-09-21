@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import { api, ApiError } from "../api/client";
 import { useAuth } from "../auth";
@@ -141,10 +141,24 @@ export function LoginPage() {
           columns. A band across the top on small screens, the full left
           column from lg. */}
       <aside className="field-wipe relative flex flex-col justify-between gap-10 overflow-hidden bg-accent px-6 py-8 text-on-accent lg:gap-0 lg:p-12">
-        <p className="w-wide relative flex items-baseline gap-1.5 text-[19px] font-extrabold uppercase leading-none tracking-[0.16em]">
-          Arus
-          <span aria-hidden className="block h-2 w-2 bg-on-accent" />
-        </p>
+        {/* The way back out. This page is reachable from a bare link, and
+            until now the wordmark was inert text, so anyone who landed here
+            without an account had no route to the site that explains what
+            Arus is. Same affordance as the masthead's wordmark — the rule
+            draws itself under it — but knocked out, since an accent rule on
+            the accent field would be invisible. */}
+        <Link
+          to="/"
+          aria-label="Arus — home"
+          /* -m-3 p-3 buys a 43px-tall tap target without moving the mark a
+             pixel — at rest this is 19px of type, which is half a thumb. */
+          className="relative -m-3 self-start p-3 outline-none focus-visible:ring-2 focus-visible:ring-on-accent focus-visible:ring-offset-2 focus-visible:ring-offset-accent"
+        >
+          <span className="flow-underline flow-underline-knockout w-wide flex items-baseline gap-1.5 text-[19px] font-extrabold uppercase leading-none tracking-[0.16em]">
+            Arus
+            <span aria-hidden className="block h-2 w-2 bg-on-accent" />
+          </span>
+        </Link>
 
         <div className="relative">
           <div className="rule-draw mb-6 h-[3px] w-24 bg-on-accent lg:mb-10" />

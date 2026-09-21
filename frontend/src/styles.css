@@ -322,6 +322,14 @@ body {
   transition: transform var(--motion-state) var(--ease-out);
 }
 
+/* On the accent field — the login brand column — the rule has to be drawn in
+   the knockout, because the accent IS that field's colour and an accent rule
+   on it would be invisible. Same device, inverted ground; the wordmark then
+   behaves identically whether it sits on paper or on the field. */
+.flow-underline-knockout::after {
+  background: var(--color-on-accent);
+}
+
 /* Focus is a keyboard path and must always work. Hover is gated to real
    pointers: on a touch screen a tap leaves the hover state stuck on,
    so the underline would draw itself and then just sit there. */
