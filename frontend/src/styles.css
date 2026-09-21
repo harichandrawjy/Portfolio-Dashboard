@@ -328,6 +328,12 @@ body {
 .flow-underline:focus-visible::after {
   transform: scaleX(1);
 }
+/* The section you are in keeps the rule drawn. Same device as the hover,
+   held rather than played, so "where am I" and "what would this do" are the
+   same mark in two states instead of two different marks. */
+.flow-underline[aria-current="page"]::after {
+  transform: scaleX(1);
+}
 @media (hover: hover) and (pointer: fine) {
   .flow-underline:hover::after {
     transform: scaleX(1);

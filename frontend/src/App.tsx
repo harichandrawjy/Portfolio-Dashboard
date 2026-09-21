@@ -1,6 +1,6 @@
 import { SignOut } from "@phosphor-icons/react";
 import { Suspense, lazy } from "react";
-import { Link, Navigate, Route, Routes } from "react-router-dom";
+import { Link, NavLink, Navigate, Route, Routes } from "react-router-dom";
 
 import { RequireAuth, useAuth } from "./auth";
 import { TickerSearch } from "./components/TickerSearch";
@@ -14,6 +14,12 @@ const LoginPage = lazy(() =>
 );
 const ContactPage = lazy(() =>
   import("./pages/Contact").then((m) => ({ default: m.ContactPage })),
+);
+const ConsultingPage = lazy(() =>
+  import("./pages/Consulting").then((m) => ({ default: m.ConsultingPage })),
+);
+const ResearchPage = lazy(() =>
+  import("./pages/Research").then((m) => ({ default: m.ResearchPage })),
 );
 const PortfoliosPage = lazy(() =>
   import("./pages/Portfolios").then((m) => ({ default: m.PortfoliosPage })),
@@ -46,6 +52,37 @@ function PageFallback() {
   );
 }
 
+/** The three things Arus does. Labels are short because a masthead is
+ *  scanned, not read — the full name of each ("Portfolio demo and
+ *  optimisation", "Market research") is the page's own headline, where
+ *  there is room for it. `end` on the portfolio entry stops it matching
+ *  every route, since its path is "/". */
+const SECTIONS = [
+  { to: "/", label: "Portfolio", end: true },
+  { to: "/consulting", label: "Consulting", end: false },
+  { to: "/research", label: "Research", end: false },
+];
+
+function SectionNav({ className = "" }: { className?: string }) {
+  return (
+    <nav aria-label="Sections" className={className}>
+      {SECTIONS.map(({ to, label, end }) => (
+        <NavLink
+          key={to}
+          to={to}
+          end={end}
+          className={({ isActive }) =>
+            "flow-underline relative py-1 text-[11px] font-bold uppercase tracking-[0.12em] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-accent " +
+            (isActive ? "text-ink" : "text-ink-3 hover:text-ink")
+          }
+        >
+          {label}
+        </NavLink>
+      ))}
+    </nav>
+  );
+}
+
 function Shell({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
   return (
@@ -69,11 +106,17 @@ function Shell({ children }: { children: React.ReactNode }) {
                 <span aria-hidden className="block h-2 w-2 bg-accent" />
               </span>
             </Link>
-            {/* The shell is reused by the public contact page, so both halves
-                of this row are conditional. Ticker search queries an
-                authenticated endpoint — rendering it signed out would offer a
-                control that 401s on first keystroke. The spacer stays either
-                way so the masthead keeps its rhythm. */}
+            {/* Inline once there is room. Below md it moves to its own row
+                rather than collapsing into a hamburger: three items is not
+                enough to hide behind a menu, and this system has no drawer
+                vocabulary to borrow. */}
+            <SectionNav className="hidden shrink-0 items-center gap-6 md:flex" />
+
+            {/* The shell is reused by the public pages, so both halves of this
+                row are conditional. Ticker search queries an authenticated
+                endpoint — rendering it signed out would offer a control that
+                401s on first keystroke. The spacer stays either way so the
+                masthead keeps its rhythm. */}
             <div className="flex flex-1 justify-center px-2">
               {user && <TickerSearch />}
             </div>
@@ -110,6 +153,7 @@ function Shell({ children }: { children: React.ReactNode }) {
               )}
             </div>
           </div>
+          <SectionNav className="flex items-center gap-6 overflow-x-auto border-t border-line py-2.5 md:hidden" />
         </div>
       </header>
       {/* the boundary sits inside the shell, so the masthead stays put while
@@ -163,6 +207,22 @@ export default function App() {
           path="/contact" element={
             <Shell>
               <ContactPage />
+            </Shell>
+          }
+        />
+        {/* Public, like /contact: these are what someone reads BEFORE they
+            have any reason to make an account. */}
+        <Route
+          path="/consulting" element={
+            <Shell>
+              <ConsultingPage />
+            </Shell>
+          }
+        />
+        <Route
+          path="/research" element={
+            <Shell>
+              <ResearchPage />
             </Shell>
           }
         />

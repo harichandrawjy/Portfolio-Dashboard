@@ -18,7 +18,7 @@
  */
 
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Envelope, GithubLogo, LinkedinLogo } from "@phosphor-icons/react";
 
 import { api, ApiError, type ContactTopic } from "../api/client";
@@ -79,8 +79,23 @@ const ELSEWHERE = [
 
 const MESSAGE_MAX = 4000;
 
+/** Narrow an untrusted query value to a topic we actually have. Anything
+ *  else falls back rather than putting the form in a state the server will
+ *  reject on submit. */
+function topicFromQuery(raw: string | null): ContactTopic {
+  return TOPICS.some((t) => t.value === raw)
+    ? (raw as ContactTopic)
+    : "consulting";
+}
+
 export function ContactPage() {
-  const [topic, setTopic] = useState<ContactTopic>("consulting");
+  // `/contact?topic=consulting` arrives from the Consulting page's call to
+  // action. Read once, as the initial value: making it a controlled mirror of
+  // the URL would fight the user the moment they picked a different one.
+  const [params] = useSearchParams();
+  const [topic, setTopic] = useState<ContactTopic>(() =>
+    topicFromQuery(params.get("topic")),
+  );
   const [name, setName] = useState("");
   const [organisation, setOrganisation] = useState("");
   const [email, setEmail] = useState("");
