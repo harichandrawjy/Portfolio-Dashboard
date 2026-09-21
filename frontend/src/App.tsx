@@ -15,6 +15,9 @@ const LoginPage = lazy(() =>
 const ContactPage = lazy(() =>
   import("./pages/Contact").then((m) => ({ default: m.ContactPage })),
 );
+const HomePage = lazy(() =>
+  import("./pages/Home").then((m) => ({ default: m.HomePage })),
+);
 const ConsultingPage = lazy(() =>
   import("./pages/Consulting").then((m) => ({ default: m.ConsultingPage })),
 );
@@ -58,7 +61,9 @@ function PageFallback() {
  *  there is room for it. `end` on the portfolio entry stops it matching
  *  every route, since its path is "/". */
 const SECTIONS = [
-  { to: "/", label: "Portfolio", end: true },
+  // `end: false` on the portfolio entry so the section still reads as current
+  // while you are inside a single portfolio at /portfolios/:id.
+  { to: "/portfolios", label: "Portfolio", end: false },
   { to: "/consulting", label: "Consulting", end: false },
   { to: "/research", label: "Research", end: false },
 ];
@@ -173,8 +178,18 @@ export default function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/verify" element={<VerifyPage />} />
         <Route path="/reset" element={<ResetPage />} />
+        {/* "/" is the front door and is public. Until now it was the app
+            behind a sign-in wall, so anyone following a link met a login form
+            before they could find out what Arus is. */}
         <Route
           path="/" element={
+            <Shell>
+              <HomePage />
+            </Shell>
+          }
+        />
+        <Route
+          path="/portfolios" element={
             <RequireAuth>
               <Shell>
                 <PortfoliosPage />

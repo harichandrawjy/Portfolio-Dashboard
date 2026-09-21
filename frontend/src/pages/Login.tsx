@@ -55,7 +55,7 @@ export function LoginPage() {
     try {
       if (mode === "login") {
         await login(email, password);
-        navigate("/", { replace: true });
+        navigate("/portfolios", { replace: true });
       } else {
         // Registering no longer signs anyone in — the address has to be
         // confirmed first, so there is nowhere to navigate to yet.
@@ -122,7 +122,7 @@ export function LoginPage() {
     setDemoBusy(true);
     try {
       await demoLogin();
-      navigate("/", { replace: true });
+      navigate("/portfolios", { replace: true });
     } catch (err) {
       // 404 is not a failure to report — it is this deployment telling us it
       // does not do demo sign-in. Retire the button rather than leaving one

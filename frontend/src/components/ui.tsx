@@ -177,11 +177,8 @@ export function Colophon() {
               aruscapitalteam@gmail.com
             </a>
           </div>
-          <Link
-            to="/contact"
-            className="w-wide shrink-0 bg-on-accent px-5 py-3 text-[11px] font-bold uppercase tracking-[0.12em] text-accent outline-none transition-colors hover:bg-accent hover:text-on-accent hover:ring-2 hover:ring-on-accent focus-visible:ring-2 focus-visible:ring-on-accent"
-          >
-            Get in touch
+          <Link to="/contact" className="shrink-0">
+            <Button variant="onAccent">Get in touch</Button>
           </Link>
         </div>
 
@@ -235,6 +232,10 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
     | "danger"
     | "dangerSolid"
     | "text"
+    /** For a control sitting ON the accent field, where the variants above
+     *  are either the ground itself or near-black on deep blue. */
+    | "onAccent"
+    | "onAccentGhost"
     | "buy"
     | "sell";
   busy?: boolean;
@@ -268,6 +269,19 @@ export function Button({
     text: "px-2 text-ink-2 hover:text-ink hover:bg-panel-2 active:bg-panel-2 active:text-ink",
     buy: "bg-pos text-white hover:bg-pos-hover active:bg-pos-hover",
     sell: "bg-neg text-white hover:bg-neg-hover active:bg-neg-hover",
+    // For controls sitting ON the accent field, where every variant above is
+    // invisible: `primary` is the field's own colour, and `ghost` rules
+    // itself in near-black against deep blue. The knockout inverts on hover
+    // the same hard way the segmented control flips, and the focus ring has
+    // to switch too — an accent ring on an accent ground is not a ring.
+    onAccent:
+      "bg-on-accent text-accent hover:bg-accent hover:text-on-accent hover:ring-2 hover:ring-on-accent " +
+      "active:bg-accent active:text-on-accent " +
+      "focus-visible:ring-on-accent focus-visible:ring-offset-accent",
+    onAccentGhost:
+      "bg-transparent text-on-accent ring-1 ring-on-accent/40 " +
+      "hover:bg-on-accent hover:text-accent active:bg-on-accent active:text-accent " +
+      "focus-visible:ring-on-accent focus-visible:ring-offset-accent",
   };
   return (
     <button

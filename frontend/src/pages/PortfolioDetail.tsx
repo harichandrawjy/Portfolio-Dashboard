@@ -137,7 +137,7 @@ export function PortfolioDetailPage() {
     <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-10 px-4 pb-16 pt-6">
       <div className="rise" style={rise(0)}>
         <Link
-          to="/"
+          to="/portfolios"
           className="w-wide -my-1 inline-flex items-center gap-1.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-ink-3 outline-none transition-colors hover:text-accent focus-visible:ring-2 focus-visible:ring-accent"
         >
           <ArrowLeft size={12} weight="bold" /> Portfolios

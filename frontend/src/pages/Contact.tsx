@@ -361,7 +361,7 @@ export function ContactPage() {
             to="/"
             className="font-medium text-ink underline decoration-line-2 underline-offset-4 outline-none transition-colors hover:decoration-accent focus-visible:ring-2 focus-visible:ring-accent"
           >
-            Back to the portfolios
+            Back to the home page
           </Link>
         </p>
       </div>

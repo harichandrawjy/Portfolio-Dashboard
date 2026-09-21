@@ -137,7 +137,7 @@ export function StockPage() {
   return (
     <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-5 px-4 py-8">
       <Link
-        to="/" className="w-wide -my-1 flex w-max items-center gap-1.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-ink-3 outline-none transition-colors hover:text-accent focus-visible:ring-2 focus-visible:ring-accent"
+        to="/portfolios" className="w-wide -my-1 flex w-max items-center gap-1.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-ink-3 outline-none transition-colors hover:text-accent focus-visible:ring-2 focus-visible:ring-accent"
       >
         <ArrowLeft size={12} weight="bold" /> Portfolios
       </Link>

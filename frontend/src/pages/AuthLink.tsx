@@ -69,7 +69,7 @@ export function VerifyPage() {
     api.confirmEmail(token).then(
       async ({ access_token }) => {
         await adoptToken(access_token);
-        navigate("/", { replace: true });
+        navigate("/portfolios", { replace: true });
       },
       (e: unknown) =>
         setError(
@@ -125,7 +125,7 @@ export function ResetPage() {
     try {
       const { access_token } = await api.resetPassword(token, password);
       await adoptToken(access_token);
-      navigate("/", { replace: true });
+      navigate("/portfolios", { replace: true });
     } catch (e) {
       setError(
         e instanceof ApiError
