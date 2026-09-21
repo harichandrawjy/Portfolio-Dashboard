@@ -35,6 +35,10 @@ class Message:
     #: multipart/alternative — see `send` for why a lone text/plain part is a
     #: deliverability problem rather than a stylistic choice.
     html: str = ""
+    #: Where a reply should go when that is not the sending mailbox. Set for
+    #: contact-form notifications so answering someone is one keystroke
+    #: rather than a copy-paste out of the body.
+    reply_to: str = ""
 
 
 # When SMTP is unconfigured — every test, and local development — messages
@@ -128,6 +132,65 @@ def reset_message(to: str, token: str, display_name: str | None) -> Message:
     )
 
 
+#: Wire value -> what a person reading the subject line needs to see.
+CONTACT_TOPICS = {
+    "consulting": "Consulting",
+    "research": "Market research",
+    "platform": "Platform",
+}
+
+
+def contact_notification(
+    name: str,
+    email: str,
+    message: str,
+    topic: str = "platform",
+    organisation: str | None = None,
+) -> Message:
+    """Tell the operator someone wrote in from the contact page.
+
+    Text only, and that is a departure from the two messages above rather than
+    an oversight. Those go to strangers, where a lone text/plain part carrying
+    one bare URL is structurally what bulk phishing looks like. This one goes
+    to the operator's own mailbox, where there is no filter to persuade and
+    markup would only get between them and the message.
+
+    The sender's address rides in Reply-To, not in From. Putting it in From
+    would be a forgery of their domain, which is what SPF and DMARC exist to
+    refuse — the message would land in spam or be rejected outright.
+    """
+    settings = get_settings()
+    # Newlines in a header are how header injection works. Python's email
+    # package raises on them, but a 500 is a poor way to discover that a name
+    # contained a line break, so collapse whitespace before it gets near a
+    # header rather than after.
+    clean = " ".join(name.split())[:100] or "someone"
+    org = " ".join((organisation or "").split())[:150]
+    label = CONTACT_TOPICS.get(topic, "Enquiry")
+    rule = "-" * 56
+    return Message(
+        to=settings.contact_inbox,
+        # The topic leads the subject so the inbox sorts and filters itself.
+        # A consulting enquiry and a bug report want different attention, and
+        # the difference should be visible before the message is opened.
+        subject=f"[{label}] Arus — {clean}" + (f" ({org})" if org else ""),
+        reply_to=email,
+        body=(
+            f"""Topic: {label}
+From: {clean}{f" — {org}" if org else ""}
+Email: {email}
+{rule}
+
+{message}
+
+{rule}
+Left on the Arus contact page. Reply to this email and it goes straight
+back to them. The message is also stored in `contact_messages`, so it
+survives this email going astray."""
+        ),
+    )
+
+
 def send(message: Message) -> None:
     """Deliver one message. Blocking; call via `asyncio.to_thread`."""
     settings = get_settings()
@@ -152,6 +215,8 @@ def send(message: Message) -> None:
     msg["Message-ID"] = make_msgid(domain=settings.mail_sender.rpartition("@")[2])
     # A reply should reach a person, not this mailbox's automation.
     msg["Auto-Submitted"] = "auto-generated"
+    if message.reply_to:
+        msg["Reply-To"] = message.reply_to
     msg.set_content(message.body)
     # multipart/alternative. A single text/plain part carrying one bare URL is
     # structurally what bulk phishing looks like, and filters read structure

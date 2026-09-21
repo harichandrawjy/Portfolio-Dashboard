@@ -485,7 +485,28 @@ export interface NewTransaction {
 // Endpoints
 // ---------------------------------------------------------------------------
 
+/** Matches the CHECK constraint in migration 0010 and the Literal in
+ *  `ContactIn`. Changing the set means changing all three. */
+export type ContactTopic = "consulting" | "research" | "platform";
+
+export interface ContactMessage {
+  name: string;
+  email: string;
+  topic: ContactTopic;
+  /** Null for an individual — the page serves both. */
+  organisation: string | null;
+  message: string;
+  /** Honeypot. Must stay empty — see the hidden field on the contact page. */
+  website: string;
+}
+
 export const api = {
+  /** Leave a message on the public contact page. 202, not 201: the reply
+   *  promises the message was accepted, not that anyone has read it — the
+   *  notification email may still be queued when this resolves. */
+  sendContact: (body: ContactMessage) =>
+    request<{ detail: string }>("/contact", { method: "POST", body }),
+
   register: (email: string, password: string, displayName?: string) =>
     request<User>("/auth/register", {
       method: "POST",

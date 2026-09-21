@@ -62,6 +62,40 @@ class AcceptedOut(BaseModel):
 
 
 # ---------------------------------------------------------------------------
+# Contact
+# ---------------------------------------------------------------------------
+
+class ContactIn(BaseModel):
+    """A message from the public contact page.
+
+    Every bound is stated twice on purpose — here, and as a CHECK constraint
+    in migration 0010. Pydantic guards the API; the constraint guards the
+    table, which the API is not the only thing that can write to.
+    """
+
+    name: str = Field(min_length=1, max_length=100)
+    # EmailStr validates the shape but not the length, and the column's CHECK
+    # caps it at 254 (the RFC 5321 maximum). Without this the mismatch shows
+    # up as a 500 from the database rather than a 422 from the request.
+    email: EmailStr = Field(max_length=254)
+    # Mirrors the CHECK in migration 0010. A Literal rather than a free string
+    # so an unknown service is a 422 naming the field, not a constraint
+    # violation surfacing as a 500.
+    topic: Literal["consulting", "research", "platform"]
+    # Optional: individuals are as welcome as companies here.
+    organisation: str | None = Field(default=None, max_length=150)
+    message: str = Field(min_length=10, max_length=4000)
+    # Honeypot: invisible to a person, irresistible to the kind of bot that
+    # fills every input it can find. A genuine submission leaves it empty.
+    # Named `website` rather than anything that reads as a trap.
+    website: str = Field(default="", max_length=200)
+
+
+class ContactAcceptedOut(BaseModel):
+    detail: str = "Thanks — your message is in. We'll reply to the address you gave."
+
+
+# ---------------------------------------------------------------------------
 # Portfolios & transactions
 # ---------------------------------------------------------------------------
 

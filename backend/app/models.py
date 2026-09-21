@@ -297,3 +297,32 @@ class LatestQuote(Base):
     high: Mapped[int | None] = mapped_column(BigInteger)
     low: Mapped[int | None] = mapped_column(BigInteger)
     volume: Mapped[int | None] = mapped_column(BigInteger)
+
+
+class ContactMessage(Base):
+    """A message left on the public contact page.
+
+    The row is the record and the notification email is only a nudge, so the
+    handler commits this before it enqueues anything — a message survives an
+    SMTP outage, which is exactly when someone is most likely to be writing.
+
+    `organisation` is nullable because the page serves individuals as well as
+    companies; requiring it would make an individual either lie or leave.
+
+    No `user_id`: whoever writes in is usually not a user, which is the point
+    of the page.
+    """
+
+    __tablename__ = "contact_messages"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()")
+    )
+    name: Mapped[str] = mapped_column(Text)
+    email: Mapped[str] = mapped_column(Text)
+    topic: Mapped[str] = mapped_column(Text)  # 'consulting' | 'research' | 'platform'
+    organisation: Mapped[str | None] = mapped_column(Text, nullable=True)
+    message: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True), server_default=text("now()")
+    )

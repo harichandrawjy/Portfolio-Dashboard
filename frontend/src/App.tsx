@@ -12,6 +12,9 @@ import { Colophon, Skeleton } from "./components/ui";
 const LoginPage = lazy(() =>
   import("./pages/Login").then((m) => ({ default: m.LoginPage })),
 );
+const ContactPage = lazy(() =>
+  import("./pages/Contact").then((m) => ({ default: m.ContactPage })),
+);
 const PortfoliosPage = lazy(() =>
   import("./pages/Portfolios").then((m) => ({ default: m.PortfoliosPage })),
 );
@@ -66,19 +69,35 @@ function Shell({ children }: { children: React.ReactNode }) {
                 <span aria-hidden className="block h-2 w-2 bg-accent" />
               </span>
             </Link>
+            {/* The shell is reused by the public contact page, so both halves
+                of this row are conditional. Ticker search queries an
+                authenticated endpoint — rendering it signed out would offer a
+                control that 401s on first keystroke. The spacer stays either
+                way so the masthead keeps its rhythm. */}
             <div className="flex flex-1 justify-center px-2">
-              <TickerSearch />
+              {user && <TickerSearch />}
             </div>
             <div className="flex shrink-0 items-center gap-3">
-              <span className="tnum hidden text-[11px] uppercase tracking-[0.1em] text-ink-3 sm:inline">
-                {user?.display_name || user?.email}
-              </span>
-              <button
-                onClick={logout}
-                className="flex items-center gap-1.5 px-2.5 py-2 text-[11px] font-bold uppercase tracking-[0.12em] text-ink-3 outline-none transition-colors hover:bg-ink hover:text-bg focus-visible:ring-2 focus-visible:ring-accent"
-              >
-                <SignOut size={14} weight="bold" /> Sign out
-              </button>
+              {user ? (
+                <>
+                  <span className="tnum hidden text-[11px] uppercase tracking-[0.1em] text-ink-3 sm:inline">
+                    {user.display_name || user.email}
+                  </span>
+                  <button
+                    onClick={logout}
+                    className="flex items-center gap-1.5 px-2.5 py-2 text-[11px] font-bold uppercase tracking-[0.12em] text-ink-3 outline-none transition-colors hover:bg-ink hover:text-bg focus-visible:ring-2 focus-visible:ring-accent"
+                  >
+                    <SignOut size={14} weight="bold" /> Sign out
+                  </button>
+                </>
+              ) : (
+                <Link
+                  to="/login"
+                  className="px-2.5 py-2 text-[11px] font-bold uppercase tracking-[0.12em] text-ink-3 outline-none transition-colors hover:bg-ink hover:text-bg focus-visible:ring-2 focus-visible:ring-accent"
+                >
+                  Sign in
+                </Link>
+              )}
             </div>
           </div>
         </div>
@@ -125,6 +144,16 @@ export default function App() {
                 <StockPage />
               </Shell>
             </RequireAuth>
+          }
+        />
+        {/* No RequireAuth: the people most likely to write in are the ones
+            without an account. It still uses the shell, so the masthead and
+            colophon are the same page furniture as everywhere else. */}
+        <Route
+          path="/contact" element={
+            <Shell>
+              <ContactPage />
+            </Shell>
           }
         />
         <Route path="*" element={<Navigate to="/" replace />} />

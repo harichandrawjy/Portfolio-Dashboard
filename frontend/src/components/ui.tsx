@@ -9,8 +9,10 @@ import {
   type ButtonHTMLAttributes,
   type InputHTMLAttributes,
   type ReactNode,
+  type TextareaHTMLAttributes,
 } from "react";
 import { createPortal } from "react-dom";
+import { Link } from "react-router-dom";
 
 /* ------------------------------------------------------------------ */
 /* Surfaces                                                            */
@@ -158,9 +160,19 @@ export function Colophon() {
           ))}
         </dl>
 
-        <p className="w-wide max-w-[52ch] border-t border-on-accent/25 pt-5 text-[11px] font-bold uppercase leading-relaxed tracking-[0.12em] text-on-accent/70">
-          Mock portfolios only. No real orders are placed.
-        </p>
+        <div className="flex flex-wrap items-baseline justify-between gap-x-8 gap-y-4 border-t border-on-accent/25 pt-5">
+          <p className="w-wide max-w-[52ch] text-[11px] font-bold uppercase leading-relaxed tracking-[0.12em] text-on-accent/70">
+            Mock portfolios only. No real orders are placed.
+          </p>
+          {/* Knockout underline rather than the accent, which is the ground
+              here — an accent link on an accent field would be invisible. */}
+          <Link
+            to="/contact"
+            className="w-wide shrink-0 text-[11px] font-bold uppercase tracking-[0.12em] text-on-accent underline decoration-on-accent/40 underline-offset-4 outline-none transition-colors hover:decoration-on-accent focus-visible:ring-2 focus-visible:ring-on-accent"
+          >
+            Get in touch
+          </Link>
+        </div>
 
         {/* Source credit. IDX's terms permit non-commercial use of their data
             on condition that the source is cited "accompanied with the date of
@@ -278,6 +290,49 @@ export function Field({ label, hint, error, className = "", ...rest }: FieldProp
           "bg-panel-2 px-3 py-2.5 text-[13px] text-ink ring-1 ring-transparent " +
           "placeholder:text-ink-3 outline-none transition-shadow " +
           "focus:bg-panel focus:ring-2 focus:ring-accent " +
+          className
+        }
+        {...rest}
+      />
+      {hint && !error && <span className="text-xs text-ink-3">{hint}</span>}
+      {error && <span className="text-xs font-medium text-neg">{error}</span>}
+    </label>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Multi-line field                                                    */
+/*                                                                     */
+/* Field's twin, and it exists so the one multi-line input in the app   */
+/* is not a hand-rolled copy that drifts. Same fill, same focus ring,   */
+/* same label. Only two things differ: `resize-y`, because a message    */
+/* box that cannot grow is a small cruelty, and no horizontal resize,   */
+/* because widening it would break the measure.                        */
+/* ------------------------------------------------------------------ */
+
+type TextAreaProps = TextareaHTMLAttributes<HTMLTextAreaElement> & {
+  label: string;
+  hint?: string;
+  error?: string | null;
+};
+
+export function TextArea({
+  label,
+  hint,
+  error,
+  className = "",
+  ...rest
+}: TextAreaProps) {
+  return (
+    <label className="flex flex-col gap-2">
+      <span className="w-wide text-[11px] font-bold uppercase tracking-[0.12em] text-ink-2">
+        {label}
+      </span>
+      <textarea
+        className={
+          "resize-y bg-panel-2 px-3 py-2.5 text-[13px] leading-relaxed text-ink " +
+          "ring-1 ring-transparent placeholder:text-ink-3 outline-none " +
+          "transition-shadow focus:bg-panel focus:ring-2 focus:ring-accent " +
           className
         }
         {...rest}

@@ -76,6 +76,13 @@ class Settings(BaseSettings):
     # redirect-poisoning vector, and the emails are sent off the request path
     # anyway, where no request exists to read.
     app_base_url: str = "http://localhost:5173"
+    # Where contact-form enquiries are delivered. A real, public business
+    # address rather than a secret, so it belongs in the repo: an operator who
+    # clones this should get working behaviour without hunting for a value,
+    # and a wrong-but-silent default would drop client enquiries.
+    # Still overridable by CONTACT_TO; blanking it falls back to the sending
+    # mailbox.
+    contact_to: str = "aruscapitalteam@gmail.com"
 
     @property
     def mail_configured(self) -> bool:
@@ -84,6 +91,10 @@ class Settings(BaseSettings):
     @property
     def mail_sender(self) -> str:
         return self.mail_from or self.smtp_user
+
+    @property
+    def contact_inbox(self) -> str:
+        return self.contact_to or self.mail_sender
 
     @model_validator(mode="after")
     def _reject_the_public_dev_key_in_production(self) -> "Settings":
