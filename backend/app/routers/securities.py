@@ -38,6 +38,8 @@ from app.schemas import (
 )
 from app.sync.prices import drop_holiday_placeholders
 from app.sync.statements import compute_derived
+from app.pricing import fresh_price
+
 
 router = APIRouter(tags=["securities"])
 logger = logging.getLogger(__name__)
@@ -68,8 +70,9 @@ async def search_securities(
     Tickers without price history still appear: history is backfilled
     lazily AFTER a user first picks one.
 
-    last_price is the latest quote, falling back to the most recent
-    stored close — the frontend uses it to pre-fill transaction entry.
+    last_price follows app.pricing — the quote only while it is newer than
+    the last bar. The buy form pre-fills from this, so a stale value here
+    becomes a wrong price in someone's ledger.
     """
     term = q.strip()
     if not term:
@@ -83,13 +86,13 @@ async def search_securities(
 
     rows = await session.execute(
         sa_text(
-            """
+            f"""
             SELECT s.ticker, s.name, s.sector, s.board,
-                   COALESCE(q.price, ph.close) AS last_price
+                   {fresh_price("q", "ph")} AS last_price
             FROM securities s
             LEFT JOIN latest_quotes q ON q.security_id = s.id
             LEFT JOIN LATERAL (
-                SELECT close FROM price_history p
+                SELECT close, trade_date FROM price_history p
                 WHERE p.security_id = s.id
                 ORDER BY p.trade_date DESC LIMIT 1
             ) ph ON TRUE
@@ -368,25 +371,25 @@ async def security_position(
     pos_rows = (
         await session.execute(
             sa_text(
-                """
+                f"""
                 SELECT p.id AS portfolio_id, p.name AS portfolio_name,
                        h.shares, h.avg_cost_per_share,
-                       COALESCE(q.price, ph.close) AS last_price,
+                       {fresh_price("q", "ph")} AS last_price,
                        totals.value AS portfolio_value
                 FROM holdings h
                 JOIN portfolios p ON p.id = h.portfolio_id
                 LEFT JOIN latest_quotes q ON q.security_id = h.security_id
                 LEFT JOIN LATERAL (
-                    SELECT close FROM price_history pp
+                    SELECT close, trade_date FROM price_history pp
                     WHERE pp.security_id = h.security_id
                     ORDER BY pp.trade_date DESC LIMIT 1
                 ) ph ON TRUE
                 LEFT JOIN LATERAL (
-                    SELECT SUM(h2.shares * COALESCE(q2.price, ph2.close)) AS value
+                    SELECT SUM(h2.shares * {fresh_price("q2", "ph2")}) AS value
                     FROM holdings h2
                     LEFT JOIN latest_quotes q2 ON q2.security_id = h2.security_id
                     LEFT JOIN LATERAL (
-                        SELECT close FROM price_history pp2
+                        SELECT close, trade_date FROM price_history pp2
                         WHERE pp2.security_id = h2.security_id
                         ORDER BY pp2.trade_date DESC LIMIT 1
                     ) ph2 ON TRUE

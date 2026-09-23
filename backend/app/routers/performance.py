@@ -47,6 +47,8 @@ from app.schemas import (
     Selection,
     StockSlice,
 )
+from app.pricing import fresh_price
+
 
 router = APIRouter(tags=["performance"])
 
@@ -165,8 +167,8 @@ async def portfolio_allocation(
 ) -> AllocationOut:
     """Sector/stock breakdown by market value, with concentration flags.
 
-    Price per holding: the latest quote, falling back to the most recent
-    stored close. Holdings with neither are listed in `unpriced` and
+    Price per holding follows app.pricing: the quote only while it is newer
+    than the last bar, else the most recent stored close. Holdings with neither are listed in `unpriced` and
     excluded from the weights (a weight against an unknown value would
     be a lie).
     """
@@ -174,14 +176,14 @@ async def portfolio_allocation(
 
     rows = await session.execute(
         sa_text(
-            """
+            f"""
             SELECT s.ticker, s.name, s.sector, h.shares,
-                   COALESCE(q.price, ph.close) AS price
+                   {fresh_price("q", "ph")} AS price
             FROM holdings h
             JOIN securities s ON s.id = h.security_id
             LEFT JOIN latest_quotes q ON q.security_id = h.security_id
             LEFT JOIN LATERAL (
-                SELECT close FROM price_history p
+                SELECT close, trade_date FROM price_history p
                 WHERE p.security_id = h.security_id
                 ORDER BY p.trade_date DESC LIMIT 1
             ) ph ON TRUE

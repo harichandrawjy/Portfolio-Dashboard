@@ -218,3 +218,41 @@ async def test_holdings_use_the_quote_while_it_leads_the_bar(client):
         assert row["as_of"] is not None, row
     finally:
         await _cleanup()
+
+
+# ---------------------------------------------------------------------------
+# Search applies the rule too — and the buy form pre-fills from search
+#
+# Real case: ESSA was sold on 2 Sep at 715, which dropped it out of the quote
+# refresh set. Three weeks later its bars had it at 610, but search still
+# offered 715 and the Add Transaction modal pre-filled a buy at that price.
+# Search was one of five queries still using COALESCE(q.price, ph.close);
+# they now all go through app.pricing.
+# ---------------------------------------------------------------------------
+
+async def _search_price(client) -> int | None:
+    from .test_stocks import _login
+
+    auth = await _login(client, "putra@example.com")
+    r = await client.get(f"/securities/search?q={TICKER}", headers=auth)
+    assert r.status_code == 200
+    hit = next(h for h in r.json() if h["ticker"] == TICKER)
+    return hit["last_price"]
+
+
+async def test_search_ignores_a_quote_older_than_the_last_bar(client):
+    # the ESSA shape: quote frozen on the sell date, bars moved on
+    await _seed(bar_date=date(2026, 7, 17), quote_date=date(2026, 7, 10), quote_price=2800)
+    try:
+        assert await _search_price(client) == 3050
+    finally:
+        await _cleanup()
+
+
+async def test_search_still_prefers_a_live_quote(client):
+    # mid-session: the quote is newer than any settled bar, so it leads
+    await _seed(bar_date=date(2026, 7, 17), quote_date=date(2026, 7, 18), quote_price=3200)
+    try:
+        assert await _search_price(client) == 3200
+    finally:
+        await _cleanup()

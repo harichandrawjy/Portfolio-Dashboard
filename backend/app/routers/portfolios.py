@@ -37,6 +37,8 @@ from app.schemas import (
     TransactionOut,
     TransactionUpdate,
 )
+from app.pricing import fresh_price, quote_is_fresh
+
 
 router = APIRouter(tags=["portfolios"])
 logger = logging.getLogger(__name__)
@@ -782,15 +784,10 @@ async def get_holdings(
     # share a date, and the settled close is the better number.
     rows = await session.execute(
         sa_text(
-            """
+            f"""
             SELECT s.ticker, s.name, h.security_id, h.shares, h.avg_cost_per_share,
-                   CASE WHEN q.trade_date IS NOT NULL
-                             AND (ph.trade_date IS NULL
-                                  OR q.trade_date > ph.trade_date)
-                        THEN q.price ELSE ph.close END AS last_price,
-                   CASE WHEN q.trade_date IS NOT NULL
-                             AND (ph.trade_date IS NULL
-                                  OR q.trade_date > ph.trade_date)
+                   {fresh_price("q", "ph")} AS last_price,
+                   CASE WHEN {quote_is_fresh("q", "ph")}
                         THEN q.as_of END AS as_of,
                    ph.trade_date AS last_close_date
             FROM holdings h
