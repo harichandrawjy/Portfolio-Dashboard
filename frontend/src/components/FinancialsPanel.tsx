@@ -9,7 +9,8 @@ import {
   WhatIsThis,
 } from "./ui";
 
-const periodLabel = new Intl.DateTimeFormat("id-ID", {
+// English month, Indonesian numbers — the same split as lib/format.ts.
+const periodLabel = new Intl.DateTimeFormat("en-GB", {
   month: "short",
   year: "2-digit",
 });

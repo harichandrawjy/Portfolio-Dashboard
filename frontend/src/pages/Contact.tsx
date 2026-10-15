@@ -1,7 +1,7 @@
 /**
  * The public contact page.
  *
- * Structurally it follows the same skeleton as any corporate "hubungi kami"
+ * Structurally it follows the same skeleton as any corporate "contact us"
  * page — a hero, a form with a service selector, and the other ways to reach
  * us — but none of the visual language is borrowed. The reference that
  * prompted it used a gradient hero over a decorative wave, underlined inputs
@@ -150,7 +150,7 @@ export function ContactPage() {
         <div className="mx-auto max-w-[1200px] px-4 py-14 lg:py-20">
           <div className="rule-draw mb-6 h-[3px] w-24 bg-on-accent lg:mb-10" />
           <h1 className="w-condensed text-[clamp(2.75rem,7vw,5.5rem)] font-extrabold uppercase leading-[0.88] tracking-[-0.03em]">
-            Hubungi kami
+            Contact us
           </h1>
           {/* The `lede` step, 15px. Not a nudge up from body — there is no
               14px in the ramp and there must not be one. This is the named

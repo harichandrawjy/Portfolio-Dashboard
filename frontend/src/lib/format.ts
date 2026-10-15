@@ -15,18 +15,28 @@ const rpCompact = new Intl.NumberFormat("id-ID", {
 
 const num = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 0 });
 
-const dateShort = new Intl.DateTimeFormat("id-ID", {
+// Dates are English, numbers are not, and the split is deliberate. Rupiah is
+// written the Indonesian way (Rp 6.075, 47,33%, 86,8 jt) because that is how
+// IDX money reads to the people using it, so every NumberFormat above and
+// below stays id-ID. Month names are words, though, and "15 Okt" in an
+// English interface reads as untranslated text. en-GB keeps the same
+// day-month order Indonesian uses, so only the language of the month changes.
+const DATE_LOCALE = "en-GB";
+
+const dateShort = new Intl.DateTimeFormat(DATE_LOCALE, {
   day: "numeric",
   month: "short",
 });
 
-const dateFull = new Intl.DateTimeFormat("id-ID", {
+const dateFull = new Intl.DateTimeFormat(DATE_LOCALE, {
   day: "numeric",
   month: "short",
   year: "numeric",
 });
 
-const timeWib = new Intl.DateTimeFormat("id-ID", {
+// WIB stays: it is the name of the exchange's time zone, used in IDX's own
+// English material too.
+const timeWib = new Intl.DateTimeFormat(DATE_LOCALE, {
   day: "numeric",
   month: "short",
   hour: "2-digit",

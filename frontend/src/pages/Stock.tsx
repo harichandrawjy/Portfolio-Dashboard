@@ -19,6 +19,7 @@ import {
   Skeleton,
   WhatIsThis,
 } from "../components/ui";
+import { boardLabel, sectorLabel } from "../colors";
 import { useAsync } from "../lib/hooks";
 import {
   DASH,
@@ -184,7 +185,7 @@ export function StockPage() {
               </div>
               <p className="mt-2 text-[13px] text-ink-2">{d.name}</p>
               <p className="w-wide mt-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-ink-3">
-                {[d.sector, d.board ? `${d.board} board` : null]
+                {[sectorLabel(d.sector), d.board ? `${boardLabel(d.board)} board` : null]
                   .filter(Boolean)
                   .join(" · ") || DASH}
               </p>

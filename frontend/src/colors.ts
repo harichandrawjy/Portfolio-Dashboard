@@ -69,6 +69,40 @@ const SECTOR_ORDER = [
   "Transportasi & Logistik",
 ];
 
+/** IDX-IC sector names as displayed. The stored values stay in Indonesian
+ *  because they are IDX's canonical keys: the universe snapshot writes them,
+ *  `SECTOR_ORDER` above assigns colours by them, and a refreshed snapshot
+ *  would overwrite any renamed value anyway. So translation happens here, at
+ *  the moment of display, and nowhere else.
+ *
+ *  These are IDX's own published English names rather than smoothed ones —
+ *  "Infrastructures" and "Transportation & Logistic" included — so a reader
+ *  can match them against the exchange's reports. */
+const SECTOR_EN: Record<string, string> = {
+  Keuangan: "Financials",
+  Energi: "Energy",
+  "Barang Baku": "Basic Materials",
+  Perindustrian: "Industrials",
+  "Barang Konsumen Primer": "Consumer Non-Cyclicals",
+  "Barang Konsumen Non-Primer": "Consumer Cyclicals",
+  Kesehatan: "Healthcare",
+  "Properti & Real Estat": "Properties & Real Estate",
+  Teknologi: "Technology",
+  Infrastruktur: "Infrastructures",
+  "Transportasi & Logistik": "Transportation & Logistic",
+};
+
+/** Display name for a stored sector. An unknown value passes through
+ *  unchanged rather than vanishing, so a new IDX sector still shows. */
+export function sectorLabel(sector: string | null): string | null {
+  return sector === null ? null : (SECTOR_EN[sector] ?? sector);
+}
+
+/** Board names are English in IDX's data except the new-economy board. */
+export function boardLabel(board: string | null): string | null {
+  return board === "Ekonomi Baru" ? "New Economy" : board;
+}
+
 export function sectorColor(sector: string | null, held: (string | null)[]): string {
   if (sector === null) return CHART_NEUTRAL;
   // Stable assignment: order the held sectors canonically, then hand out

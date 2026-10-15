@@ -2,7 +2,7 @@ import { Warning } from "@phosphor-icons/react";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 
 import type { Allocation } from "../api/client";
-import { CHART_NEUTRAL, sectorColor } from "../colors";
+import { CHART_NEUTRAL, sectorColor, sectorLabel } from "../colors";
 import { fmtPct, fmtRp } from "../lib/format";
 import { EmptyState, ErrorNote, Panel, PanelHeader, Skeleton } from "./ui";
 
@@ -80,7 +80,7 @@ export function AllocationDonut({
   const top = sectors.slice(0, MAX_SLICES);
   const rest = sectors.slice(MAX_SLICES);
   const slices = top.map((s) => ({
-    label: s.sector ?? "Unknown",
+    label: sectorLabel(s.sector) ?? "Unknown",
     value: s.market_value,
     pct: s.weight_pct,
     color: sectorColor(s.sector, heldSectors),
@@ -150,7 +150,7 @@ export function AllocationDonut({
                 <span>
                   {f.type === "stock_concentration"
                     ? `${f.ticker} is ${fmtPct(f.weight_pct)} of this portfolio (above ${f.threshold_pct}%)`
-                    : `${f.sector ?? "Unknown"} sector is ${fmtPct(f.weight_pct)} of this portfolio (above ${f.threshold_pct}%)`}
+                    : `${sectorLabel(f.sector ?? null) ?? "Unknown"} sector is ${fmtPct(f.weight_pct)} of this portfolio (above ${f.threshold_pct}%)`}
                 </span>
               </p>
             ))}

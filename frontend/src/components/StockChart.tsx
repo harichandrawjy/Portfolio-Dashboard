@@ -152,6 +152,10 @@ export function StockChart({
         vertLine: { labelBackgroundColor: INK },
       },
       localization: {
+        // Pinned, not left to the library's default of the visitor's browser
+        // locale: an Indonesian browser would otherwise label the time axis
+        // "Agu", "Okt" while every other date in the app is English.
+        locale: "en-GB",
         // The formatter is handed whatever the scale is currently measuring,
         // so it has to follow the mode. Without this branch, percentage mode
         // would render "12" where it means "+12,5%" — a number that looks

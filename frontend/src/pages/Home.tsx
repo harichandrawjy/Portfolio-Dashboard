@@ -5,15 +5,12 @@
  * arriving from a link met a login form before they could learn what Arus
  * is. The app moved to /portfolios and this took its place.
  *
- * COPY PROVENANCE: the consulting content here is taken from the company
- * profile, not written for the web. The service descriptions, the vision and
- * the five mission points are reproduced as given. Anything describing the
- * platform is written from what the platform actually does. Nothing here is
- * invented, and the two should not be blurred when this is next edited.
- *
- * Kept in Indonesian because that is the language of the source and of the
- * people it is addressed to. The platform pages are still in English; that
- * inconsistency is known and deliberate for now rather than accidental.
+ * COPY PROVENANCE: the consulting content here is translated from the
+ * company profile, which is written in Indonesian. The service descriptions,
+ * the vision and the five mission points keep the profile's meaning and
+ * order; only the language changed. Anything describing the platform is
+ * written from what the platform actually does. Nothing here is invented,
+ * and the two should not be blurred when this is next edited.
  *
  * NOT included, for want of the facts: the client and employer logos from
  * page 2 of the profile ("pengalaman tim berasal dari perusahaan seperti"),
@@ -50,30 +47,30 @@ import { Button, SectionHead } from "../components/ui";
 /** Section entry, capped by the `.rise` stagger in styles.css. */
 const rise = (i: number) => ({ "--rise": i }) as CSSProperties;
 
-/** Verbatim from page 1 of the company profile. */
-const LAYANAN = [
+/** Translated from page 1 of the company profile. */
+const SERVICES = [
   [
     "Individual Financial Planning",
-    "Membantu menyusun strategi keuangan pribadi agar lebih terarah, terukur, dan sesuai tujuan finansial.",
+    "Helping you build a personal financial strategy that is focused, measurable and matched to your financial goals.",
   ],
   [
     "Business Consulting",
-    "Membantu bisnis mengidentifikasi masalah, peluang, dan langkah strategis untuk mendukung pertumbuhan.",
+    "Helping businesses identify problems, opportunities and the strategic steps that support growth.",
   ],
   [
     "Investment Consulting",
-    "Membantu menyusun keputusan investasi melalui analisis peluang, risiko, dan strategi portofolio.",
+    "Helping you make investment decisions through analysis of opportunity, risk and portfolio strategy.",
   ],
 ];
 
-/** Verbatim from page 3. The source reads "evakuasi kondisi nyata klien";
- *  corrected to "evaluasi" here, which is plainly what was meant. */
-const MISI = [
-  "Mengidentifikasi akar permasalahan secara tepat melalui analisis data, pemahaman konteks, dan evaluasi kondisi nyata klien.",
-  "Menghadirkan perspektif objektif dan komprehensif untuk melihat peluang, risiko, dan faktor penting yang mungkin tidak terlihat dari sudut pandang internal.",
-  "Merumuskan solusi strategis dan actionable yang relevan dengan kebutuhan, kondisi, dan tujuan klien.",
-  "Mendukung implementasi, monitoring, dan evaluasi agar solusi tetap efektif, adaptif, dan memberikan nilai nyata.",
-  "Mendorong pengambilan keputusan yang tepat dan terukur dalam bidang finansial, bisnis, dan investasi.",
+/** Translated from page 3. The source reads "evakuasi" (evacuation) where
+ *  "evaluasi" (evaluation) was plainly meant; translated as the latter. */
+const MISSION = [
+  "Find the root of a problem accurately, through data analysis, an understanding of context, and an evaluation of the client's real situation.",
+  "Bring an objective, comprehensive perspective to the opportunities, risks and factors that may not be visible from the inside.",
+  "Develop strategic, actionable solutions that fit the client's needs, circumstances and goals.",
+  "Support implementation, monitoring and evaluation so that solutions stay effective, adaptive and of real value.",
+  "Encourage well-judged, measurable decisions in finance, business and investment.",
 ];
 
 /** The three arms of what Arus does. `name` is set at nameplate scale under a
@@ -83,21 +80,21 @@ const MISI = [
 const ARMS = [
   {
     name: "Consulting",
-    body: "Konsultasi keuangan, bisnis, dan investasi untuk individu maupun perusahaan.",
+    body: "Finance, business and investment consulting, for individuals and for companies.",
     to: "/consulting",
-    cta: "Lihat layanan",
+    cta: "View services",
   },
   {
     name: "Platform",
-    body: "Portfolio tracker dan optimiser untuk saham IDX: performa time-weighted terhadap IHSG, analitik risiko, dan efficient frontier. Portofolio simulasi, bukan order sungguhan.",
+    body: "A portfolio tracker and optimiser for IDX stocks: time-weighted performance against the IHSG, risk analytics and an efficient frontier. Simulated portfolios, not real orders.",
     to: "/portfolios",
-    cta: "Coba demo",
+    cta: "Try the demo",
   },
   {
     name: "Research",
-    body: "Riset ekuitas dan analisis sektor atas emiten IDX. Catatan dipublikasikan di sini setelah selesai.",
+    body: "Equity research and sector analysis on IDX-listed companies. Notes are published here once they are finished.",
     to: "/research",
-    cta: "Lihat riset",
+    cta: "View research",
   },
 ];
 
@@ -111,20 +108,20 @@ export function HomePage() {
           </p>
           <div className="rule-draw my-6 h-[3px] w-24 bg-on-accent lg:my-10" />
           <h1 className="w-condensed max-w-[14ch] text-[clamp(2.75rem,7.5vw,6rem)] font-extrabold uppercase leading-[0.88] tracking-[-0.03em]">
-            Keuangan, bisnis, dan investasi
+            Finance, business and investment
           </h1>
           <p className="mt-6 max-w-[56ch] text-[15px] leading-relaxed text-on-accent/70">
-            Semuanya ada di Arus. Di tengah pertumbuhan investor dan tingginya
-            risiko, kami melihat hal-hal yang sering terlewat oleh pelaku bisnis
-            dan investor untuk menemukan insight, peluang, dan solusi yang lebih
-            tepat.
+            All of it, at Arus. With more investors in the market and risk
+            running high, we look for what business owners and investors often
+            miss, to find sharper insight, better opportunities and the right
+            solutions.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link to="/contact?topic=consulting">
-              <Button variant="onAccent">Hubungi kami</Button>
+              <Button variant="onAccent">Contact us</Button>
             </Link>
             <Link to="/consulting">
-              <Button variant="onAccentGhost">Layanan konsultasi</Button>
+              <Button variant="onAccentGhost">Consulting services</Button>
             </Link>
           </div>
         </div>
@@ -138,7 +135,7 @@ export function HomePage() {
             pointer the nameplate turns accent the way a ticker does on a
             table row. */}
         <section className="rise" style={rise(0)}>
-          <SectionHead seq="01" title="Apa itu Arus" />
+          <SectionHead seq="01" title="What Arus is" />
           <div className="mt-px grid gap-px bg-line lg:grid-cols-3">
             {ARMS.map(({ name, body, to, cta }) => (
               <Link
@@ -173,9 +170,9 @@ export function HomePage() {
             sits in the wider half, so the eye runs down a column of names and
             only stops to read the one it wants. */}
         <section className="rise" style={rise(1)}>
-          <SectionHead seq="02" title="Layanan konsultasi" />
+          <SectionHead seq="02" title="Consulting services" />
           <dl className="mt-px">
-            {LAYANAN.map(([label, body]) => (
+            {SERVICES.map(([label, body]) => (
               <div
                 key={label}
                 className="grid items-baseline gap-x-10 gap-y-3 border-b border-line py-7 last:border-b-0 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]"
@@ -199,24 +196,24 @@ export function HomePage() {
 
           The sentence is broken at its own comma: the first clause carries
           the field at display scale, the second follows as the lede. The
-          words are verbatim and in order — this is a typographic break, not
-          an edit, and it must stay one. */}
+          clauses keep the source's order, so this is a typographic break,
+          not an edit, and it must stay one. */}
       <section className="overflow-hidden bg-accent text-on-accent">
         <div className="mx-auto max-w-[1200px] px-4 py-16 lg:py-24">
           <div className="flex items-baseline gap-3 text-[12px] font-bold uppercase leading-none tracking-[0.14em] text-on-accent">
             <span className="seq text-on-accent/70" aria-hidden>
               03
             </span>
-            <h2 className="w-wide">Visi</h2>
+            <h2 className="w-wide">Vision</h2>
           </div>
           <div className="rule-draw mt-3 h-px w-full bg-on-accent/40" />
           <p className="w-condensed mt-10 max-w-[26ch] text-[clamp(1.75rem,4.4vw,3.25rem)] font-extrabold uppercase leading-[0.95] tracking-[-0.025em] lg:mt-14">
-            Menjadi mitra konsultasi dan advisory yang menghadirkan perspektif
-            objektif dan menyeluruh,
+            To be a consulting and advisory partner that brings an objective,
+            complete perspective,
           </p>
           <p className="mt-7 max-w-[54ch] text-[15px] leading-relaxed text-on-accent/70">
-            serta solusi strategis yang relevan dan bernilai untuk mendukung
-            keputusan yang lebih tepat.
+            and strategic solutions that are relevant and valuable, in support
+            of better decisions.
           </p>
         </div>
       </section>
@@ -228,9 +225,9 @@ export function HomePage() {
             scale so the list has a rhythm to scan down instead of reading as
             one grey block. */}
         <section className="rise" style={rise(0)}>
-          <SectionHead seq="04" title="Misi" />
+          <SectionHead seq="04" title="Mission" />
           <ol className="mt-px flex flex-col gap-px bg-line">
-            {MISI.map((m, i) => (
+            {MISSION.map((m, i) => (
               <li key={i} className="flex items-baseline gap-5 bg-bg py-6 pr-5">
                 <span
                   className="seq w-[3.5ch] shrink-0 text-right text-[clamp(1.5rem,2.8vw,2.125rem)] font-extrabold leading-none text-accent"
@@ -255,27 +252,26 @@ export function HomePage() {
         >
           <div>
             <h2 className="w-condensed max-w-[14ch] text-[clamp(2.25rem,5vw,3.5rem)] font-extrabold uppercase leading-[0.9] tracking-[-0.03em] text-ink">
-              Mari bicara
+              Let's talk
             </h2>
             <p className="mt-5 max-w-[52ch] text-[15px] leading-relaxed text-ink-2">
-              Ceritakan kondisi dan keputusan yang sedang Anda hadapi. Kami akan
-              membalas dengan apakah kami bisa membantu dan bagaimana caranya.
+              Tell us about your situation and the decision in front of you.
+              We will reply with whether we can help, and how.
             </p>
           </div>
           <div className="flex flex-wrap gap-3 lg:justify-end">
             <Link to="/contact?topic=consulting">
-              <Button>Hubungi kami</Button>
+              <Button>Contact us</Button>
             </Link>
             <Link to="/consulting">
-              <Button variant="ghost">Layanan konsultasi</Button>
+              <Button variant="ghost">Consulting services</Button>
             </Link>
           </div>
         </section>
 
         <p className="max-w-[72ch] border-t border-line pt-5 text-[12px] leading-relaxed text-ink-3">
-          Portofolio pada platform Arus bersifat simulasi. Tidak ada order
-          sungguhan yang dikirim, dan tidak ada isi situs ini yang merupakan
-          rekomendasi personal.
+          Portfolios on the Arus platform are simulated. No real orders are
+          sent, and nothing on this site is a personal recommendation.
         </p>
       </div>
     </>

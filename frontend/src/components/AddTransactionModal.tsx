@@ -9,6 +9,7 @@ import {
   type SearchResult,
   type TxnType,
 } from "../api/client";
+import { sectorLabel } from "../colors";
 import { useDebounced } from "../lib/hooks";
 import {
   digitsOnly,
@@ -600,7 +601,7 @@ export function AddTransactionModal({
                             </span>
                           ) : (
                             <span className="text-[11px] text-ink-3">
-                              {s.sector ?? ""}
+                              {sectorLabel(s.sector) ?? ""}
                             </span>
                           )}
                         </span>
