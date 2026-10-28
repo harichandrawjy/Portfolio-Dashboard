@@ -1,4 +1,4 @@
-import { Plus } from "@phosphor-icons/react";
+import { ArrowRight, Plus } from "@phosphor-icons/react";
 import { useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 
@@ -199,15 +199,18 @@ function Figure({
 }) {
   return (
     <div className="flex-1 basis-[150px] bg-bg px-3 py-3 first:pl-0">
-      <dt className="w-wide text-[10px] font-bold uppercase tracking-[0.14em] text-ink-3">
+      <dt className="w-wide text-[11px] font-bold uppercase tracking-[0.14em] text-ink-3">
         {label}
       </dt>
-      <dd className={`tnum mt-2 text-[19px] font-bold leading-none ${tone}`}>
+      {/* nowrap: a negative figure otherwise breaks after its minus sign,
+          leaving a lone "-" above the number. A flex item will not shrink
+          below its content, so the row reflows instead of overflowing. */}
+      <dd className={`tnum mt-2 whitespace-nowrap text-[19px] font-bold leading-none ${tone}`}>
         {value}
       </dd>
       {note && (
         <dd
-          className={`tnum mt-1.5 text-[11px] leading-tight ${warn ? "text-warn" : "text-ink-3"}`}
+          className={`tnum mt-1.5 text-[12px] leading-tight ${warn ? "text-warn" : "text-ink-3"}`}
         >
           {note}
         </dd>
@@ -242,16 +245,16 @@ function PortfolioCard({ row, index }: { row: Enriched; index: number }) {
     >
       <article className="flex h-full flex-col border-t-[3px] border-line-2 pt-4 transition-colors group-hover:border-accent">
         <div className="flex items-baseline justify-between gap-3">
-          <h3 className="w-wide text-[12px] font-bold uppercase leading-tight tracking-[0.12em] text-ink transition-colors group-hover:text-accent">
+          <h3 className="w-wide text-[13px] font-bold uppercase leading-tight tracking-[0.12em] text-ink transition-colors group-hover:text-accent">
             {p.name}
           </h3>
-          <span className="tnum shrink-0 text-[11px] font-medium text-ink-3">
+          <span className="tnum shrink-0 text-[12px] font-medium text-ink-3">
             {count} {count === 1 ? "holding" : "holdings"}
           </span>
         </div>
 
         {p.description && (
-          <p className="mt-1.5 line-clamp-1 text-[12px] text-ink-3">
+          <p className="mt-1.5 line-clamp-1 text-[13px] text-ink-3">
             {p.description}
           </p>
         )}
@@ -260,7 +263,7 @@ function PortfolioCard({ row, index }: { row: Enriched; index: number }) {
           {marketValue == null ? DASH : fmtRp(marketValue)}
         </p>
 
-        <div className="mt-2.5 flex items-baseline gap-2 text-[12px]">
+        <div className="mt-2.5 flex items-baseline gap-2 text-[13px]">
           {holdingsFailed ? (
             <span className="font-medium text-warn">Couldn't load this portfolio</span>
           ) : pnl == null ? (
@@ -284,7 +287,7 @@ function PortfolioCard({ row, index }: { row: Enriched; index: number }) {
         <div className="mt-auto flex items-end gap-3 pt-5">
           {curve.length >= 2 ? (
             <>
-              <span className="w-wide shrink-0 text-[10px] font-bold uppercase tracking-[0.12em] text-ink-3">
+              <span className="w-wide shrink-0 text-[11px] font-bold uppercase tracking-[0.12em] text-ink-3">
                 6&nbsp;mo
               </span>
               <div className="min-w-0 flex-1">
@@ -292,14 +295,26 @@ function PortfolioCard({ row, index }: { row: Enriched; index: number }) {
               </div>
             </>
           ) : (
-            <p className="text-[11px] text-ink-3">
+            <p className="text-[12px] text-ink-3">
               Record a transaction to see performance
             </p>
           )}
-          <span className="tnum shrink-0 text-[10px] text-ink-3">
+          <span className="tnum shrink-0 text-[11px] text-ink-3">
             since {fmtDate(p.created_at)}
           </span>
         </div>
+
+        {/* The affordance. The card used to say it was a link only by turning
+            its top rule accent on hover, which nobody noticed, and which a
+            phone never shows at all. A stated action at the foot is the same
+            answer the home page gives, inverted on hover the same way. */}
+        <span className="w-wide mt-5 flex items-center justify-between gap-3 border-y border-line px-3 py-3 text-[12px] font-bold uppercase leading-none tracking-[0.12em] text-ink transition-colors duration-[180ms] group-hover:border-ink group-hover:bg-ink group-hover:text-bg">
+          Open portfolio
+          <ArrowRight
+            size={14} weight="bold" aria-hidden
+            className="transition-transform duration-[180ms] group-hover:translate-x-0.5"
+          />
+        </span>
       </article>
     </Link>
   );

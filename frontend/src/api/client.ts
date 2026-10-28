@@ -355,7 +355,9 @@ export interface Frontier {
   /** The textbook's three formulations, all read off `curve`. */
   min_risk: Selection | null;
   max_sharpe: Selection | null;
-  /** Only when a target was requested and is reachable long-only. */
+  /** Server-side only now — the client stopped requesting a target, so these
+   *  always come back null. Kept on the type because the endpoint still sends
+   *  them. */
   target: Selection | null;
   target_floor_pct: number | null;
   target_ceiling_pct: number | null;
@@ -632,12 +634,12 @@ export const api = {
 
   /** Mean-variance frontier over the portfolio's own holdings.
    *
-   *  `targetReturnPct` asks for the least-risk allocation reaching that
-   *  annualised return; the response's `target` is null when it is out of
-   *  reach without shorting. */
-  frontier: (id: string, targetReturnPct?: number, muModel: MuModel = "capm") => {
+   *  No `target_return_pct` is sent any more: the UI dropped the target-return
+   *  mode because it selected from the same monotonic curve as the risk
+   *  slider. The server still accepts the parameter, so `target` and its
+   *  floor/ceiling simply come back null. */
+  frontier: (id: string, muModel: MuModel = "capm") => {
     const q = new URLSearchParams({ mu_model: muModel });
-    if (targetReturnPct != null) q.set("target_return_pct", String(targetReturnPct));
     return request<Frontier>(`/portfolios/${id}/frontier?${q}`);
   },
 

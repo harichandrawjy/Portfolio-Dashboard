@@ -64,24 +64,10 @@ export function PortfolioDetailPage() {
   const portfolio = useAsync(() => api.getPortfolio(id), [id]);
   const holdings = useAsync(() => api.holdings(id), [id, refreshTick]);
   const allocation = useAsync(() => api.allocation(id), [id, refreshTick]);
-  // Target return for the frontier's "target" mode. Debounced into
-  // `frontierTarget` because each change refetches — the least-risk portfolio
-  // for a given return is solved on the server, not read off the curve.
-  const [targetInput, setTargetInput] = useState("");
-  const [frontierTarget, setFrontierTarget] = useState<number | undefined>();
-  useEffect(() => {
-    const n = Number(targetInput);
-    const t = setTimeout(
-      () => setFrontierTarget(targetInput.trim() && !Number.isNaN(n) ? n : undefined),
-      400,
-    );
-    return () => clearTimeout(t);
-  }, [targetInput]);
-
   const [muModel, setMuModel] = useState<MuModel>("capm");
   const frontier = useAsync(
-    () => api.frontier(id, frontierTarget, muModel),
-    [id, refreshTick, frontierTarget, muModel],
+    () => api.frontier(id, muModel),
+    [id, refreshTick, muModel],
   );
   const performance = useAsync(
     () => api.performance(id, range),
@@ -138,7 +124,7 @@ export function PortfolioDetailPage() {
       <div className="rise" style={rise(0)}>
         <Link
           to="/portfolios"
-          className="w-wide -my-1 inline-flex items-center gap-1.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-ink-3 outline-none transition-colors hover:text-accent focus-visible:ring-2 focus-visible:ring-accent"
+          className="w-wide -my-1 inline-flex items-center gap-1.5 py-1 text-[11px] font-bold uppercase tracking-[0.14em] text-ink-3 outline-none transition-colors hover:text-accent focus-visible:ring-2 focus-visible:ring-accent"
         >
           <ArrowLeft size={12} weight="bold" /> Portfolios
         </Link>
@@ -151,7 +137,7 @@ export function PortfolioDetailPage() {
               {portfolio.data?.name ?? "…"}
             </h1>
             {portfolio.data?.description && (
-              <p className="mt-2 max-w-[54ch] text-[13px] text-ink-3">
+              <p className="mt-2 max-w-[54ch] text-[14px] text-ink-3">
                 {portfolio.data.description}
               </p>
             )}
@@ -198,14 +184,14 @@ export function PortfolioDetailPage() {
       </div>
 
       {failed.length > 0 && (
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-l-[3px] border-neg bg-neg/[0.07] px-3 py-2 text-[13px] font-medium text-neg">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-l-[3px] border-neg bg-neg/[0.07] px-3 py-2 text-[14px] font-medium text-neg">
           <span>
             Couldn't load {failed.map(([name]) => name).join(", ")}. What you
             see below is incomplete.
           </span>
           <button
             onClick={retryFailed}
-            className="ml-auto px-2 py-0.5 text-[11px] font-bold uppercase tracking-[0.12em] underline underline-offset-4 outline-none transition-colors hover:bg-neg hover:text-white hover:no-underline focus-visible:ring-2 focus-visible:ring-accent"
+            className="ml-auto px-2 py-0.5 text-[12px] font-bold uppercase tracking-[0.12em] underline underline-offset-4 outline-none transition-colors hover:bg-neg hover:text-white hover:no-underline focus-visible:ring-2 focus-visible:ring-accent"
           >
             Retry
           </button>
@@ -271,8 +257,6 @@ export function PortfolioDetailPage() {
               frontier={frontier.data}
               loading={frontier.loading}
               error={frontier.error}
-              targetInput={targetInput}
-              onTargetChange={setTargetInput}
               muModel={muModel}
               onMuModelChange={setMuModel}
             />
