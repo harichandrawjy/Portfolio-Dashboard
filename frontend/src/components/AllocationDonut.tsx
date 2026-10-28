@@ -20,7 +20,7 @@ function DonutTooltip({
   if (!active || !payload?.length) return null;
   const p = payload[0].payload;
   return (
-    <div className="bg-panel px-3 py-2 text-[11px] ring-1 ring-ink">
+    <div className="bg-panel px-3 py-2 text-[12px] ring-1 ring-ink">
       <p className="font-medium text-ink">{p.label}</p>
       <p className="tnum mt-0.5 text-ink-2">
         {fmtRp(p.value)} · {fmtPct(p.pct)}
@@ -116,8 +116,8 @@ export function AllocationDonut({
             </PieChart>
           </ResponsiveContainer>
           <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-[11px] text-ink-3">Total</span>
-            <span className="tnum text-[13px] font-semibold text-ink">
+            <span className="text-[12px] text-ink-3">Total</span>
+            <span className="tnum text-[14px] font-semibold text-ink">
               {fmtRp(allocation.total_market_value)}
             </span>
           </div>
@@ -125,7 +125,7 @@ export function AllocationDonut({
 
         <ul className="mt-4 space-y-1.5">
           {slices.map((s) => (
-            <li key={s.label} className="flex items-center gap-2 text-[13px]">
+            <li key={s.label} className="flex items-center gap-2 text-[14px]">
               <span
                 className="h-2 w-2 shrink-0" style={{ background: s.color }}
               />

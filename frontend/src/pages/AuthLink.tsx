@@ -85,7 +85,7 @@ export function VerifyPage() {
       {error ? (
         <>
           <ErrorNote message={error} />
-          <p className="mt-5 text-[13px] leading-relaxed text-ink-3">
+          <p className="mt-5 text-[14px] leading-relaxed text-ink-3">
             Verification links work once and expire after 24 hours. Sign in to
             have a new one sent.
           </p>
@@ -94,7 +94,7 @@ export function VerifyPage() {
           </Button>
         </>
       ) : (
-        <p className="text-[13px] text-ink-3">Confirming your address…</p>
+        <p className="text-[14px] text-ink-3">Confirming your address…</p>
       )}
     </Shell>
   );
@@ -168,7 +168,7 @@ export function ResetPage() {
           Set password
         </Button>
       </form>
-      <p className="mt-5 text-[13px] leading-relaxed text-ink-3">
+      <p className="mt-5 text-[14px] leading-relaxed text-ink-3">
         Setting a new password signs out every device currently on the account.
       </p>
     </Shell>

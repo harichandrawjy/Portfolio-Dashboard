@@ -88,7 +88,7 @@ export function ConsultingPage() {
             {AREAS.map(([label, body], i) => (
               <div key={label} className="flex flex-col bg-bg px-5 pb-7 pt-6">
                 <span
-                  className="seq text-[11px] font-bold leading-none text-accent"
+                  className="seq text-[12px] font-bold leading-none text-accent"
                   aria-hidden
                 >
                   {String(i + 1).padStart(2, "0")}
@@ -152,7 +152,7 @@ export function ConsultingPage() {
           </div>
         </section>
 
-        <p className="max-w-[72ch] border-t border-line pt-5 text-[12px] leading-relaxed text-ink-3">
+        <p className="max-w-[72ch] border-t border-line pt-5 text-[13px] leading-relaxed text-ink-3">
           Arus also publishes a mock IDX portfolio tracker. Nothing on this site
           is a personal recommendation, and no real orders are placed through
           it.

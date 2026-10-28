@@ -93,7 +93,7 @@ export function ResearchPage() {
             seq="01"
             title="Published notes"
             right={
-              <span className="tnum text-[12px] font-medium text-ink-3">
+              <span className="tnum text-[13px] font-medium text-ink-3">
                 {REPORTS.length === 0
                   ? "None yet"
                   : `${REPORTS.length} note${REPORTS.length === 1 ? "" : "s"}`}
@@ -167,7 +167,7 @@ export function ResearchPage() {
                     />
                   )}
                   <span>
-                    <span className="w-wide flex items-baseline gap-3 text-[10px] font-bold uppercase leading-none tracking-[0.14em] text-ink-3">
+                    <span className="w-wide flex items-baseline gap-3 text-[11px] font-bold uppercase leading-none tracking-[0.14em] text-ink-3">
                       {r.kind}
                       {r.ticker && (
                         <span className="tnum tracking-[0.06em] text-accent">
@@ -188,7 +188,7 @@ export function ResearchPage() {
                     <span className="block max-w-[58ch] text-[15px] leading-relaxed text-ink-2">
                       {r.summary}
                     </span>
-                    <span className="tnum mt-3 block text-[12px] text-ink-3">
+                    <span className="tnum mt-3 block text-[13px] text-ink-3">
                       {[r.published, r.size].filter(Boolean).join(" · ")}
                     </span>
                   </span>
@@ -198,7 +198,7 @@ export function ResearchPage() {
           )}
         </section>
 
-        <p className="max-w-[72ch] border-t border-line pt-5 text-[12px] leading-relaxed text-ink-3">
+        <p className="max-w-[72ch] border-t border-line pt-5 text-[13px] leading-relaxed text-ink-3">
           Research published here is for information. It is not a personal
           recommendation, and it is not an offer to buy or sell anything.
         </p>

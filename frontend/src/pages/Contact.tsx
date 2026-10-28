@@ -202,7 +202,7 @@ export function ContactPage() {
                 <div className="flex flex-col gap-2">
                   <span
                     id="contact-topic-label"
-                    className="w-wide text-[11px] font-bold uppercase tracking-[0.12em] text-ink-2"
+                    className="w-wide text-[12px] font-bold uppercase tracking-[0.12em] text-ink-2"
                   >
                     What is this about
                   </span>
@@ -284,7 +284,7 @@ export function ContactPage() {
                   <Button type="submit" busy={busy} disabled={!canSubmit}>
                     Send message
                   </Button>
-                  <p className="max-w-[40ch] text-[12px] leading-relaxed text-ink-3">
+                  <p className="max-w-[40ch] text-[13px] leading-relaxed text-ink-3">
                     This goes to {INBOX}. We do not share it or add you to a
                     mailing list.
                   </p>
@@ -312,10 +312,10 @@ export function ContactPage() {
                 ],
               ].map(([label, body]) => (
                 <div key={label} className="bg-bg px-4 py-4">
-                  <p className="w-wide text-[10px] font-bold uppercase tracking-[0.14em] text-ink-3">
+                  <p className="w-wide text-[11px] font-bold uppercase tracking-[0.14em] text-ink-3">
                     {label}
                   </p>
-                  <p className="mt-2 text-[13px] leading-relaxed text-ink-2">
+                  <p className="mt-2 text-[14px] leading-relaxed text-ink-2">
                     {body}
                   </p>
                 </div>
@@ -355,7 +355,7 @@ export function ContactPage() {
           </div>
         </section>
 
-        <p className="text-[13px] text-ink-3">
+        <p className="text-[14px] text-ink-3">
           <Link
             to="/"
             className="font-medium text-ink underline decoration-line-2 underline-offset-4 outline-none transition-colors hover:decoration-accent focus-visible:ring-2 focus-visible:ring-accent"

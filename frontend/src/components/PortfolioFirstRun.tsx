@@ -74,7 +74,7 @@ export function PortfolioFirstRun({
       <h2 className="w-condensed text-[34px] font-extrabold uppercase leading-[0.92] tracking-[-0.02em] text-ink">
         {funded ? "Ready to trade" : "Fund this portfolio to begin"}
       </h2>
-      <p className="mt-2 max-w-[62ch] text-[13px] leading-relaxed text-ink-2">
+      <p className="mt-2 max-w-[62ch] text-[14px] leading-relaxed text-ink-2">
         {funded ? (
           <>
             <span className="tnum font-semibold text-ink">
@@ -100,21 +100,21 @@ export function PortfolioFirstRun({
             <div>
               <label
                 htmlFor="first-deposit"
-                className="w-wide text-[11px] font-bold uppercase tracking-[0.12em] text-ink-2"
+                className="w-wide text-[12px] font-bold uppercase tracking-[0.12em] text-ink-2"
               >
                 Opening deposit
               </label>
               {/* the Field idiom, hand-built because of the Rp prefix: filled
                   square, no resting border, edge only on focus */}
               <div className="mt-2 flex items-center bg-panel-2 px-3 py-2.5 ring-1 ring-transparent transition-shadow focus-within:bg-panel focus-within:ring-2 focus-within:ring-accent">
-                <span className="mr-1 text-[13px] text-ink-3">Rp</span>
+                <span className="mr-1 text-[14px] text-ink-3">Rp</span>
                 <input
                   id="first-deposit" inputMode="numeric" value={groupDigits(amount)}
                   onChange={(e) => {
                     setAmount(digitsOnly(e.target.value));
                     setError(null);
                   }}
-                  placeholder="10.000.000" className="tnum w-full min-w-0 bg-transparent text-[13px] text-ink outline-none placeholder:text-ink-3"
+                  placeholder="10.000.000" className="tnum w-full min-w-0 bg-transparent text-[14px] text-ink outline-none placeholder:text-ink-3"
                 />
               </div>
 
@@ -206,12 +206,12 @@ function Step({
   return (
     <li className="flex shrink-0 items-center gap-2.5">
       <span
-        className={`tnum flex h-6 w-6 items-center justify-center text-[11px] font-bold ${marker}`}
+        className={`tnum flex h-6 w-6 items-center justify-center text-[12px] font-bold ${marker}`}
       >
         {state === "done" ? <Check size={13} weight="bold" /> : n}
       </span>
       <span
-        className={`text-[13px] ${state === "todo" ? "text-ink-3" : "font-medium text-ink"}`}
+        className={`text-[14px] ${state === "todo" ? "text-ink-3" : "font-medium text-ink"}`}
       >
         {label}
       </span>

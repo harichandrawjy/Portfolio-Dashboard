@@ -70,7 +70,7 @@ export function TransactionsList({
   const initialLoading = loading && transactions === null;
 
   return (
-    <Panel tone="flat">
+    <Panel>
       <PanelHeader
         seq="05"
         title="Transactions" meta={
@@ -95,12 +95,12 @@ export function TransactionsList({
             {transactions!.items.map((t) => (
               <li
                 key={t.id}
-                className="flex items-center gap-3 py-2.5 text-[13px] transition-colors hover:bg-ink/[0.02]"
+                className="flex items-center gap-3 py-2.5 text-[14px] transition-colors hover:bg-ink/[0.02]"
               >
                 {/* Category, not sign: weight separates a buy from a sell so
                     green and red stay reserved for signed values. */}
                 <span
-                  className={`inline-flex w-[42px] shrink-0 justify-center py-0.5 text-[11px] font-semibold ${
+                  className={`inline-flex w-[42px] shrink-0 justify-center py-0.5 text-[12px] font-semibold ${
                     t.type === "BUY"
                       ? "bg-ink text-panel"
                       : "bg-panel text-ink-2 ring-1 ring-line-2"
@@ -109,7 +109,7 @@ export function TransactionsList({
                   {t.type === "BUY" ? "Buy" : "Sell"}
                 </span>
                 <div className="flex min-w-0 items-baseline gap-2">
-                  <span className="text-[13px] font-semibold text-ink">
+                  <span className="text-[14px] font-semibold text-ink">
                     {t.ticker}
                   </span>
                   <span className="tnum truncate text-ink-3">

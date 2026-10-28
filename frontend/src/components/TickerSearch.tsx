@@ -125,49 +125,55 @@ export function TickerSearch() {
   };
 
   return (
-    <div ref={boxRef} className="relative w-full max-w-[320px]">
-      <MagnifyingGlass
-        size={14}
-        weight="light" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-3"
-      />
-      <input
-        ref={inputRef}
-        value={q}
-        onChange={(e) => {
-          setQ(e.target.value.toUpperCase());
-          setActive(0);
-          setOpen(true);
-        }}
-        onFocus={() => setOpen(true)}
-        onKeyDown={(e) => {
-          if (e.key === "ArrowDown") {
-            e.preventDefault();
-            setActive((a) => Math.min(a + 1, rows.length - 1));
-          } else if (e.key === "ArrowUp") {
-            e.preventDefault();
-            setActive((a) => Math.max(a - 1, 0));
-          } else if (e.key === "Enter" && open && rows[activeIdx]) {
-            select(rows[activeIdx].ticker, rows[activeIdx].name);
-          } else if (e.key === "Escape") {
-            setOpen(false);
-            inputRef.current?.blur();
+    // Below sm the field shrinks to a stub between the wordmark and the exits,
+    // too narrow to list anything, so the box drops `relative` and the list
+    // anchors to the masthead row instead, spanning the screen under it. The
+    // icon and the / hint keep their own anchor so they stay inside the field.
+    <div ref={boxRef} className="w-full max-w-[320px] sm:relative">
+      <div className="relative">
+        <MagnifyingGlass
+          size={14}
+          weight="light" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-3"
+        />
+        <input
+          ref={inputRef}
+          value={q}
+          onChange={(e) => {
+            setQ(e.target.value.toUpperCase());
+            setActive(0);
+            setOpen(true);
+          }}
+          onFocus={() => setOpen(true)}
+          onKeyDown={(e) => {
+            if (e.key === "ArrowDown") {
+              e.preventDefault();
+              setActive((a) => Math.min(a + 1, rows.length - 1));
+            } else if (e.key === "ArrowUp") {
+              e.preventDefault();
+              setActive((a) => Math.max(a - 1, 0));
+            } else if (e.key === "Enter" && open && rows[activeIdx]) {
+              select(rows[activeIdx].ticker, rows[activeIdx].name);
+            } else if (e.key === "Escape") {
+              setOpen(false);
+              inputRef.current?.blur();
+            }
+          }}
+          placeholder="Search stocks" aria-label="Search stocks" role="combobox" aria-expanded={open && rows.length > 0}
+          aria-controls={listId}
+          aria-autocomplete="list" aria-activedescendant={
+            open && rows[activeIdx] ? `${listId}-${activeIdx}` : undefined
           }
-        }}
-        placeholder="Search stocks" aria-label="Search stocks" role="combobox" aria-expanded={open && rows.length > 0}
-        aria-controls={listId}
-        aria-autocomplete="list" aria-activedescendant={
-          open && rows[activeIdx] ? `${listId}-${activeIdx}` : undefined
-        }
-        className="w-full bg-panel-2 py-2 pl-8 pr-8 text-[13px] text-ink ring-1 ring-transparent placeholder:text-ink-3 outline-none transition-shadow focus:bg-panel focus:ring-2 focus:ring-accent"
-      />
-      <kbd className="pointer-events-none absolute right-2.5 top-1/2 hidden -translate-y-1/2 px-1.5 py-0.5 text-[10px] font-bold text-ink-3 ring-1 ring-line-2 sm:block">
-        /
-      </kbd>
+          className="w-full bg-panel-2 py-2 pl-8 pr-3 text-[14px] text-ink ring-1 ring-transparent placeholder:text-transparent outline-none sm:pr-8 sm:placeholder:text-ink-3 transition-shadow focus:bg-panel focus:ring-2 focus:ring-accent"
+        />
+        <kbd className="pointer-events-none absolute right-2.5 top-1/2 hidden -translate-y-1/2 px-1.5 py-0.5 text-[11px] font-bold text-ink-3 ring-1 ring-line-2 sm:block">
+          /
+        </kbd>
+      </div>
 
       {open && rows.length > 0 && (
-        <div className="absolute z-30 mt-1 w-full overflow-hidden bg-panel ring-1 ring-ink">
+        <div className="absolute inset-x-0 top-full z-30 mt-1 overflow-hidden bg-panel ring-1 ring-ink sm:inset-x-auto sm:top-auto sm:w-full">
           {!hasQuery && (
-            <p className="w-wide flex items-center gap-1.5 border-b border-line px-3 pb-2 pt-2.5 text-[10px] font-bold uppercase tracking-[0.14em] text-ink-3">
+            <p className="w-wide flex items-center gap-1.5 border-b border-line px-3 pb-2 pt-2.5 text-[11px] font-bold uppercase tracking-[0.14em] text-ink-3">
               <Clock size={11} weight="bold" /> Recent
             </p>
           )}
@@ -193,12 +199,12 @@ export function TickerSearch() {
                     (i === activeIdx ? "bg-panel-2" : "")
                   }
                 >
-                  <span className="w-wide text-[13px] font-bold uppercase tracking-[0.06em] text-ink">
+                  <span className="w-wide text-[14px] font-bold uppercase tracking-[0.06em] text-ink">
                     {r.ticker}
                   </span>
-                  <span className="truncate text-[11px] text-ink-3">{r.name}</span>
+                  <span className="truncate text-[12px] text-ink-3">{r.name}</span>
                   {r.price != null && (
-                    <span className="tnum ml-auto shrink-0 text-[11px] text-ink-2">
+                    <span className="tnum ml-auto shrink-0 text-[12px] text-ink-2">
                       {fmtRp(r.price)}
                     </span>
                   )}

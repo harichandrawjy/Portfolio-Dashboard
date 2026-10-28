@@ -112,18 +112,18 @@ typography:
     lineHeight: 1.6
   body:
     fontFamily: "Archivo Variable, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "13px"
+    fontSize: "14px"
     fontWeight: 400
     lineHeight: 1.6
   data:
     fontFamily: "Archivo Variable, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "13px"
+    fontSize: "14px"
     fontWeight: 500
     lineHeight: 1.2
     fontFeature: "tnum"
   caption:
     fontFamily: "Archivo Variable, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "12px"
+    fontSize: "13px"
     fontWeight: 700
     lineHeight: 1
     letterSpacing: "0.14em"
@@ -131,20 +131,20 @@ typography:
     textTransform: "uppercase"
   control:
     fontFamily: "Archivo Variable, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "11px"
+    fontSize: "12px"
     fontWeight: 700
     lineHeight: 1
     letterSpacing: "0.12em"
     textTransform: "uppercase"
   meta:
     fontFamily: "Archivo Variable, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "11px"
+    fontSize: "12px"
     fontWeight: 400
     lineHeight: 1.4
     fontFeature: "tnum"
   micro:
     fontFamily: "Archivo Variable, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "10px"
+    fontSize: "11px"
     fontWeight: 700
     lineHeight: 1
     letterSpacing: "0.14em"
@@ -237,7 +237,7 @@ letterspaced caption, and a rule drawn across the full measure.
 
 The single deep-sea blue is never a tint and never a link colour. It is
 either absent, or it is the whole surface — a flat poster-scale field with
-knockout type. The page's hierarchy comes from the size jump between a 10px
+knockout type. The page's hierarchy comes from the size jump between an 11px
 caption and a 92px figure, not from boxes, elevation, or colour variety.
 
 Underneath the poster the register is analytical and dense. Every figure is
@@ -404,10 +404,10 @@ because the system creates hierarchy by *jumping*, not by stepping.
 - **Stat / Stat-sm** (700, 22px / 19px, tabular): figures in a definition grid.
 - **Wordmark** (800, 19px, wide, 0.16em, uppercase): "ARUS" plus its accent
   square. Never used for anything that is not the name.
-- **Body / Data** (400–500, 13px): interface copy and table cells.
-- **Caption** (700, 12px, wide, 0.14em, uppercase): section and panel titles.
-- **Control** (700, 11px, 0.12em, uppercase): button and field labels.
-- **Micro** (700, 10px, wide, 0.14em, uppercase): column heads, eyebrow
+- **Body / Data** (400–500, 14px): interface copy and table cells.
+- **Caption** (700, 13px, wide, 0.14em, uppercase): section and panel titles.
+- **Control** (700, 12px, 0.12em, uppercase): button and field labels.
+- **Micro** (700, 11px, wide, 0.14em, uppercase): column heads, eyebrow
   labels. The floor of the scale — never body copy.
 
 ### Named Rules
@@ -536,7 +536,7 @@ or plain text. Pills belong to the previous system.
 ### Buttons
 
 - **Shape:** square, flat, no border on filled variants.
-- **Label:** 11px, weight 700, uppercase, `0.12em` tracking. A pressed label,
+- **Label:** 12px, weight 700, uppercase, `0.12em` tracking. A pressed label,
   not a soft chip.
 - **Primary:** a flat field of accent with knockout white.
 - **Ghost:** transparent with a near-black `line-2` hairline, **inverting to
@@ -569,7 +569,7 @@ Two tones, one component, no box.
 - **Raised** (default): white, opened by a `3px` near-black rule across the top.
 - **Flat:** transparent, opened by a `1px` hairline.
 - **Header** (`PanelHeader`): sequence number in accent, then the title as a
-  12px wide uppercase caption, then an optional tabular count, then an
+  13px wide uppercase caption, then an optional tabular count, then an
   optional action on the right, baseline-aligned.
 
 ### Inputs / Fields
@@ -577,7 +577,7 @@ Two tones, one component, no box.
 A filled grey square with **no resting border** — borders on every field
 would out-shout the structural rules that carry the page. The field states
 itself by fill and only draws an edge when focused: background lifts to
-paper, ring becomes 2px accent. The label above is 11px uppercase wide.
+paper, ring becomes 2px accent. The label above is 12px uppercase wide.
 
 ### Segmented control
 
@@ -603,7 +603,7 @@ to accent where the group is a binary choice (see `BinaryToggle`).
 
 ### Data table
 
-The densest surface. Column heads are 10px uppercase wide micro labels, each
+The densest surface. Column heads are 11px uppercase wide micro labels, each
 a sort toggle, sitting on a `2px` near-black rule; the active column's label
 turns accent. Rows are separated by hairlines, last row unruled, with a
 `panel-2` fill on hover. The ticker cell stacks a bold wide uppercase symbol
@@ -614,7 +614,7 @@ rather than reading as zero. Weight is a square meter on a flat track.
 ### Hero field
 
 The signature component. The page's headline number knocked out of a flat
-accent field: a 10px uppercase label at 75% white, then the figure in
+accent field: an 11px uppercase label at 75% white, then the figure in
 condensed 800 at 40–56px, then a quiet as-of line. It enters with
 `.field-wipe`, uncovering left-to-right like ink laid by a press. It is the
 one place per page where the accent takes over completely.

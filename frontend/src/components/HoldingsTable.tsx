@@ -27,7 +27,7 @@ type SortKey = "ticker" | "lots" | "cost_basis" | "last_price" | "market_value" 
 /** Tighter cell padding on a phone: every 40px of chrome is a numeric column
  *  pushed off screen. */
 const HEAD_CELL =
-  "px-3 py-2.5 sm:px-5 text-[10px] font-bold uppercase tracking-[0.12em] text-ink-3";
+  "px-3 py-2.5 sm:px-5 text-[11px] font-bold uppercase tracking-[0.12em] text-ink-3";
 
 /** The ticker stays pinned while the figures scroll under it: without it you
  *  read a row of numbers with no idea which holding they belong to. The
@@ -132,7 +132,7 @@ export function HoldingsTable({
         // page scrolls sideways on a phone — overflow-x-auto alone does not
         // stop it here.
         <div className="overflow-x-auto pb-2 [contain:paint]">
-          <table className="w-full min-w-[680px] text-[13px]">
+          <table className="w-full min-w-[680px] text-[14px]">
             <thead>
               {/* a heavy rule under the heads, the way a ruled table is set */}
               <tr className="border-b-2 border-ink text-left">
@@ -220,7 +220,7 @@ function Row({
         className={`holdings-pin ${STICKY} z-10 px-3 py-2.5 transition-colors sm:px-5`}
       >
         <Link to={`/stocks/${h.ticker}`} className="group flex flex-col">
-          <span className="w-wide text-[13px] font-bold uppercase tracking-[0.06em] text-ink transition-colors group-hover:text-accent">
+          <span className="w-wide text-[14px] font-bold uppercase tracking-[0.06em] text-ink transition-colors group-hover:text-accent">
             {h.ticker}
           </span>
           {/* Lot count first, company name after: the lot count is the figure
@@ -230,7 +230,7 @@ function Row({
               table's widest, and the 30-odd pixels it gives up here are what
               keep the whole row inside a 1024px window. The name truncates;
               the lot count never does. */}
-          <span className="max-w-[130px] truncate text-[11px] text-ink-3 sm:max-w-[205px]">
+          <span className="max-w-[130px] truncate text-[12px] text-ink-3 sm:max-w-[205px]">
             <span className="tnum">{fmtNum(h.lots)} lot</span> · {h.name}
           </span>
         </Link>
@@ -268,13 +268,13 @@ function Row({
                 style={{ width: `${Math.min(100, weight)}%` }}
               />
             </div>
-            <span className="tnum w-7 text-right text-[11px] text-ink-3">
+            <span className="tnum w-7 text-right text-[12px] text-ink-3">
               {weight.toFixed(0)}%
             </span>
           </div>
         )}
       </td>
-      <td className="px-3 py-2.5 sm:px-5 text-right text-[11px] text-ink-3">
+      <td className="px-3 py-2.5 sm:px-5 text-right text-[12px] text-ink-3">
         {h.as_of
           ? fmtAsOf(h.as_of)
           : h.last_price != null && h.last_close_date
@@ -289,13 +289,13 @@ function Row({
         <div className="flex justify-end gap-px">
           <button
             onClick={() => onTrade(h.ticker, "BUY")}
-            className="px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-[0.1em] text-ink ring-1 ring-line-2 outline-none press hover:bg-ink hover:text-bg active:bg-ink active:text-bg focus-visible:ring-2 focus-visible:ring-accent"
+            className="px-2.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.1em] text-ink ring-1 ring-line-2 outline-none press hover:bg-ink hover:text-bg active:bg-ink active:text-bg focus-visible:ring-2 focus-visible:ring-accent"
           >
             Buy
           </button>
           <button
             onClick={() => onTrade(h.ticker, "SELL")}
-            className="px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-[0.1em] text-ink ring-1 ring-line-2 outline-none press hover:bg-ink hover:text-bg active:bg-ink active:text-bg focus-visible:ring-2 focus-visible:ring-accent"
+            className="px-2.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.1em] text-ink ring-1 ring-line-2 outline-none press hover:bg-ink hover:text-bg active:bg-ink active:text-bg focus-visible:ring-2 focus-visible:ring-accent"
           >
             Sell
           </button>

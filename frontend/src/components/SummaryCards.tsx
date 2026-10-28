@@ -34,14 +34,14 @@ function Cell({
 }) {
   return (
     <div className="flex-1 basis-[190px] bg-bg px-4 py-4">
-      <dt className="w-wide text-[10px] font-bold uppercase leading-none tracking-[0.14em] text-ink-3">
+      <dt className="w-wide text-[11px] font-bold uppercase leading-none tracking-[0.14em] text-ink-3">
         {label}
       </dt>
       <dd className={`tnum mt-2.5 text-[22px] font-bold leading-none ${tone}`}>
         {value}
       </dd>
       {note && (
-        <dd className={`tnum mt-2 text-[11px] leading-tight ${noteTone}`}>{note}</dd>
+        <dd className={`tnum mt-2 text-[12px] leading-tight ${noteTone}`}>{note}</dd>
       )}
     </div>
   );
@@ -117,14 +117,14 @@ export function SummaryCards({
       {/* quick, not focal: this is seen every time a portfolio is opened,
           where the login's 750ms wipe is seen once per session */}
       <div className="field-wipe-quick flex flex-col justify-between gap-8 bg-accent px-6 py-6 text-on-accent">
-        <p className="w-wide text-[10px] font-bold uppercase leading-none tracking-[0.16em] text-on-accent/75">
+        <p className="w-wide text-[11px] font-bold uppercase leading-none tracking-[0.16em] text-on-accent/75">
           Total value
         </p>
         <div>
           <p className="tnum w-condensed break-words text-[clamp(2.5rem,5.5vw,3.5rem)] font-extrabold leading-[0.88] tracking-[-0.03em]">
             {fmtRp(totals?.market_value)}
           </p>
-          <p className="tnum mt-3 text-[11px] text-on-accent/75">
+          <p className="tnum mt-3 text-[12px] text-on-accent/75">
             {totals && totals.unpriced_holdings > 0
               ? `${totals.unpriced_holdings} holding(s) unpriced`
               : newestAsOf
@@ -147,7 +147,7 @@ export function SummaryCards({
               to cash. Total return, to the right, is the figure that does
               want the wider denominator. */}
           <div className="mt-6 border-t border-on-accent/25 pt-4">
-            <p className="w-wide text-[10px] font-bold uppercase leading-none tracking-[0.16em] text-on-accent/75">
+            <p className="w-wide text-[11px] font-bold uppercase leading-none tracking-[0.16em] text-on-accent/75">
               Invested
             </p>
             <p className="tnum mt-2 text-[22px] font-bold leading-none">

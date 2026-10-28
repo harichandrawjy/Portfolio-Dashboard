@@ -75,7 +75,7 @@ function Stepper({
     onChange(String(Math.max(min, step(current, dir))));
   return (
     <div className="flex flex-col gap-2">
-      <label htmlFor={id} className="w-wide text-[11px] font-bold uppercase tracking-[0.12em] text-ink-2">
+      <label htmlFor={id} className="w-wide text-[12px] font-bold uppercase tracking-[0.12em] text-ink-2">
         {label}
       </label>
       {/* The ring belongs to the group: drawn on the input it would be clipped
@@ -95,7 +95,7 @@ function Stepper({
           onChange={(e) =>
             onChange(grouped ? digitsOnly(e.target.value) : e.target.value)
           }
-          className="w-full border-x border-line bg-transparent py-2 text-center text-[13px] text-ink outline-none"
+          className="w-full border-x border-line bg-transparent py-2 text-center text-[14px] text-ink outline-none"
         />
         <button
           type="button" onClick={() => bump(1)}
@@ -494,7 +494,7 @@ export function AddTransactionModal({
             takes the wider track — company names need the room. */}
         <div className="grid gap-4 sm:grid-cols-[13rem_minmax(0,1fr)]">
           <div className="flex flex-col gap-2">
-            <span className="w-wide text-[11px] font-bold uppercase tracking-[0.12em] text-ink-2">Side</span>
+            <span className="w-wide text-[12px] font-bold uppercase tracking-[0.12em] text-ink-2">Side</span>
             {/* the broker convention, and the one place this system spends
                 green/red on something unsigned — recording a sell as a buy
                 is the expensive mistake this control exists to prevent */}
@@ -511,7 +511,7 @@ export function AddTransactionModal({
           {/* Ticker: universe search when buying, own holdings when selling */}
           <div ref={boxRef} className="relative">
             <label className="flex flex-col gap-2">
-              <span className="w-wide text-[11px] font-bold uppercase tracking-[0.12em] text-ink-2">
+              <span className="w-wide text-[12px] font-bold uppercase tracking-[0.12em] text-ink-2">
                 {type === "SELL" ? "Ticker (from this portfolio)" : "Ticker"}
               </span>
               <div className="relative">
@@ -542,7 +542,7 @@ export function AddTransactionModal({
                   aria-autocomplete="list" aria-activedescendant={
                     open && activeIdx >= 0 ? `${listId}-${activeIdx}` : undefined
                   }
-                  className="w-full bg-panel-2 py-2.5 pl-9 pr-3 text-[13px] text-ink ring-1 ring-transparent placeholder:text-ink-3 outline-none transition-shadow focus:bg-panel focus:ring-2 focus:ring-accent"
+                  className="w-full bg-panel-2 py-2.5 pl-9 pr-3 text-[14px] text-ink ring-1 ring-transparent placeholder:text-ink-3 outline-none transition-shadow focus:bg-panel focus:ring-2 focus:ring-accent"
                 />
               </div>
               {sellingUnheld && (
@@ -559,12 +559,12 @@ export function AddTransactionModal({
                 role="listbox" aria-label="Ticker suggestions" className="absolute z-10 mt-1 max-h-56 w-full overflow-y-auto bg-panel py-1 ring-1 ring-ink"
               >
                 {type === "SELL" && held !== null && held.length === 0 ? (
-                  <li className="px-3 py-2 text-[13px] text-ink-3">
+                  <li className="px-3 py-2 text-[14px] text-ink-3">
                     Nothing held in this portfolio yet.
                   </li>
                 ) : suggestions.length === 0 ? (
                   type === "SELL" && (
-                    <li className="px-3 py-2 text-[13px] text-ink-3">
+                    <li className="px-3 py-2 text-[14px] text-ink-3">
                       No holding matches "{ticker.trim()}".
                     </li>
                   )
@@ -584,7 +584,7 @@ export function AddTransactionModal({
                           i === activeIdx ? "bg-panel-2" : ""
                         }`}
                       >
-                        <span className="text-[13px] font-semibold text-ink">
+                        <span className="text-[14px] font-semibold text-ink">
                           {s.ticker}
                         </span>
                         <span className="truncate text-xs text-ink-3">
@@ -600,7 +600,7 @@ export function AddTransactionModal({
                               {fmtRp(s.last_price)}
                             </span>
                           ) : (
-                            <span className="text-[11px] text-ink-3">
+                            <span className="text-[12px] text-ink-3">
                               {sectorLabel(s.sector) ?? ""}
                             </span>
                           )}
@@ -623,9 +623,9 @@ export function AddTransactionModal({
         )}
         {type === "BUY" && portfolioState !== null && (
           <div className="flex items-baseline justify-between bg-panel-2 px-3 py-2">
-            <span className="text-[13px] text-ink-2">Cash available</span>
+            <span className="text-[14px] text-ink-2">Cash available</span>
             <span
-              className={`tnum text-[13px] font-semibold ${cashBalance > 0 ? "text-ink" : "text-neg"}`}
+              className={`tnum text-[14px] font-semibold ${cashBalance > 0 ? "text-ink" : "text-neg"}`}
             >
               {fmtRp(cashBalance)}
             </span>
@@ -724,7 +724,7 @@ export function AddTransactionModal({
             total was previously a row above the buttons and below the fold */}
         <div className="flex flex-wrap items-end justify-between gap-4 border-t border-line pt-4">
           <div>
-            <p className="w-wide text-[10px] font-bold uppercase tracking-[0.14em] text-ink-3">
+            <p className="w-wide text-[11px] font-bold uppercase tracking-[0.14em] text-ink-3">
               {type === "BUY" ? "Total cost, incl. fee" : "Est. proceeds, after fee"}
             </p>
             <p

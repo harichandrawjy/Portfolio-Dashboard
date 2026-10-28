@@ -121,7 +121,7 @@ export function StockChart({
       layout: {
         background: { type: ColorType.Solid, color: "transparent" },
         textColor: INK_MUTED,
-        fontSize: 11,
+        fontSize: 12,
         // Archivo, like the rest of the app. JetBrains Mono was uninstalled
         // in the redesign, so this was silently falling back to whatever
         // generic monospace the OS supplies.
@@ -337,13 +337,13 @@ export function StockChart({
     <Panel>
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 pb-3 pt-3 sm:px-5">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-          <h2 className="flex items-baseline gap-3 text-[12px] font-bold uppercase leading-none tracking-[0.14em] text-ink">
+          <h2 className="flex items-baseline gap-3 text-[13px] font-bold uppercase leading-none tracking-[0.14em] text-ink">
             <span className="seq text-accent" aria-hidden>
               01
             </span>
             <span className="w-wide">Price</span>
           </h2>
-          <div className="w-wide flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] font-bold uppercase tracking-[0.12em] text-ink-3">
+          <div className="w-wide flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-bold uppercase tracking-[0.12em] text-ink-3">
             {style === "candles" ? (
               <>
                 <LegendSwatch tone="pos" label="up day" />
@@ -379,7 +379,7 @@ export function StockChart({
             onClick={onToggleIhsg}
             aria-pressed={showIhsg}
             className={
-              "px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.1em] ring-1 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-accent " +
+              "px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.1em] ring-1 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-accent " +
               (showIhsg
                 ? "bg-ink text-bg ring-ink"
                 : "text-ink-3 ring-line-2 hover:bg-ink hover:text-bg")

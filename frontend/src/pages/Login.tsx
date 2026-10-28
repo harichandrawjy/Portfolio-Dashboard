@@ -188,7 +188,7 @@ export function LoginPage() {
               />
             ))}
           </div>
-          <dl className="mt-4 grid grid-cols-3 gap-4 border-t border-on-accent/30 pt-3 text-[11px] leading-tight">
+          <dl className="mt-4 grid grid-cols-3 gap-4 border-t border-on-accent/30 pt-3 text-[12px] leading-tight">
             {[
               ["963", "IDX tickers"],
               ["5y", "daily bars"],
@@ -218,7 +218,7 @@ export function LoginPage() {
           {notice && (
             <p
               role="status"
-              className="mt-5 border-l-[3px] border-accent bg-accent/[0.07] px-3 py-2 text-[13px] leading-relaxed text-ink-2"
+              className="mt-5 border-l-[3px] border-accent bg-accent/[0.07] px-3 py-2 text-[14px] leading-relaxed text-ink-2"
             >
               {notice}
             </p>
@@ -237,7 +237,7 @@ export function LoginPage() {
                   setForgot(false);
                 }}
                 className={
-                  "flex-1 py-2.5 text-[11px] font-bold uppercase tracking-[0.12em] leading-none " +
+                  "flex-1 py-2.5 text-[12px] font-bold uppercase tracking-[0.12em] leading-none " +
                   "outline-none transition-colors focus-visible:ring-2 focus-visible:ring-accent " +
                   (mode === m
                     ? "bg-ink text-bg"
@@ -251,7 +251,7 @@ export function LoginPage() {
 
           {forgot ? (
             <form onSubmit={sendReset} className="flex flex-col gap-4">
-              <p className="text-[13px] leading-relaxed text-ink-2">
+              <p className="text-[14px] leading-relaxed text-ink-2">
                 Enter the address on the account and we will send a link to set
                 a new password.
               </p>
@@ -271,7 +271,7 @@ export function LoginPage() {
                   setForgot(false);
                   setError(null);
                 }}
-                className="w-wide self-start text-[11px] font-bold uppercase tracking-[0.12em] text-ink-3 underline underline-offset-4 outline-none hover:text-ink focus-visible:ring-2 focus-visible:ring-accent"
+                className="w-wide self-start text-[12px] font-bold uppercase tracking-[0.12em] text-ink-3 underline underline-offset-4 outline-none hover:text-ink focus-visible:ring-2 focus-visible:ring-accent"
               >
                 Back to sign in
               </button>
@@ -321,7 +321,7 @@ export function LoginPage() {
                   setNotice(null);
                   setUnverified(false);
                 }}
-                className="w-wide self-start text-[11px] font-bold uppercase tracking-[0.12em] text-ink-3 underline underline-offset-4 outline-none hover:text-ink focus-visible:ring-2 focus-visible:ring-accent"
+                className="w-wide self-start text-[12px] font-bold uppercase tracking-[0.12em] text-ink-3 underline underline-offset-4 outline-none hover:text-ink focus-visible:ring-2 focus-visible:ring-accent"
               >
                 Forgot your password?
               </button>
@@ -344,7 +344,7 @@ export function LoginPage() {
             </div>
           )}
 
-          <p className="w-wide mt-8 text-[10px] font-bold uppercase tracking-[0.14em] text-ink-3">
+          <p className="w-wide mt-8 text-[11px] font-bold uppercase tracking-[0.14em] text-ink-3">
             Mock portfolios only. No real orders are placed.
           </p>
         </div>

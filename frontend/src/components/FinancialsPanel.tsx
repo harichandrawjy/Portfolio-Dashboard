@@ -136,10 +136,10 @@ export function FinancialsPanel({
         {/* contain:paint keeps this wide table's overflow inside the scroller;
             without it the page itself scrolls sideways on a phone */}
         <div className="overflow-x-auto [contain:paint]">
-          <table className="w-full min-w-[560px] text-[13px]">
+          <table className="w-full min-w-[560px] text-[14px]">
             <thead>
               {/* the heavy rule under the heads matches the holdings table */}
-              <tr className="w-wide border-b-2 border-ink text-[10px] font-bold uppercase tracking-[0.12em] text-ink-3">
+              <tr className="w-wide border-b-2 border-ink text-[11px] font-bold uppercase tracking-[0.12em] text-ink-3">
                 <th scope="col" className="py-2 pr-4 text-left">
                   <span className="sr-only">Metric</span>
                 </th>
@@ -191,7 +191,7 @@ export function FinancialsPanel({
           {groups.map((g) => (
             <div key={g.title} className="border-t border-line pt-3">
               <p className="mb-2 text-xs font-medium text-ink-3">{g.title}</p>
-              <dl className="flex flex-col gap-1.5 text-[13px]">
+              <dl className="flex flex-col gap-1.5 text-[14px]">
                 {g.rows.map(([label, value]) => (
                   <div
                     key={label}

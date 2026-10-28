@@ -36,8 +36,8 @@ function ChartTooltip({
   const rows: Record<string, number> = {};
   for (const p of payload) rows[p.dataKey] = p.value;
   return (
-    <div className="bg-panel px-3 py-2 text-[11px] ring-1 ring-ink">
-      <p className="w-wide mb-2 text-[10px] font-bold uppercase tracking-[0.12em] text-ink">
+    <div className="bg-panel px-3 py-2 text-[12px] ring-1 ring-ink">
+      <p className="w-wide mb-2 text-[11px] font-bold uppercase tracking-[0.12em] text-ink">
         {fmtDateShort(label)}
       </p>
       <div className="flex flex-col gap-1">
@@ -68,7 +68,7 @@ function ChartTooltip({
 
 function LegendChip({ color, label, dashed }: { color: string; label: string; dashed?: boolean }) {
   return (
-    <span className="w-wide flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-ink-3">
+    <span className="w-wide flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-ink-3">
       <svg width="18" height="6" aria-hidden>
         <line
           x1="0" y1="3" x2="18" y2="3" stroke={color}
@@ -136,7 +136,7 @@ export function PerformanceChart({
           the chart still needs no separate label */}
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 pb-3 pt-3 sm:px-5">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-          <h2 className="flex items-baseline gap-3 text-[12px] font-bold uppercase leading-none tracking-[0.14em] text-ink">
+          <h2 className="flex items-baseline gap-3 text-[13px] font-bold uppercase leading-none tracking-[0.14em] text-ink">
             <span className="seq text-accent" aria-hidden>
               01
             </span>
@@ -167,13 +167,13 @@ export function PerformanceChart({
           // figure to state yet. Say what unlocks the line rather than
           // drawing a chart that cannot mean anything.
           <div className="flex flex-col items-start gap-3 px-4 py-12 sm:px-5">
-            <p className="w-wide text-[13px] font-bold uppercase tracking-[0.12em] text-ink">
+            <p className="w-wide text-[14px] font-bold uppercase tracking-[0.12em] text-ink">
               One day recorded
             </p>
-            <p className="w-wide text-[10px] font-bold uppercase leading-none tracking-[0.14em] text-ink-3">
+            <p className="w-wide text-[11px] font-bold uppercase leading-none tracking-[0.14em] text-ink-3">
               {fmtDateShort(data[0].date)}
             </p>
-            <p className="max-w-[46ch] text-[13px] leading-relaxed text-ink-2">
+            <p className="max-w-[46ch] text-[14px] leading-relaxed text-ink-2">
               A return is measured between two closes, so the line appears
               after the next one. Widen the range if this portfolio has older
               transactions.
@@ -189,13 +189,13 @@ export function PerformanceChart({
               <ReferenceLine y={0} stroke="rgb(10 12 16 / 0.32)" strokeWidth={1} />
               <XAxis
                 dataKey="date" tickFormatter={fmtDateShort}
-                stroke="transparent" tick={{ fill: token("ink-3", "#5c6373"), fontSize: 10 }}
+                stroke="transparent" tick={{ fill: token("ink-3", "#5c6373"), fontSize: 11 }}
                 tickLine={false}
                 minTickGap={48}
               />
               <YAxis
                 tickFormatter={fmtPctAxis}
-                stroke="transparent" tick={{ fill: token("ink-3", "#5c6373"), fontSize: 10 }}
+                stroke="transparent" tick={{ fill: token("ink-3", "#5c6373"), fontSize: 11 }}
                 tickLine={false}
                 width={56}
                 domain={yDomain}

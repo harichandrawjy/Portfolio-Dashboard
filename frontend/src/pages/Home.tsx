@@ -103,7 +103,7 @@ export function HomePage() {
     <>
       <section className="field-wipe overflow-hidden bg-accent text-on-accent">
         <div className="mx-auto max-w-[1200px] px-4 py-16 lg:py-24">
-          <p className="w-wide text-[10px] font-bold uppercase tracking-[0.14em] text-on-accent/70">
+          <p className="w-wide text-[11px] font-bold uppercase tracking-[0.14em] text-on-accent/70">
             Different view at its finest
           </p>
           <div className="rule-draw my-6 h-[3px] w-24 bg-on-accent lg:my-10" />
@@ -144,7 +144,7 @@ export function HomePage() {
                 className="group flex flex-col bg-bg outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent"
               >
                 <div className="flex flex-1 flex-col px-5 pb-7 pt-6">
-                  <p className="w-wide text-[10px] font-bold uppercase tracking-[0.14em] text-ink-3">
+                  <p className="w-wide text-[11px] font-bold uppercase tracking-[0.14em] text-ink-3">
                     Arus.
                   </p>
                   <h3 className="w-condensed mt-3 text-[clamp(2rem,3.6vw,2.75rem)] font-extrabold uppercase leading-[0.9] tracking-[-0.02em] text-ink transition-colors duration-[180ms] group-hover:text-accent">
@@ -156,7 +156,7 @@ export function HomePage() {
                 </div>
                 {/* Not a nested link — the cell above is the link. This is the
                     affordance, and it uses the ghost inversion. */}
-                <span className="w-wide flex items-center justify-between gap-3 border-t border-line px-5 py-4 text-[11px] font-bold uppercase leading-none tracking-[0.12em] text-ink transition-colors duration-[180ms] group-hover:bg-ink group-hover:text-bg">
+                <span className="w-wide flex items-center justify-between gap-3 border-t border-line px-5 py-4 text-[12px] font-bold uppercase leading-none tracking-[0.12em] text-ink transition-colors duration-[180ms] group-hover:bg-ink group-hover:text-bg">
                   {cta}
                   <ArrowRight size={14} weight="bold" aria-hidden />
                 </span>
@@ -200,7 +200,7 @@ export function HomePage() {
           not an edit, and it must stay one. */}
       <section className="overflow-hidden bg-accent text-on-accent">
         <div className="mx-auto max-w-[1200px] px-4 py-16 lg:py-24">
-          <div className="flex items-baseline gap-3 text-[12px] font-bold uppercase leading-none tracking-[0.14em] text-on-accent">
+          <div className="flex items-baseline gap-3 text-[13px] font-bold uppercase leading-none tracking-[0.14em] text-on-accent">
             <span className="seq text-on-accent/70" aria-hidden>
               03
             </span>
@@ -269,7 +269,7 @@ export function HomePage() {
           </div>
         </section>
 
-        <p className="max-w-[72ch] border-t border-line pt-5 text-[12px] leading-relaxed text-ink-3">
+        <p className="max-w-[72ch] border-t border-line pt-5 text-[13px] leading-relaxed text-ink-3">
           Portfolios on the Arus platform are simulated. No real orders are
           sent, and nothing on this site is a personal recommendation.
         </p>

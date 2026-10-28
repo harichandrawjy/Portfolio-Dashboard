@@ -76,6 +76,10 @@
   --font-serif: "Archivo Variable", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "Archivo Variable", ui-sans-serif, system-ui, sans-serif;
 
+  /* `text-xs` (dates, notes, helper lines) follows the ramp's 13px step
+     rather than Tailwind's 12px default. Line height stays proportional. */
+  --text-xs: 0.8125rem;
+
   /* ── Square. All of it. ───────────────────────────────────────
      Zeroing the radius scale means `rounded`, `rounded-md`, `rounded-xl`
      and friends are all flat, so a stray utility cannot reintroduce a

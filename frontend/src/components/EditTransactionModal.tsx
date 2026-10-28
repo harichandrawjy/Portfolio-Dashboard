@@ -74,8 +74,8 @@ export function EditTransactionModal({
       <div className="flex flex-col gap-4">
         {/* locked ticker */}
         <div className="flex items-center justify-between bg-panel-2 px-3 py-2.5">
-          <span className="text-[13px] text-ink-2">Ticker</span>
-          <span className="text-[13px] font-semibold text-ink">
+          <span className="text-[14px] text-ink-2">Ticker</span>
+          <span className="text-[14px] font-semibold text-ink">
             {transaction.ticker}
           </span>
         </div>
@@ -117,7 +117,7 @@ export function EditTransactionModal({
         />
 
         <div className="flex items-baseline justify-between border-t border-line pt-3">
-          <span className="text-[13px] text-ink-2">
+          <span className="text-[14px] text-ink-2">
             {type === "BUY" ? "Total cost, incl. fee" : "Est. proceeds, after fee"}
           </span>
           <span className="tnum text-[22px] font-bold text-ink">

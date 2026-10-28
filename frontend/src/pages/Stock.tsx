@@ -138,7 +138,7 @@ export function StockPage() {
   return (
     <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-5 px-4 py-8">
       <Link
-        to="/portfolios" className="w-wide -my-1 flex w-max items-center gap-1.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-ink-3 outline-none transition-colors hover:text-accent focus-visible:ring-2 focus-visible:ring-accent"
+        to="/portfolios" className="w-wide -my-1 flex w-max items-center gap-1.5 py-1 text-[11px] font-bold uppercase tracking-[0.14em] text-ink-3 outline-none transition-colors hover:text-accent focus-visible:ring-2 focus-visible:ring-accent"
       >
         <ArrowLeft size={12} weight="bold" /> Portfolios
       </Link>
@@ -178,13 +178,13 @@ export function StockPage() {
                   {d.ticker}
                 </h1>
                 {!d.is_active && (
-                  <span className="bg-neg px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-white">
+                  <span className="bg-neg px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.1em] text-white">
                     Delisted
                   </span>
                 )}
               </div>
-              <p className="mt-2 text-[13px] text-ink-2">{d.name}</p>
-              <p className="w-wide mt-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-ink-3">
+              <p className="mt-2 text-[14px] text-ink-2">{d.name}</p>
+              <p className="w-wide mt-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-ink-3">
                 {[sectorLabel(d.sector), d.board ? `${boardLabel(d.board)} board` : null]
                   .filter(Boolean)
                   .join(" · ") || DASH}
@@ -197,7 +197,7 @@ export function StockPage() {
               <p className="tnum w-condensed text-[clamp(2.5rem,5.5vw,3.5rem)] font-extrabold leading-[0.88] tracking-[-0.03em] text-ink">
                 {fmtRp(displayPrice)}
               </p>
-              <p className="mt-2 flex flex-wrap items-center gap-2 text-[13px] sm:justify-end">
+              <p className="mt-2 flex flex-wrap items-center gap-2 text-[14px] sm:justify-end">
                 {/* no quote means no change to show — a bare em-dash in front
                     of "close, 30 Jul" just reads as stray punctuation */}
                 {/* Both of these belong to the QUOTE, so both are gated on
@@ -227,10 +227,10 @@ export function StockPage() {
             <Panel>
               <div className="flex flex-col items-center gap-3 px-6 py-12 text-center">
                 <CloudArrowDown size={28} weight="light" className="text-accent" />
-                <p className="text-[13px] font-medium text-ink">
+                <p className="text-[14px] font-medium text-ink">
                   Fetching five years of daily history for {d.ticker}
                 </p>
-                <p className="max-w-[42ch] text-[13px] leading-relaxed text-ink-3">
+                <p className="max-w-[42ch] text-[14px] leading-relaxed text-ink-3">
                   First visit to this ticker. Prices are loading in the
                   background; the chart and statistics appear here in a few
                   seconds.
@@ -358,9 +358,9 @@ function StatsPanel({
               const v = stats[key] as number | null;
               return (
                 <div key={key} className="px-2 py-3 text-center">
-                  <p className="text-[11px] text-ink-3">{label}</p>
+                  <p className="text-[12px] text-ink-3">{label}</p>
                   <p
-                    className={`tnum mt-1 text-[13px] font-medium ${signClass(v)}`}
+                    className={`tnum mt-1 text-[14px] font-medium ${signClass(v)}`}
                   >
                     {fmtPct(v, true)}
                   </p>
@@ -369,7 +369,7 @@ function StatsPanel({
             })}
           </div>
 
-          <dl className="mt-4 grid grid-cols-1 gap-x-8 gap-y-2 text-[13px] sm:grid-cols-2">
+          <dl className="mt-4 grid grid-cols-1 gap-x-8 gap-y-2 text-[14px] sm:grid-cols-2">
             <StatRow
               label="52-week range" value={
                 stats.low_52w != null && stats.high_52w != null
@@ -455,11 +455,11 @@ function PositionPanel({
           <div key={p.portfolio_id}>
             <Link
               to={`/portfolios/${p.portfolio_id}`}
-              className="-my-1.5 inline-block py-1.5 text-[13px] font-medium text-ink outline-none transition-colors hover:text-accent focus-visible:ring-2 focus-visible:ring-accent"
+              className="-my-1.5 inline-block py-1.5 text-[14px] font-medium text-ink outline-none transition-colors hover:text-accent focus-visible:ring-2 focus-visible:ring-accent"
             >
               {p.portfolio_name}
             </Link>
-            <dl className="mt-2 flex flex-col gap-1.5 text-[13px]">
+            <dl className="mt-2 flex flex-col gap-1.5 text-[14px]">
               <PosRow label="Lots held" value={String(p.lots)} />
               <PosRow
                 label="Avg cost" value={fmtRp(Math.round(p.avg_cost_per_share))}
@@ -520,7 +520,7 @@ function FundamentalsPanel({
       <Panel tone="flat">
         <PanelHeader seq="04" title="Fundamentals" />
         <div className="px-5 pb-5">
-          <p className="text-[13px] leading-relaxed text-ink-3">
+          <p className="text-[14px] leading-relaxed text-ink-3">
             Not fetched yet. Fundamentals load on a ticker's first visit and
             refresh weekly; Yahoo's coverage of IDX names is patchy, so some
             fields may stay empty.
@@ -648,7 +648,7 @@ function FundamentalsPanel({
           {groups.map((g) => (
             <div key={g.title} className="border-t border-line pt-3">
               <p className="mb-2 text-xs font-medium text-ink-3">{g.title}</p>
-              <dl className="flex flex-col gap-1.5 text-[13px]">
+              <dl className="flex flex-col gap-1.5 text-[14px]">
                 {g.rows.map(([label, value]) => (
                   <PosRow key={label} label={label} value={value} />
                 ))}

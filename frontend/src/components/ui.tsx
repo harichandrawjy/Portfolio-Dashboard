@@ -61,7 +61,7 @@ export function PanelHeader({
 }) {
   return (
     <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2 px-4 pb-3 pt-3 sm:px-5">
-      <h2 className="flex items-baseline gap-3 text-[12px] font-bold uppercase leading-none tracking-[0.14em] text-ink">
+      <h2 className="flex items-baseline gap-3 text-[13px] font-bold uppercase leading-none tracking-[0.14em] text-ink">
         {seq && (
           <span className="seq text-accent" aria-hidden>
             {seq}
@@ -69,7 +69,7 @@ export function PanelHeader({
         )}
         <span className="w-wide">{title}</span>
         {meta && (
-          <span className="tnum text-[12px] font-medium tracking-normal text-ink-3 normal-case">
+          <span className="tnum text-[13px] font-medium tracking-normal text-ink-3 normal-case">
             {meta}
           </span>
         )}
@@ -98,7 +98,7 @@ export function SectionHead({
   return (
     <div className={className}>
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2">
-        <h2 className="flex items-baseline gap-3 text-[12px] font-bold uppercase leading-none tracking-[0.14em] text-ink">
+        <h2 className="flex items-baseline gap-3 text-[13px] font-bold uppercase leading-none tracking-[0.14em] text-ink">
           <span className="seq text-accent" aria-hidden>
             {seq}
           </span>
@@ -153,7 +153,7 @@ export function Colophon() {
             <div key={l}>
               <dt className="sr-only">{l}</dt>
               <dd className="tnum text-[19px] font-bold leading-none">{v}</dd>
-              <dd className="w-wide mt-2 text-[10px] font-bold uppercase tracking-[0.14em] text-on-accent/70">
+              <dd className="w-wide mt-2 text-[11px] font-bold uppercase tracking-[0.14em] text-on-accent/70">
                 {l}
               </dd>
             </div>
@@ -167,7 +167,7 @@ export function Colophon() {
             hard way the segmented control does. */}
         <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-6 border-t border-on-accent/25 py-8">
           <div className="min-w-0">
-            <p className="w-wide text-[10px] font-bold uppercase tracking-[0.14em] text-on-accent/70">
+            <p className="w-wide text-[11px] font-bold uppercase tracking-[0.14em] text-on-accent/70">
               Consulting · Market research
             </p>
             <a
@@ -182,7 +182,7 @@ export function Colophon() {
           </Link>
         </div>
 
-        <p className="w-wide max-w-[52ch] border-t border-on-accent/25 pt-5 text-[11px] font-bold uppercase leading-relaxed tracking-[0.12em] text-on-accent/70">
+        <p className="w-wide max-w-[52ch] border-t border-on-accent/25 pt-5 text-[12px] font-bold uppercase leading-relaxed tracking-[0.12em] text-on-accent/70">
           Mock portfolios only. No real orders are placed.
         </p>
 
@@ -194,7 +194,7 @@ export function Colophon() {
             app/sync/universe.py, which reads from a committed snapshot.
             SNAPSHOT_ACCESSED below is the date that snapshot was taken; update
             it whenever it is regenerated. */}
-        <p className="max-w-[64ch] pt-3 text-[11px] leading-relaxed text-on-accent/70">
+        <p className="max-w-[64ch] pt-3 text-[12px] leading-relaxed text-on-accent/70">
           Listed-company data sourced from the Indonesia Stock Exchange (IDX),
           accessed {SNAPSHOT_ACCESSED}. Prices and fundamentals via Yahoo
           Finance, delayed. Not investment advice.
@@ -252,7 +252,7 @@ export function Button({
   const base =
     // taller on a phone, where this is a thumb target rather than a cursor one
     "inline-flex items-center justify-center gap-2 px-4 py-3 sm:py-2.5 " +
-    "text-[11px] font-bold uppercase tracking-[0.12em] leading-none " +
+    "text-[12px] font-bold uppercase tracking-[0.12em] leading-none " +
     // `press` carries both layers of press feedback — see styles.css. The
     // `active:` colours below are what acknowledge a tap on touch, where
     // there is no hover state to have already fired.
@@ -311,12 +311,12 @@ type FieldProps = InputHTMLAttributes<HTMLInputElement> & {
 export function Field({ label, hint, error, className = "", ...rest }: FieldProps) {
   return (
     <label className="flex flex-col gap-2">
-      <span className="w-wide text-[11px] font-bold uppercase tracking-[0.12em] text-ink-2">
+      <span className="w-wide text-[12px] font-bold uppercase tracking-[0.12em] text-ink-2">
         {label}
       </span>
       <input
         className={
-          "bg-panel-2 px-3 py-2.5 text-[13px] text-ink ring-1 ring-transparent " +
+          "bg-panel-2 px-3 py-2.5 text-[14px] text-ink ring-1 ring-transparent " +
           "placeholder:text-ink-3 outline-none transition-shadow " +
           "focus:bg-panel focus:ring-2 focus:ring-accent " +
           className
@@ -354,12 +354,12 @@ export function TextArea({
 }: TextAreaProps) {
   return (
     <label className="flex flex-col gap-2">
-      <span className="w-wide text-[11px] font-bold uppercase tracking-[0.12em] text-ink-2">
+      <span className="w-wide text-[12px] font-bold uppercase tracking-[0.12em] text-ink-2">
         {label}
       </span>
       <textarea
         className={
-          "resize-y bg-panel-2 px-3 py-2.5 text-[13px] leading-relaxed text-ink " +
+          "resize-y bg-panel-2 px-3 py-2.5 text-[14px] leading-relaxed text-ink " +
           "ring-1 ring-transparent placeholder:text-ink-3 outline-none " +
           "transition-shadow focus:bg-panel focus:ring-2 focus:ring-accent " +
           className
@@ -402,7 +402,7 @@ export function Segmented<T extends string>({
           type="button" role="radio" aria-checked={o.value === value}
           onClick={() => onChange(o.value)}
           className={
-            "px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.1em] leading-none " +
+            "px-3 py-1.5 text-[12px] font-bold uppercase tracking-[0.1em] leading-none " +
             "outline-none transition-colors focus-visible:ring-2 focus-visible:ring-accent " +
             (o.value === value
               ? "bg-ink text-bg"
@@ -458,7 +458,7 @@ export function BinaryToggle<T extends string>({
             type="button" role="radio" aria-checked={on}
             onClick={() => onChange(o.value)}
             className={
-              "py-2.5 text-[11px] font-bold uppercase tracking-[0.12em] leading-none " +
+              "py-2.5 text-[12px] font-bold uppercase tracking-[0.12em] leading-none " +
               "outline-none transition-colors " +
               "focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-panel " +
               (on
@@ -547,7 +547,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
           {toasts.map((t) => (
             <div
               key={t.id}
-              className={`${t.exiting ? "toast-exit" : "toast-enter"} pointer-events-auto flex w-full max-w-[min(30rem,100%)] items-start gap-3 bg-ink px-4 py-3 text-[13px] leading-relaxed text-bg`}
+              className={`${t.exiting ? "toast-exit" : "toast-enter"} pointer-events-auto flex w-full max-w-[min(30rem,100%)] items-start gap-3 bg-ink px-4 py-3 text-[14px] leading-relaxed text-bg`}
             >
               {/* a solid accent mark, never a green tick: green means the sign
                   of a value in this system */}
@@ -597,7 +597,7 @@ export function WhatIsThis({
       <button
         type="button" aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
-        className="-my-1 py-1 text-[11px] font-bold uppercase tracking-[0.1em] text-ink-3 underline decoration-line-2 underline-offset-4 outline-none transition-colors hover:text-ink focus-visible:ring-2 focus-visible:ring-accent"
+        className="-my-1 py-1 text-[12px] font-bold uppercase tracking-[0.1em] text-ink-3 underline decoration-line-2 underline-offset-4 outline-none transition-colors hover:text-ink focus-visible:ring-2 focus-visible:ring-accent"
       >
         {open ? "Hide" : "What these mean"}
         <span className="sr-only"> — {label}</span>
@@ -635,10 +635,10 @@ export function EmptyState({
   return (
     <div className="flex flex-col items-start gap-3 px-4 py-12 sm:px-5">
       {icon && <div className="text-accent">{icon}</div>}
-      <p className="w-wide text-[13px] font-bold uppercase tracking-[0.12em] text-ink">
+      <p className="w-wide text-[14px] font-bold uppercase tracking-[0.12em] text-ink">
         {title}
       </p>
-      <p className="max-w-[46ch] text-[13px] leading-relaxed text-ink-2">{body}</p>
+      <p className="max-w-[46ch] text-[14px] leading-relaxed text-ink-2">{body}</p>
       {action && <div className="mt-1">{action}</div>}
     </div>
   );
@@ -647,7 +647,7 @@ export function EmptyState({
 export function ErrorNote({ message }: { message: string }) {
   return (
     <div
-      role="alert" className="border-l-[3px] border-neg bg-neg/[0.07] px-3 py-2 text-[13px] font-medium text-neg"
+      role="alert" className="border-l-[3px] border-neg bg-neg/[0.07] px-3 py-2 text-[14px] font-medium text-neg"
     >
       {message}
     </div>
@@ -760,7 +760,7 @@ export function Modal({
         {/* the dialog states itself with an inverted ink bar, the one place
             the system uses a solid black field as a header */}
         <div className="flex items-center justify-between gap-3 bg-ink px-4 py-3 sm:px-5">
-          <h2 className="w-wide text-[12px] font-bold uppercase tracking-[0.14em] text-bg">
+          <h2 className="w-wide text-[13px] font-bold uppercase tracking-[0.14em] text-bg">
             {title}
           </h2>
           <button
@@ -803,7 +803,7 @@ export function ConfirmDialog({
   return (
     <Modal title={title} onClose={onClose}>
       <div className="flex flex-col gap-4">
-        <div className="text-[13px] leading-relaxed text-ink-2">{body}</div>
+        <div className="text-[14px] leading-relaxed text-ink-2">{body}</div>
         {error && <ErrorNote message={error} />}
         <div className="flex justify-end gap-2 pt-1">
           <Button variant="ghost" onClick={onClose}>

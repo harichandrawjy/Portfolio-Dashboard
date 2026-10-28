@@ -77,7 +77,7 @@ function SectionNav({ className = "" }: { className?: string }) {
           to={to}
           end={end}
           className={({ isActive }) =>
-            "flow-underline relative py-1 text-[11px] font-bold uppercase tracking-[0.12em] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-accent " +
+            "flow-underline relative py-1 text-[12px] font-bold uppercase tracking-[0.12em] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-accent " +
             (isActive ? "text-ink" : "text-ink-3 hover:text-ink")
           }
         >
@@ -100,7 +100,8 @@ function Shell({ children }: { children: React.ReactNode }) {
           uppercase, closed by a solid accent square. */}
       <header className="sticky top-0 z-30 border-b-2 border-ink bg-bg">
         <div className="mx-auto max-w-[1200px] px-4">
-          <div className="flex h-16 items-center gap-4">
+          {/* relative: the ticker search list anchors here on phones */}
+          <div className="relative flex h-16 items-center gap-4">
             {/* a colour shift alone was the only focus cue here; every other
                 control in the app gets the accent ring */}
             <Link
@@ -132,26 +133,31 @@ function Shell({ children }: { children: React.ReactNode }) {
                   chrome. Top-right is where people look for it. */}
               <Link
                 to="/contact"
-                className="px-2.5 py-2 text-[11px] font-bold uppercase tracking-[0.12em] text-ink outline-none transition-colors hover:bg-ink hover:text-bg focus-visible:ring-2 focus-visible:ring-accent"
+                className="px-2.5 py-2 text-[12px] font-bold uppercase tracking-[0.12em] text-ink outline-none transition-colors hover:bg-ink hover:text-bg focus-visible:ring-2 focus-visible:ring-accent"
               >
                 Contact
               </Link>
               {user ? (
                 <>
-                  <span className="tnum hidden text-[11px] uppercase tracking-[0.1em] text-ink-3 sm:inline">
+                  <span className="tnum hidden text-[12px] uppercase tracking-[0.1em] text-ink-3 sm:inline">
                     {user.display_name || user.email}
                   </span>
+                  {/* Icon-only below sm: the label alone pushed the row 54px
+                      past a 375px screen. The accessible name stays put. */}
                   <button
                     onClick={logout}
-                    className="flex items-center gap-1.5 px-2.5 py-2 text-[11px] font-bold uppercase tracking-[0.12em] text-ink-3 outline-none transition-colors hover:bg-ink hover:text-bg focus-visible:ring-2 focus-visible:ring-accent"
+                    aria-label="Sign out"
+                    title="Sign out"
+                    className="flex items-center gap-1.5 p-2.5 text-[12px] font-bold uppercase tracking-[0.12em] text-ink-3 outline-none transition-colors hover:bg-ink hover:text-bg focus-visible:ring-2 focus-visible:ring-accent sm:py-2"
                   >
-                    <SignOut size={14} weight="bold" /> Sign out
+                    <SignOut size={14} weight="bold" />
+                    <span className="hidden sm:inline">Sign out</span>
                   </button>
                 </>
               ) : (
                 <Link
                   to="/login"
-                  className="px-2.5 py-2 text-[11px] font-bold uppercase tracking-[0.12em] text-ink-3 outline-none transition-colors hover:bg-ink hover:text-bg focus-visible:ring-2 focus-visible:ring-accent"
+                  className="px-2.5 py-2 text-[12px] font-bold uppercase tracking-[0.12em] text-ink-3 outline-none transition-colors hover:bg-ink hover:text-bg focus-visible:ring-2 focus-visible:ring-accent"
                 >
                   Sign in
                 </Link>

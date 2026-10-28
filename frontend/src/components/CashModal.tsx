@@ -81,7 +81,7 @@ export function CashModal({
     <Modal title="Cash" onClose={onClose}>
       <div className="flex flex-col gap-4">
         <div className="flex items-baseline justify-between bg-panel-2 px-3 py-2.5">
-          <span className="text-[13px] text-ink-2">Available</span>
+          <span className="text-[14px] text-ink-2">Available</span>
           {summary === null ? (
             <Skeleton className="h-5 w-28" />
           ) : (
@@ -169,10 +169,10 @@ export function CashModal({
 
         {summary !== null && summary.flows.length > 0 && (
           <div className="border-t border-line pt-3">
-            <p className="mb-2 text-[13px] font-medium text-ink-2">Recent</p>
+            <p className="mb-2 text-[14px] font-medium text-ink-2">Recent</p>
             <ul className="max-h-40 space-y-1.5 overflow-y-auto">
               {summary.flows.map((f) => (
-                <li key={f.id} className="flex items-center gap-3 text-[13px]">
+                <li key={f.id} className="flex items-center gap-3 text-[14px]">
                   {/* the label names the kind; the colour belongs to the
                       signed amount, which is what green and red mean here */}
                   <span className="w-16 shrink-0 text-xs font-medium text-ink-2">
