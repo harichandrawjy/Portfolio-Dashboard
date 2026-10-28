@@ -49,6 +49,10 @@ interface Report {
   href: string;
   /** File type and size, shown so a reader on a phone knows what a tap costs. */
   size?: string;
+  /** The report's first page, rendered small, under /research. Its first
+   *  page, not a competition or sponsor cover: what a reader should see is
+   *  the call and the company, not someone else's branding. */
+  thumbnail?: string;
   summary: string;
 }
 
@@ -60,7 +64,8 @@ const REPORTS: Report[] = [
     title: "Priced for the trough, paid through the cycle",
     published: "Published 28 Oct 2026",
     href: "/research/jpfa-2026.pdf",
-    size: "PDF, 22 MB",
+    size: "PDF, 6 MB",
+    thumbnail: "/research/jpfa-2026.webp",
     summary:
       "Initiating coverage with a BUY and a target price of Rp 2.770, 23,1% above the Rp 2.250 close on 11 September 2026. The target blends a free-cash-flow DCF (70%) with five listed poultry peers (30%). The case rests on JPFA staying profitable through the poultry trough, turning from a livebird seller into a food company, and still being priced by the market for the old cycle. Written by team PIRANHUY for the ERC 2026 equity research competition.",
   },
@@ -138,8 +143,29 @@ export function ResearchPage() {
                   {...(r.href.endsWith(".pdf")
                     ? { target: "_blank", rel: "noopener" }
                     : {})}
-                  className="group grid items-baseline gap-x-8 gap-y-3 bg-bg px-5 py-6 outline-none transition-colors duration-[180ms] hover:bg-panel-2 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]"
+                  className={
+                    "group grid items-start gap-x-8 gap-y-5 bg-bg px-5 py-6 outline-none transition-colors duration-[180ms] hover:bg-panel-2 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent " +
+                    (r.thumbnail
+                      ? "sm:grid-cols-[auto_minmax(0,1fr)] lg:grid-cols-[auto_minmax(0,0.9fr)_minmax(0,1.1fr)]"
+                      : "lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]")
+                  }
                 >
+                  {/* The page as a printed sheet: square corners, a hairline
+                      edge so its white margin does not melt into the ground,
+                      and no shadow, because nothing in this system floats.
+                      Width and height are set so the row does not jump when
+                      the image arrives. */}
+                  {r.thumbnail && (
+                    <img
+                      src={r.thumbnail}
+                      alt=""
+                      width={480}
+                      height={679}
+                      loading="lazy"
+                      decoding="async"
+                      className="w-[120px] ring-1 ring-line transition-[box-shadow] duration-[180ms] group-hover:ring-ink sm:w-[140px] sm:row-span-2 lg:row-span-1"
+                    />
+                  )}
                   <span>
                     <span className="w-wide flex items-baseline gap-3 text-[10px] font-bold uppercase leading-none tracking-[0.14em] text-ink-3">
                       {r.kind}
