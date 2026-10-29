@@ -8,8 +8,9 @@ keeping it presentable meant re-seeding on a cron.
 Each visitor now gets a private clone. What makes that affordable is that the
 expensive half of the demo is already global: `securities`, `price_history`,
 `latest_quotes` and `fundamentals` are shared by every user, so minting a
-visitor costs one user row, one portfolio, one cash flow and a dozen
-transactions — roughly sixteen rows, no network, no price backfill.
+visitor costs one user row plus the template's own ledger copied across —
+three portfolios, three cash flows and a couple of dozen transactions, around
+thirty rows in two queries, with no network and no price backfill.
 
 The clone COPIES the template's rows rather than replaying `seed_demo`'s
 SCRIPT. Transactions already carry `price_per_share`, so copying needs no
@@ -31,15 +32,31 @@ from app.models import CashFlow, Portfolio, Transaction, User
 # clones are cut from, and its password is deliberately unusable (below).
 TEMPLATE_EMAIL = "demo@arus.id"
 
-# The portfolio cloned for each visitor, matched BY NAME.
+# The portfolios cloned for each visitor, matched BY NAME.
 #
 # Not "the template account's oldest portfolio", which was the first attempt
-# and is wrong the moment that account owns more than one — a dev database
-# where somebody once clicked "new portfolio" while signed in as the demo
-# hands every visitor a copy of whichever one happened to be created first.
-# The name is what `seed_demo` writes and what it checks for on re-runs, so
-# it is the only stable handle on the intended portfolio.
-TEMPLATE_PORTFOLIO_NAME = "Blue Chips (demo)"
+# and is wrong the moment that account owns more than one. And deliberately
+# NOT "every portfolio the template account owns" either, now that it owns
+# several — that has the same failure in a new form: a dev database where
+# somebody once clicked "new portfolio" while signed in as the demo would
+# hand the stray to every visitor from then on.
+#
+# An explicit list is the only stable handle. `seed_demo` writes exactly these
+# names and checks for exactly these names, so the two cannot drift, and
+# anything else sitting on the template account is ignored rather than shipped.
+#
+# ORDER IS THE ORDER VISITORS SEE. The flagship stays first: it is what the
+# README and the screenshots point at.
+TEMPLATE_PORTFOLIO_NAMES: tuple[str, ...] = (
+    "Blue Chips (demo)",
+    "Defensive Income (demo)",
+    "Concentrated Bet (demo)",
+)
+
+# The flagship under its own name, because callers that want *the* demo
+# portfolio — the tests, anything written before there were three — mean this
+# one specifically rather than whichever comes back first.
+TEMPLATE_PORTFOLIO_NAME = TEMPLATE_PORTFOLIO_NAMES[0]
 
 # Addresses for minted visitors.
 #
@@ -76,17 +93,26 @@ class DemoUnavailable(RuntimeError):
     """No template to clone — `seed_demo` has not run on this database."""
 
 
-async def _template_portfolio(session: AsyncSession) -> Portfolio | None:
-    """The portfolio every demo visitor is given a copy of."""
-    return await session.scalar(
-        select(Portfolio)
-        .join(User, User.id == Portfolio.user_id)
-        .where(
-            User.email == TEMPLATE_EMAIL,
-            Portfolio.name == TEMPLATE_PORTFOLIO_NAME,
+async def _template_portfolios(session: AsyncSession) -> list[Portfolio]:
+    """Every portfolio a demo visitor is given a copy of, in display order.
+
+    Returns whatever subset actually exists. A database seeded before the
+    extra portfolios were written still holds only the flagship, and that is
+    a working demo rather than an error — it simply gains the rest the next
+    time `seed_demo` runs. Only an empty result means "not seeded".
+    """
+    rows = (
+        await session.scalars(
+            select(Portfolio)
+            .join(User, User.id == Portfolio.user_id)
+            .where(
+                User.email == TEMPLATE_EMAIL,
+                Portfolio.name.in_(TEMPLATE_PORTFOLIO_NAMES),
+            )
         )
-        .limit(1)
-    )
+    ).all()
+    rank = {name: i for i, name in enumerate(TEMPLATE_PORTFOLIO_NAMES)}
+    return sorted(rows, key=lambda p: rank[p.name])
 
 
 async def mint_demo_user(session: AsyncSession) -> User:
@@ -95,8 +121,8 @@ async def mint_demo_user(session: AsyncSession) -> User:
     Does NOT commit — the caller owns the transaction, so a failure partway
     through leaves no half-built visitor behind.
     """
-    template = await _template_portfolio(session)
-    if template is None:
+    templates = await _template_portfolios(session)
+    if not templates:
         raise DemoUnavailable(
             "No demo template on this database; run `python -m app.seed_demo`."
         )
@@ -108,32 +134,44 @@ async def mint_demo_user(session: AsyncSession) -> User:
         is_demo=True,
     )
     session.add(user)
-    await session.flush()  # need user.id for the portfolio
+    await session.flush()  # need user.id for the portfolios
 
-    portfolio = Portfolio(
-        user_id=user.id,
-        name=template.name,
-        description=template.description,
-    )
-    session.add(portfolio)
-    await session.flush()  # need portfolio.id for the children
+    # new portfolio id, keyed by the template id its rows must be copied from
+    clone_of: dict[uuid.UUID, uuid.UUID] = {}
+    for template in templates:
+        portfolio = Portfolio(
+            user_id=user.id,
+            name=template.name,
+            description=template.description,
+        )
+        session.add(portfolio)
+        await session.flush()  # need portfolio.id for the children
+        clone_of[template.id] = portfolio.id
 
-    # Read the template's ledger and re-add it under the new portfolio. A
-    # dozen-odd rows through the ORM rather than INSERT..SELECT: the row count
-    # is fixed and tiny, and the explicit field list is what makes it obvious
-    # at review time that `id`, `portfolio_id` and `created_at` are the only
-    # things deliberately NOT carried over.
+    # Read the templates' ledgers and re-add them under the new portfolios.
+    # ORM rows rather than INSERT..SELECT: the row count is fixed and small,
+    # and the explicit field list is what makes it obvious at review time that
+    # `id`, `portfolio_id` and `created_at` are the only things deliberately
+    # NOT carried over.
+    #
+    # Both reads are a single `in_` over every template at once, so the query
+    # count stays at two however many portfolios the demo grows to — the point
+    # of this module is that minting a visitor is cheap, and a per-portfolio
+    # loop of queries would quietly erode that.
+    #
     # `.all()` before adding: mutating the session while a result cursor from
     # it is still being consumed is asking for trouble. The row counts are
     # tiny, so materialising costs nothing.
+    template_ids = list(clone_of)
+
     flows = (
         await session.scalars(
-            select(CashFlow).where(CashFlow.portfolio_id == template.id)
+            select(CashFlow).where(CashFlow.portfolio_id.in_(template_ids))
         )
     ).all()
     session.add_all(
         CashFlow(
-            portfolio_id=portfolio.id,
+            portfolio_id=clone_of[flow.portfolio_id],
             type=flow.type,
             amount=flow.amount,
             occurred_at=flow.occurred_at,
@@ -144,12 +182,12 @@ async def mint_demo_user(session: AsyncSession) -> User:
 
     txns = (
         await session.scalars(
-            select(Transaction).where(Transaction.portfolio_id == template.id)
+            select(Transaction).where(Transaction.portfolio_id.in_(template_ids))
         )
     ).all()
     session.add_all(
         Transaction(
-            portfolio_id=portfolio.id,
+            portfolio_id=clone_of[txn.portfolio_id],
             security_id=txn.security_id,
             type=txn.type,
             shares=txn.shares,
