@@ -1,6 +1,14 @@
 import { SignOut } from "@phosphor-icons/react";
-import { Suspense, lazy } from "react";
-import { Link, NavLink, Navigate, Route, Routes } from "react-router-dom";
+import { Suspense, lazy, useEffect } from "react";
+import {
+  Link,
+  NavLink,
+  Navigate,
+  Route,
+  Routes,
+  useLocation,
+  useNavigationType,
+} from "react-router-dom";
 
 import { RequireAuth, useAuth } from "./auth";
 import { TickerSearch } from "./components/TickerSearch";
@@ -177,9 +185,45 @@ function Shell({ children }: { children: React.ReactNode }) {
   );
 }
 
+/**
+ * Start every new page at the top.
+ *
+ * Client-side routing does not touch the scroll position — only a real
+ * document load does — so following a link from halfway down one page landed
+ * you halfway down the next one, reading its middle. Most visible from the
+ * home page's section-01 cards, because you have to scroll to reach those
+ * before you can click them.
+ *
+ * DELIBERATELY NOT UNCONDITIONAL. A POP — the browser's back and forward
+ * buttons — is the one case where the old position is the correct one, and
+ * the browser restores it itself through `history.scrollRestoration`. Forcing
+ * the top there would throw away the reader's place every time they backed
+ * out of a page, which is a worse bug than the one this fixes.
+ *
+ * React Router ships `<ScrollRestoration />` for exactly this, but it is
+ * data-router only and this app mounts a plain BrowserRouter.
+ */
+function ScrollToTop() {
+  const { pathname, hash } = useLocation();
+  const navigationType = useNavigationType();
+
+  useEffect(() => {
+    if (navigationType === "POP") return;
+    // An anchor link asked for a specific place; it owns the position.
+    if (hash) return;
+    // Instant, never smooth. This is a change of page, not a movement within
+    // one, and animating several thousand pixels of scroll is choreography to
+    // sit through rather than feedback (DESIGN.md, Motion).
+    window.scrollTo(0, 0);
+  }, [pathname, hash, navigationType]);
+
+  return null;
+}
+
 export default function App() {
   return (
     <Suspense fallback={null}>
+      <ScrollToTop />
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/verify" element={<VerifyPage />} />
