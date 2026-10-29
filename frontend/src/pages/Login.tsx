@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 
 import { api, ApiError } from "../api/client";
 import { useAuth } from "../auth";
+import { DemoButton } from "../components/DemoButton";
 import { Button, ErrorNote, Field } from "../components/ui";
 
 type Mode = "login" | "register";
@@ -23,7 +24,7 @@ const COLUMNS = [
 ];
 
 export function LoginPage() {
-  const { login, demoLogin, register } = useAuth();
+  const { login, register } = useAuth();
   const navigate = useNavigate();
   const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
@@ -31,10 +32,6 @@ export function LoginPage() {
   const [displayName, setDisplayName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [demoBusy, setDemoBusy] = useState(false);
-  // Shown until the server says otherwise. A deployment with demo sign-in
-  // disabled answers 404, and there is no point offering it again.
-  const [demoOffered, setDemoOffered] = useState(true);
   // Three states the plain form cannot express, each the result of an action
   // whose outcome is a message rather than a navigation.
   //  - "sent"      registration succeeded; nothing more happens until the
@@ -114,23 +111,6 @@ export function LoginPage() {
       setError((err as Error).message);
     } finally {
       setLinkBusy(false);
-    }
-  };
-
-  const signInAsDemo = async () => {
-    setError(null);
-    setDemoBusy(true);
-    try {
-      await demoLogin();
-      navigate("/portfolios", { replace: true });
-    } catch (err) {
-      // 404 is not a failure to report — it is this deployment telling us it
-      // does not do demo sign-in. Retire the button rather than leaving one
-      // that can only ever error.
-      if (err instanceof ApiError && err.status === 404) setDemoOffered(false);
-      else setError((err as Error).message);
-    } finally {
-      setDemoBusy(false);
     }
   };
 
@@ -329,20 +309,17 @@ export function LoginPage() {
           </form>
           )}
 
-          {demoOffered && (
-            <div className="mt-8 border-t border-line-2 pt-6">
-              <Button
-                variant="ghost" className="w-full" busy={demoBusy}
-                onClick={signInAsDemo}
-              >
-                Explore the demo portfolio
-              </Button>
-              <p className="mt-3 text-xs leading-relaxed text-ink-3">
-                Two years of recorded IDX trades, already funded. It is your
-                own copy, so buy and sell freely. It is deleted after 24 hours.
-              </p>
-            </div>
-          )}
+          {/* The button retires itself on a 404, so there is no `demoOffered`
+              flag here any more — see components/DemoButton.tsx. */}
+          <div className="mt-8 border-t border-line-2 pt-6">
+            <DemoButton variant="ghost" className="w-full" onError={setError}>
+              Explore the demo portfolio
+            </DemoButton>
+            <p className="mt-3 text-xs leading-relaxed text-ink-3">
+              Three funded portfolios of recorded IDX trades. They are your own
+              copies, so buy and sell freely. Deleted after 24 hours.
+            </p>
+          </div>
 
           <p className="w-wide mt-8 text-[11px] font-bold uppercase tracking-[0.14em] text-ink-3">
             Mock portfolios only. No real orders are placed.

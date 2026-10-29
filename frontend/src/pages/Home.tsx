@@ -42,6 +42,7 @@ import { ArrowRight } from "@phosphor-icons/react";
 import type { CSSProperties } from "react";
 import { Link } from "react-router-dom";
 
+import { DemoButton } from "../components/DemoButton";
 import { Button, SectionHead } from "../components/ui";
 
 /** Section entry, capped by the `.rise` stagger in styles.css. */
@@ -116,14 +117,31 @@ export function HomePage() {
             miss, to find sharper insight, better opportunities and the right
             solutions.
           </p>
+          {/* THE DEMO BELONGS ABOVE THE FOLD.
+              Every affordance up here used to point at consulting — both
+              buttons, the headline and the lede — while the one thing a
+              visitor can actually DO, open a working product with real data
+              and no account, was a small bar in the middle column of section
+              01, below the fold. A masthead reading "Portfolio" next to "Sign
+              in" made it worse: it reads as an app behind a wall.
+
+              That inverts PRODUCT.md principle 5, where the seeded demo is
+              what carries a reviewer. Consulting keeps the primary button —
+              it is the business — but the demo is now beside it rather than
+              hidden under it. */}
           <div className="mt-8 flex flex-wrap gap-3">
             <Link to="/contact?topic=consulting">
               <Button variant="onAccent">Contact us</Button>
             </Link>
-            <Link to="/consulting">
-              <Button variant="onAccentGhost">Consulting services</Button>
-            </Link>
+            <DemoButton variant="onAccentGhost">Try the demo</DemoButton>
           </div>
+          {/* The sentence that does the actual work. Without it "Try the demo"
+              sits under a SIGN IN link and reads as another thing to register
+              for, which is the assumption that kept people out. */}
+          <p className="mt-4 max-w-[56ch] text-[13px] leading-relaxed text-on-accent/70">
+            The demo opens three funded IDX portfolios in one click — no
+            account, nothing to sign up for.
+          </p>
         </div>
       </section>
 
