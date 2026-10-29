@@ -26,11 +26,25 @@ from app.security import create_access_token, hash_password, verify_password
 
 router = APIRouter(tags=["auth"])
 
-# Generous for a person, restrictive for a script. A visitor might legitimately
-# want a second clean portfolio after wrecking the first; nobody needs six an
-# hour. Module-level so the budget survives across requests, which is the
-# whole point — see app/ratelimit.py on why in-process is correct here.
-demo_limiter = SlidingWindowLimiter(limit=5, window=3600)
+# Generous for a NETWORK, restrictive for a script.
+#
+# This was 5/hour, justified as "nobody needs six an hour" — true of one
+# person, and the wrong unit. `client_key` is address-based, so the budget is
+# shared by everyone behind one public IP: an office, a café, a university, a
+# conference. At five, posting the link in a team chat means the sixth person
+# to click meets an error instead of the product, which is the worst possible
+# moment to fail and exactly the audience the demo exists to carry
+# (PRODUCT.md principle 5).
+#
+# The pressure went up when the demo moved to the home page's hero as a
+# one-click CTA: clearing storage, a private window, a second device, or
+# simply returning after the 24h purge each mint a fresh account.
+#
+# Twenty is still nowhere near script territory, and the cost is bounded:
+# ~30 rows per mint, purged nightly, so the ceiling is ~14k rows a day.
+# Module-level so the budget survives across requests, which is the whole
+# point — see app/ratelimit.py on why in-process is correct here.
+demo_limiter = SlidingWindowLimiter(limit=20, window=3600)
 
 # Anything that sends mail to a typed-in address. Tighter than the demo limit
 # because the cost of abuse is someone else's inbox, not our database: without
@@ -116,7 +130,13 @@ async def create_demo_session(request: Request, session: Session) -> TokenOut:
     if not demo_limiter.allow(client_key(request)):
         raise HTTPException(
             status.HTTP_429_TOO_MANY_REQUESTS,
-            "Too many demo sessions from this address. Try again later.",
+            # Says WHOSE fault it is (the network, not you), WHEN it
+            # clears, and WHERE to go meanwhile — "try again later" answered
+            # none of the three, and the pages named here need no account at
+            # all, so the visitor is never fully turned away.
+            "This network has opened its hourly limit of demo portfolios. "
+            "It resets within the hour — meanwhile the consulting and "
+            "research pages need no account.",
         )
 
     try:

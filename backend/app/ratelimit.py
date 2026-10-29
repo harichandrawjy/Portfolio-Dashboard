@@ -34,6 +34,18 @@ class SlidingWindowLimiter:
         self._window = window
         self._hits: dict[str, deque[float]] = {}
 
+    @property
+    def limit(self) -> int:
+        """Events allowed per window. Read-only, and read by tests so they
+        assert the BEHAVIOUR rather than re-stating a number that is tuned
+        from time to time."""
+        return self._limit
+
+    @property
+    def window(self) -> float:
+        """Length of the window, in seconds."""
+        return self._window
+
     def allow(self, key: str, *, now: float | None = None) -> bool:
         """Record an event for `key` and report whether it is within budget."""
         # Monotonic, not wall-clock: an NTP correction stepping the clock

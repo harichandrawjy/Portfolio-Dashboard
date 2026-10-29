@@ -234,10 +234,16 @@ async def test_unseeded_database_reports_unavailable(client):
 
 
 async def test_rate_limit_rejects_a_flood(client, template):
-    # The limiter's budget is 5/hour; the sixth call from one caller fails.
-    codes = [(await client.post("/auth/demo")).status_code for _ in range(6)]
-    assert codes[:5] == [201] * 5
-    assert codes[5] == 429
+    # Budget read from the limiter, not restated: the number is tuned (it has
+    # already gone 5 -> 20) and a test that hardcodes it fails for the wrong
+    # reason when it moves again. What matters is that the call after the
+    # budget is spent gets a 429.
+    budget = demo_limiter.limit
+    codes = [
+        (await client.post("/auth/demo")).status_code for _ in range(budget + 1)
+    ]
+    assert codes[:budget] == [201] * budget
+    assert codes[budget] == 429
 
 
 async def test_purge_deletes_stale_demos_and_spares_everyone_else(client, template):
